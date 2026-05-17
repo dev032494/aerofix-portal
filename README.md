@@ -86,3 +86,32 @@ Make sure you have the following installed:
    ```bash
    git clone [https://github.com/yourusername/aerofix-portal.git](https://github.com/yourusername/aerofix-portal.git)
    cd aerofix-portal
+
+
+
+   ---
+
+## 🗺️ Roadmap
+
+- [x] Core AMM and IPC integration
+- [x] Digital Task Card generation
+- [ ] Offline mode with PWA support for tarmac use
+- [ ] E-Signature integration for official sign-offs
+- [ ] ERP integration for automated parts ordering
+
+---
+
+## 🤝 Contributing
+
+Contributions make the open-source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+Distributed under the MIT License. See `LICENSE` for more information.
