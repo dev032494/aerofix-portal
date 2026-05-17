@@ -1,415 +1,88 @@
 # aerofix-portal
 AeroFix Portal: The Complete Digital Workspace for Aircraft Technicians
 
+<div align="center">
+  
+  # ✈️ AeroFix Portal
+  **The Complete Digital Workspace for Aircraft Technicians**
 
-Bash
-   git clone https://github.com/yourusername/aerofix-portal.git
-Navigate into the project directory:
+  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+  [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+  [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](#)
+  [![Version](https://img.shields.io/badge/version-1.0.0-informational)](#)
 
-Bash
-cd aerofix-portal
-Install dependenciesHere is a revised version tailored for a GitHub README.md file. It uses standard repository formatting, including badges, clear technical feature breakdowns, and placeholder sections for your installation and contribution guidelines.
+  <p align="center">
+    A streamlined, all-in-one digital hub designed to simplify the daily workflow of aircraft mechanics and MRO teams by centralizing critical documentation and compliance tracking.
+  </p>
 
-✈️ AeroFix Portal
-AeroFix Portal is a streamlined, all-in-one digital workspace designed to simplify the daily workflow of aircraft mechanics, technicians, and MRO (Maintenance, Repair, and Overhaul) teams.
+</div>
 
-By centralizing critical aviation documentation and compliance tracking, this platform allows technicians to spend less time searching through paperwork and more time working on the aircraft.
+---
 
-🚀 Core Features
-📖 Maintenance Logbook
-Instantly record, track, and clear aircraft defects in a secure digital environment.
+## 📑 Table of Contents
+- [Features](#-core-features)
+- [Screenshots](#-screenshots)
+- [Tech Stack](#️-tech-stack)
+- [Getting Started](#-getting-started)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-Real-time Visibility: Track fleet status, flight hours, and Deferred Maintenance Items (MELs).
+---
 
-Shift Handovers: Ensures a smooth, documented transition of open snags between maintenance shifts.
+## 🚀 Core Features
 
-📚 Aircraft Maintenance Manual (AMM)
-Access always-up-to-date, hyperlinked maintenance procedures in seconds.
+### 📖 Maintenance Logbook
+Record, track, and clear aircraft defects in a secure digital environment. 
+- **Real-Time Visibility:** Track fleet status, flight hours, and Deferred Maintenance Items (MELs).
+- **Shift Handovers:** Ensure a smooth, documented transition of open snags between shifts.
 
-Smart Search: Quickly navigate procedures by ATA chapter.
+### 📚 Aircraft Maintenance Manual (AMM)
+Access always-up-to-date, hyperlinked maintenance procedures instantly.
+- **Smart Search:** Quickly navigate procedures by ATA chapter.
+- **Safety First:** Verify torque specifications and review critical warnings before initiating a job.
 
-Safety First: Instantly verify torque specifications and review critical safety warnings before initiating a job.
-
-⚙️ Illustrated Parts Catalog (IPC)
+### ⚙️ Illustrated Parts Catalog (IPC)
 Eliminate guesswork with interactive component mapping.
+- **Visual Identification:** View high-resolution exploded diagrams directly alongside maintenance data.
+- **Cross-Referencing:** Verify aircraft effectivity, cross-reference part numbers, and streamline parts requisition.
 
-Visual Identification: View high-resolution exploded diagrams directly alongside maintenance data.
-
-Cross-Referencing: Verify aircraft effectivity, cross-reference part numbers, and streamline parts requisition from the hangar floor.
-
-📋 Create Task Card
+### 📋 Task Card Generation
 Translate manuals into immediate, trackable action.
+- **Automated Generation:** Generate and assign custom digital task cards pulling exact data from the AMM and IPC.
+- **Compliance Tracking:** Ensure routine inspections and heavy repairs are executed, documented, and signed off precisely to spec.
 
-Automated Generation: Quickly generate and assign custom digital task cards pulling exact data and references from the AMM and IPC.
+---
 
-Compliance Tracking: Ensure every routine inspection or heavy repair is executed, documented, and signed off precisely to spec.
+## 📸 Screenshots
 
-🛠️ Tech Stack
-(Edit this section to match your actual stack)
+*(Replace these placeholders with actual screenshots of your application)*
 
-Frontend: React / TypeScript / TailwindCSS
+| Maintenance Logbook | Illustrated Parts Catalog |
+| :---: | :---: |
+| <img src="https://via.placeholder.com/400x250?text=Logbook+UI" alt="Logbook" /> | <img src="https://via.placeholder.com/400x250?text=IPC+Exploded+Diagram" alt="IPC" /> |
 
-Backend: Node.js / Express
+---
 
-Database: PostgreSQL / MongoDB
+## 🛠️ Tech Stack
 
-Authentication: OAuth 2.0 / JWT
+**Client:** React, TailwindCSS, TypeScript  
+**Server:** Node.js, Express  
+**Database:** PostgreSQL, Prisma ORM  
+**Authentication:** OAuth 2.0 / JWT  
 
-📦 Getting Started
-Prerequisites
+---
+
+## 📦 Getting Started
+
+### Prerequisites
 Make sure you have the following installed:
-
-Node.js (v16.x or later)
-
-npm or yarn
-
-Installation
-Clone the repository:
-
-Bash
-git clone https://github.com/yourusername/aerofix-portal.git
-Navigate into the project directory:
-
-Bash
-cd aerofix-portal
-Install dependencies:
-
-Bash
-npm install
-Set up your environment variables (see .env.example).
-
-Start the developmentHere is a revised version tailored for a GitHub README.md file. It uses standard repository formatting, including badges, clear technical feature breakdowns, and placeholder sections for your installation and contribution guidelines.
-
-✈️ AeroFix Portal
-AeroFix Portal is a streamlined, all-in-one digital workspace designed to simplify the daily workflow of aircraft mechanics, technicians, and MRO (Maintenance, Repair, and Overhaul) teams.
-
-By centralizing critical aviation documentation and compliance tracking, this platform allows technicians to spend less time searching through paperwork and more time working on the aircraft.
-
-🚀 Core Features
-📖 Maintenance Logbook
-Instantly record, track, and clear aircraft defects in a secure digital environment.
-
-Real-time Visibility: Track fleet status, flight hours, and Deferred Maintenance Items (MELs).
-
-Shift Handovers: Ensures a smooth, documented transition of open snags between maintenance shifts.
-
-📚 Aircraft Maintenance Manual (AMM)
-Access always-up-to-date, hyperlinked maintenance procedures in seconds.
-
-Smart Search: Quickly navigate procedures by ATA chapter.
-
-Safety First: Instantly verify torque specifications and review critical safety warnings before initiating a job.
-
-⚙️ Illustrated Parts Catalog (IPC)
-Eliminate guesswork with interactive component mapping.
-
-Visual Identification: View high-resolution exploded diagrams directly alongside maintenance data.
-
-Cross-Referencing: Verify aircraft effectivity, cross-reference part numbers, and streamline parts requisition from the hangar floor.
-
-📋 Create Task Card
-Translate manuals into immediate, trackable action.
-
-Automated Generation: Quickly generate and assign custom digital task cards pulling exact data and references from the AMM and IPC.
-
-Compliance Tracking: Ensure every routine inspection or heavy repair is executed, documented, and signed off precisely to spec.
-
-🛠️ Tech Stack
-(Edit this section to match your actual stack)
-
-Frontend: React / TypeScript / TailwindCSS
-
-Backend: Node.js / Express
-
-Database: PostgreSQL / MongoDB
-
-Authentication: OAuth 2.0 / JWT
-
-📦 Getting Started
-Prerequisites
-Make sure you have the following installed:
-
-Node.js (v16.x or later)
-
-npm or yarn
-
-Installation
-Clone the repository:
-
-Bash
-git clone https://github.com/yourusername/aerofix-portal.git
-Navigate into the project directory:
-
-Bash
-cd aerofix-portal
-Install dependencies:
-
-Bash
-npm install
-Set up your environment variables (see .env.example).
-
-Start the development server:
-
-Bash
-npm run dev
-🤝 Contributing
-Contributions are welcome! Please follow these steps:
-
-Fork the projectHere is a revised version tailored for a GitHub README.md file. It uses standard repository formatting, including badges, clear technical feature breakdowns, and placeholder sections for your installation and contribution guidelines.
-
-✈️ AeroFix Portal
-AeroFix Portal is a streamlined, all-in-one digital workspace designed to simplify the daily workflow of aircraft mechanics, technicians, and MRO (Maintenance, Repair, and Overhaul) teams.
-
-By centralizing critical aviation documentation and compliance tracking, this platform allows technicians to spend less time searching through paperwork and more time working on the aircraft.
-
-🚀 Core Features
-📖 Maintenance Logbook
-Instantly record, track, and clear aircraft defects in a secure digital environment.
-
-Real-time Visibility: Track fleet status, flight hours, and Deferred Maintenance Items (MELs).
-
-Shift Handovers: Ensures a smooth, documented transition of open snags between maintenance shifts.
-
-📚 Aircraft Maintenance Manual (AMM)
-Access always-up-to-date, hyperlinked maintenance procedures in seconds.
-
-Smart Search: Quickly navigate procedures by ATA chapter.
-
-Safety First: Instantly verify torque specifications and review critical safety warnings before initiating a job.
-
-⚙️ Illustrated Parts Catalog (IPC)
-Eliminate guesswork with interactive component mapping.
-
-Visual Identification: View high-resolution exploded diagrams directly alongside maintenance data.
-
-Cross-Referencing: Verify aircraft effectivity, cross-reference part numbers, and streamline parts requisition from the hangar floor.
-
-📋 Create Task Card
-Translate manuals into immediate, trackable action.
-
-Automated Generation: Quickly generate and assign custom digital task cards pulling exact data and references from the AMM and IPC.
-
-Compliance Tracking: Ensure every routine inspection or heavy repair is executed, documented, and signed off precisely to spec.
-
-🛠️ Tech Stack
-(Edit this section to match your actual stack)
-
-Frontend: React / TypeScript / TailwindCSS
-
-Backend: Node.js / Express
-
-Database: PostgreSQL / MongoDB
-
-Authentication: OAuth 2.0 / JWT
-
-📦 Getting Started
-Prerequisites
-Make sure you have the following installed:
-
-Node.js (v16.x or later)
-
-npm or yarn
-
-Installation
-Clone the repository:
-
-Bash
-git clone https://github.com/yourusername/aerofix-portal.git
-Navigate into the project directory:
-
-Bash
-cd aerofix-portal
-Install dependencies:
-
-Bash
-npm install
-Set up your environment variables (see .env.example).
-
-Start the development server:
-
-Bash
-npm run dev
-🤝 Contributing
-Contributions are welcome! Please follow these steps:
-
-Fork the project.
-
-Create your feature branch (git checkout -b feature/AmazingFeature).
-
-Commit your changes (git commit -m 'Add some AmazingFeature'Here is a revised version tailored for a GitHub README.md` file. It uses standard repository formatting, including badges, clear technical feature breakdowns, and placeholder sections for your installation and contribution guidelines.
-
-✈️ AeroFix Portal
-AeroFix Portal is a streamlined, all-in-one digital workspace designed to simplify the daily workflow of aircraft mechanics, technicians, and MRO (Maintenance, Repair, and Overhaul) teams.
-
-By centralizing critical aviation documentation and compliance tracking, this platform allows technicians to spend less time searching through paperwork and more time working on the aircraft.
-
-🚀 Core Features
-📖 Maintenance Logbook
-Instantly record, track, and clear aircraft defects in a secure digital environment.
-
-Real-time Visibility: Track fleet status, flight hours, and Deferred Maintenance Items (MELs).
-
-Shift Handovers: Ensures a smooth, documented transition of open snags between maintenance shifts.
-
-📚 Aircraft Maintenance Manual (AMM)
-Access always-up-to-date, hyperlinked maintenance procedures in seconds.
-
-Smart Search: Quickly navigate procedures by ATA chapter.
-
-Safety First: Instantly verify torque specifications and review critical safety warnings before initiating a job.
-
-⚙️ Illustrated Parts Catalog (IPC)
-Eliminate guesswork with interactive component mapping.
-
-Visual Identification: View high-resolution exploded diagrams directly alongside maintenance data.
-
-Cross-Referencing: Verify aircraft effectivity, cross-reference part numbers, and streamline parts requisition from the hangar floor.
-
-📋 Create Task Card
-Translate manuals into immediate, trackable action.
-
-Automated Generation: Quickly generate and assign custom digital task cards pulling exact data and references from the AMM and IPC.
-
-Compliance Tracking: Ensure every routine inspection or heavy repair is executed, documented, and signed off precisely to spec.
-
-🛠️ Tech Stack
-(Edit this section to match your actual stack)
-
-Frontend: React / TypeScript / TailwindCSS
-
-Backend: Node.js / Express
-
-Database: PostgreSQL / MongoDB
-
-Authentication: OAuth 2.0 / JWT
-
-📦 Getting Started
-Prerequisites
-Make sure you have the following installed:
-
-Node.js (v16.x or later)
-
-npm or yarn
-
-Installation
-Clone the repository:
-
-Bash
-git clone https://github.com/yourusername/aerofix-portal.git
-Navigate into the project directory:
-
-Bash
-cd aerofix-portal
-Install dependencies:
-
-Bash
-npm install
-Set up your environment variables (see .env.example).
-
-Start the development server:
-
-Bash
-npm run dev
-🤝 Contributing
-Contributions are welcome! Please follow these steps:
-
-Fork the project.
-
-Create your feature branch (git checkout -b feature/AmazingFeature).
-
-Commit your changes (git commit -m 'Add some AmazingFeature').
-
-Push to the branch (git push origin feature/AmazingFeature).
-
-Open a Pull Request.
-
-📄 License
-This project is licensed underHere is a revised version tailored for a GitHub README.md file. It uses standard repository formatting, including badges, clear technical feature breakdowns, and placeholder sections for your installation and contribution guidelines.
-
-✈️ AeroFix Portal
-AeroFix Portal is a streamlined, all-in-one digital workspace designed to simplify the daily workflow of aircraft mechanics, technicians, and MRO (Maintenance, Repair, and Overhaul) teams.
-
-By centralizing critical aviation documentation and compliance tracking, this platform allows technicians to spend less time searching through paperwork and more time working on the aircraft.
-
-🚀 Core Features
-📖 Maintenance Logbook
-Instantly record, track, and clear aircraft defects in a secure digital environment.
-
-Real-time Visibility: Track fleet status, flight hours, and Deferred Maintenance Items (MELs).
-
-Shift Handovers: Ensures a smooth, documented transition of open snags between maintenance shifts.
-
-📚 Aircraft Maintenance Manual (AMM)
-Access always-up-to-date, hyperlinked maintenance procedures in seconds.
-
-Smart Search: Quickly navigate procedures by ATA chapter.
-
-Safety First: Instantly verify torque specifications and review critical safety warnings before initiating a job.
-
-⚙️ Illustrated Parts Catalog (IPC)
-Eliminate guesswork with interactive component mapping.
-
-Visual Identification: View high-resolution exploded diagrams directly alongside maintenance data.
-
-Cross-Referencing: Verify aircraft effectivity, cross-reference part numbers, and streamline parts requisition from the hangar floor.
-
-📋 Create Task Card
-Translate manuals into immediate, trackable action.
-
-Automated Generation: Quickly generate and assign custom digital task cards pulling exact data and references from the AMM and IPC.
-
-Compliance Tracking: Ensure every routine inspection or heavy repair is executed, documented, and signed off precisely to spec.
-
-🛠️ Tech Stack
-(Edit this section to match your actual stack)
-
-Frontend: React / TypeScript / TailwindCSS
-
-Backend: Node.js / Express
-
-Database: PostgreSQL / MongoDB
-
-Authentication: OAuth 2.0 / JWT
-
-📦 Getting Started
-Prerequisites
-Make sure you have the following installed:
-
-Node.js (v16.x or later)
-
-npm or yarn
-
-Installation
-Clone the repository:
-
-Bash
-git clone https://github.com/yourusername/aerofix-portal.git
-Navigate into the project directory:
-
-Bash
-cd aerofix-portal
-Install dependencies:
-
-Bash
-npm install
-Set up your environment variables (see .env.example).
-
-Start the development server:
-
-Bash
-npm run dev
-🤝 Contributing
-Contributions are welcome! Please follow these steps:
-
-Fork the project.
-
-Create your feature branch (git checkout -b feature/AmazingFeature).
-
-Commit your changes (git commit -m 'Add some AmazingFeature').
-
-Push to the branch (git push origin feature/AmazingFeature).
-
-Open a Pull Request.
-
-📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
+- [Node.js](https://nodejs.org/) (v16.x or later)
+- npm or yarn
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/yourusername/aerofix-portal.git](https://github.com/yourusername/aerofix-portal.git)
+   cd aerofix-portal
