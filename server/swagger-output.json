@@ -1,0 +1,557 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "My Express API",
+    "description": "Automatically generated Swagger documentation for my Express application.",
+    "version": "1.0.0"
+  },
+  "host": "localhost:5000",
+  "basePath": "/",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "paths": {
+    "/api/v1/users/": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "customization",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "aircraft",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "doctypes",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "example": "any"
+                },
+                "document_type": {
+                  "example": "any"
+                },
+                "aircraft_types": {
+                  "example": "any"
+                },
+                "customization": {
+                  "example": "any"
+                },
+                "revision_number": {
+                  "example": "any"
+                },
+                "revision_date": {
+                  "example": "any"
+                },
+                "file_url": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/v1/users/{id}/history": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/users/{id}/revisions": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "revision_number": {
+                  "example": "any"
+                },
+                "revision_date": {
+                  "example": "any"
+                },
+                "file_url": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/v1/aircraft/": {
+      "get": {
+        "tags": [
+          "Aircraft Fleet Management"
+        ],
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Aircraft Fleet Management"
+        ],
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/v1/aircraft/{id}/dashboard": {
+      "get": {
+        "tags": [
+          "Aircraft Fleet Management"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/aircraft/engines": {
+      "post": {
+        "tags": [
+          "Engines"
+        ],
+        "description": "Installs an engine log record onto a target aircraft.",
+        "parameters": [
+          {
+            "name": "obj",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "aircraft_id": {
+                  "type": "number",
+                  "example": 1
+                },
+                "make_model": {
+                  "type": "string",
+                  "example": "Lycoming IO-360"
+                },
+                "serial_number": {
+                  "type": "string",
+                  "example": "L-25410-A"
+                },
+                "installed_date": {
+                  "type": "string",
+                  "example": "2024-05-12"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/v1/aircraft/logbook-entries": {
+      "post": {
+        "tags": [
+          "Logbook Entries"
+        ],
+        "description": "Appends a certified maintenance entry log onto an aircraft.",
+        "parameters": [
+          {
+            "name": "obj",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "aircraft_id": {
+                  "type": "number",
+                  "example": 1
+                },
+                "logbook_type": {
+                  "type": "string",
+                  "example": "airframe"
+                },
+                "entry_date": {
+                  "type": "string",
+                  "example": "2026-05-20"
+                },
+                "tach_time": {
+                  "type": "number",
+                  "example": 1420.3
+                },
+                "total_time": {
+                  "type": "number",
+                  "example": 3200.1
+                },
+                "mechanic_name": {
+                  "type": "string",
+                  "example": "John Doe"
+                },
+                "certificate_number": {
+                  "type": "string",
+                  "example": "AP334125M"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/v1/aircraft/inspections": {
+      "post": {
+        "tags": [
+          "Inspections"
+        ],
+        "description": "Maps an upcoming maintenance calendar task or hour limit.",
+        "parameters": [
+          {
+            "name": "obj",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "aircraft_id": {
+                  "type": "number",
+                  "example": 1
+                },
+                "inspection_type": {
+                  "type": "string",
+                  "example": "100-Hour Inspection"
+                },
+                "interval_hours": {
+                  "type": "number",
+                  "example": 100
+                },
+                "next_due_tech": {
+                  "type": "number",
+                  "example": 1520.3
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/v1/aircraft/ad-compliance": {
+      "post": {
+        "tags": [
+          "AD Compliance"
+        ],
+        "description": "Signs off a safety Airworthiness Directive verification check against an airframe.",
+        "parameters": [
+          {
+            "name": "obj",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "aircraft_id": {
+                  "type": "number",
+                  "example": 1
+                },
+                "ad_number": {
+                  "type": "string",
+                  "example": "AD 2024-12-05"
+                },
+                "subject": {
+                  "type": "string",
+                  "example": "Wing Spar Inspection"
+                },
+                "method_of_compliance": {
+                  "type": "string",
+                  "example": "Eddy current check performed per SB-102."
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/v1/work-orders/": {
+      "get": {
+        "tags": [
+          "Work Orders & Task Cards Operations"
+        ],
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Work Orders & Task Cards Operations"
+        ],
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/v1/work-orders/{id}/progress": {
+      "get": {
+        "tags": [
+          "Work Orders & Task Cards Operations"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/work-orders/task-cards": {
+      "post": {
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/v1/work-orders/parts": {
+      "post": {
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/v1/work-orders/steps": {
+      "post": {
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/v1/library/": {
+      "get": {
+        "tags": [
+          "Technical Publications Library"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "customization",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "aircraft",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "doctypes",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Technical Publications Library"
+        ],
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication Subsystem"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 1
+        },
+        "name": {
+          "type": "string",
+          "example": "John Doe"
+        },
+        "email": {
+          "type": "string",
+          "example": "john@example.com"
+        }
+      }
+    }
+  }
+}
