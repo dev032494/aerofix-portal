@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "prestart": "npm install --view",
     "start": "node ./bin/www",
     "dev": "nodemon ./bin/www",
     "swagger": "node swagger.js",
