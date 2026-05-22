@@ -6,8 +6,6 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5001,
-    server: {
-      allowedHosts: [".up.railway.app"],
-    },
+    allowedHosts: [".up.railway.app"], // Moved this up out of the duplicate block
   },
 });
