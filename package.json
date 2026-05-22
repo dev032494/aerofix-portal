@@ -9,7 +9,8 @@
     "dev:server": "dotenv -e .env -- npm run dev -w server",
     "dev:client": "dotenv -e .env -- npm run dev -w client",
     "db:reset": "dotenv -e .env -- npm run db:reset -w server",
-    "db:init": "dotenv -e .env -- npm run db:init -w server"
+    "db:init": "dotenv -e .env -- npm run db:init -w server",
+    "railway:start": "npm run dev:init && npm run dev:server"
   },
   "repository": {
     "type": "git",
