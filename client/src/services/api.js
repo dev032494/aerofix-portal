@@ -18,7 +18,13 @@ api.interceptors.request.use((config) => {
 
 export const authService = {
   login: (credentials) => api.post('/auth/login', credentials),
-  register: (data) => api.post('/users', data), // 🔥 Connects the user registration logic directly to your user provision controller path
+  
+  // ⚡ ADDED: Triggers the pre-registration security gateway challenge to verify email existence
+  sendRegistrationOtp: (payload) => api.post('/auth/send-otp', payload),
+  
+  // Connects the final registration payload (including the verified token parameter)
+  // directly to your user provisioning controller method layout path.
+  register: (data) => api.post('/users', data), 
 };
 
 export const aircraftService = {

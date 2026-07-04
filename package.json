@@ -1,31 +1,33 @@
 {
  "workspaces": [
-    "server",
-    "client"
-  ],
-  "name": "aerofix-portal",
-  "version": "1.0.0",
-  "scripts": {
-    "dev:server": "dotenv -e .env -- npm run dev -w server",
-    "dev:client": "dotenv -e .env -- npm run dev -w client",
-    "db:reset": "dotenv -e .env -- npm run db:reset -w server",
-    "db:init": "dotenv -e .env -- npm run db:init -w server",
-    "railway:start": "npm run dev:init && npm run dev:server"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/dev032494/aerofix-portal.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/dev032494/aerofix-portal/issues"
-  },
-  "homepage": "https://github.com/dev032494/aerofix-portal#readme",
-  "dependencies": {
-    "dotenv-cli": "^11.0.0",
-    "dotnet": "^1.1.4"
-  }
+  "server",
+  "client"
+ ],
+ "name": "aerofix-portal",
+ "version": "1.1.1",
+ "scripts": {
+  "dev:server": "dotenv -e .env -- npm run dev -w server",
+  "dev:client": "dotenv -e .env -- npm run dev -w client",
+  "db:reset": "dotenv -e .env -- npm run db:reset -w server",
+  "db:init": "dotenv -e .env -- npm run db:init -w server",
+  "railway:start": "npm run dev:init && npm run dev:server"
+ },
+ "repository": {
+  "type": "git",
+  "url": "git+https://github.com/dev032494/aerofix-portal.git"
+ },
+ "keywords": [],
+ "author": "",
+ "license": "ISC",
+ "type": "commonjs",
+ "bugs": {
+  "url": "https://github.com/dev032494/aerofix-portal/issues"
+ },
+ "homepage": "https://github.com/dev032494/aerofix-portal#readme",
+ "dependencies": {
+  "crypto": "^1.0.1",
+  "dotenv-cli": "^11.0.0",
+  "dotnet": "^1.1.4",
+  "nodemailer": "^9.0.3"
+ }
 }

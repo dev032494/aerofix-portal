@@ -1,4 +1,5 @@
 const userRepository = require("../repositories/userRepository");
+const otpRepository = require('../repositories/otpRepository');
 
 const getAllUsers = async (req, res, next) => {
   // #swagger.tags = ['User Registry Management']
@@ -16,49 +17,84 @@ const getAllUsers = async (req, res, next) => {
 const createNewUserProfile = async (req, res, next) => {
   // #swagger.tags = ['User Registry Management']
   try {
-    // ⚡ FIXED: Destructure the correct fields matching the payload context
+    // Destructure properties from incoming request body, including the input 'otp'
     const {
+      student_id,
       first_name,
+      middle_name,
       last_name,
       email,
+      user_name,
       password,
       role,
-      certificate_type,
-      certificate_number,
-      signature_pin,
+      otp // ⚡ ADDED: The 6-digit security token entered by the user
     } = req.body;
 
-    // Explicitly reconstruct the payload mapping exactly to your Sequelize database attributes
+    // 1. 🛡️ PRE-REGISTRATION SECURITY CHECK
+    // Validate the OTP against our repository layer before executing any database storage sequences
+    if (!otp) {
+      return res.status(400).json({
+        status: "error",
+        message: "The email verification security code (otp) parameter is required to provision an account."
+      });
+    }
+
+    const isValidOtp = await otpRepository.verifyCode(email, otp);
+    if (!isValidOtp) {
+      return res.status(422).json({
+        status: "error",
+        message: "The one-time verification passcode entered is incorrect, missing, or has expired."
+      });
+    }
+
+    // 2. Reconstruct variables using snake_case properties to align perfectly
+    // with the 'underscored: true' rule defined in your Sequelize User Init script.
     const userPayload = {
+      student_id: student_id || null,
       first_name,
+      middle_name, // Maps safely to database schema parameters
       last_name,
       email,
-      password_hash: password, // Maps raw string safely to your column
-      role: role || "mechanic",
-      certificate_type,
-      certificate_number,
-      signature_pin_hash: signature_pin, // Maps PIN securely to your column
+      user_name,
+      password_hash: password, // Maps password raw data string to column
+      role: role || "student",
       is_active: true,
+      is_verified: true, // ⚡ UPDATED: Automatically true since they successfully passed the OTP checkpoint
     };
 
+    // 3. Complete database profile registration now that authentication clearance is verified
     const user = await userRepository.create(userPayload);
 
-    // Sanitize response layout before sending to client
+    // 4. Sanitize response layout before sending to client
     const sanitizedUser = {
       id: user.id,
+      student_id: user.student_id,
       first_name: user.first_name,
+      middle_name: user.middle_name,
       last_name: user.last_name,
       email: user.email,
+      user_name: user.user_name,
       role: user.role,
-      certificate_type: user.certificate_type,
-      certificate_number: user.certificate_number,
+      is_active: user.is_active,
+      is_verified: user.is_verified,
     };
 
+    // 5. Return clean system success context along with auto-authentication state tokens if needed
     res.status(201).json({
       status: "success",
+      message: "Profile provisioned successfully. Your institutional account access is verified and active.",
       data: { user: sanitizedUser },
     });
   } catch (error) {
+    // 💡 Helpful Debugger: If there are other validation errors (like duplicate emails),
+    // this print statement will tell you exactly what field failed and why in your terminal.
+    if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
+      console.error('❌ Detailed Database Constraints Failed:', error.errors.map(e => ({
+        field: e.path,
+        message: e.message,
+        invalidValue: e.value
+      })));
+    }
     next(error);
   }
 };

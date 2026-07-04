@@ -21,12 +21,20 @@ class UserRepository extends BaseRepository {
   }
 
   /**
+   * Finds a user profile by their unique username
+   * @param {string} userName 
+   */
+  async findByUsername(userName) {
+    return await this.model.findOne({ where: { user_name: userName } });
+  }
+
+  /**
    * Retrieves all users while safely excluding critical security hashes from the dataset
    */
   async findAllSafe() {
     return await this.model.findAll({
       attributes: { 
-        exclude: ['password_hash', 'signature_pin_hash'] 
+        exclude: ['password_hash'] // Updated: signature_pin_hash was removed from the new schema
       }
     });
   }

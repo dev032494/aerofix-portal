@@ -10,45 +10,51 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true
       },
+      student_id: {
+        type: Sequelize.STRING(20),
+        allowNull: true,
+        unique: true
+      },
       first_name: {
-        type: Sequelize.STRING(60),
+        type: Sequelize.STRING(120), // Updated from 60 to 120
+        allowNull: false
+      },
+      middle_name: {
+        type: Sequelize.STRING(120), // Added mandatory field
         allowNull: false
       },
       last_name: {
-        type: Sequelize.STRING(60),
+        type: Sequelize.STRING(120), // Updated from 60 to 120
         allowNull: false
       },
       email: {
         type: Sequelize.STRING(120),
         allowNull: false,
-        unique: true // Ensures distinct user logins
+        unique: true
+      },
+      user_name: {
+        type: Sequelize.STRING(120), // Added unique username field
+        allowNull: false,
+        unique: true
       },
       password_hash: {
         type: Sequelize.TEXT,
         allowNull: false
       },
-      signature_pin_hash: {
-        type: Sequelize.TEXT,
-        allowNull: true // Set to true if a pin is created later
-      },
       role: {
-        type: Sequelize.ENUM('admin', 'manager', 'mechanic', 'inspector'),
+        type: Sequelize.ENUM('admin', 'student', 'instructor', 'developer'), // Updated system roles
         allowNull: false,
-        defaultValue: 'mechanic'
-      },
-      certificate_type: {
-        type: Sequelize.STRING(60),
-        allowNull: true // Optional depending on role (e.g. mechanics/inspectors vs managers)
-      },
-      certificate_number: {
-        type: Sequelize.STRING(60),
-        allowNull: true,
-        unique: true
+        defaultValue: 'student'
       },
       is_active: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: true
+      },
+      is_verified: {
+        type: Sequelize.BOOLEAN, // Added tracking field
+        allowNull: false,
+        defaultValue: false
       },
       last_login_at: {
         type: Sequelize.DATE,
@@ -66,15 +72,16 @@ module.exports = {
       }
     });
 
-    // Recommended optimization for frequent lookups on authentication
+    // Optimized indexing for both primary login identifiers
     await queryInterface.addIndex('users', ['email']);
+    await queryInterface.addIndex('users', ['user_name']);
   },
 
   async down(queryInterface, Sequelize) {
     // Drop the users table entirely
     await queryInterface.dropTable('users');
     
-    // Clean up the ENUM type definition from database memory if rolling back on PostgreSQL
+    // Clean up the updated ENUM type definition from database memory if rolling back on PostgreSQL
     if (queryInterface.sequelize.options.dialect === 'postgres') {
       await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_users_role";');
     }

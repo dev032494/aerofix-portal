@@ -7,17 +7,17 @@ const JWT_SECRET = process.env.JWT_SECRET || 'aerofix_secret_sentinel_2026';
 const login = async (req, res, next) => {
   // #swagger.tags = ['Authentication Subsystem']
   try {
-    const { email, password } = req.body;
+    const { user_name, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ status: 'fail', message: 'Please provide email and password.' });
+    if (!user_name || !password) {
+      return res.status(400).json({ status: 'fail', message: 'Please provide username and password.' });
     }
 
-    // Pull profile based on email lookup
-    const user = await userRepository.findByEmail(email);
+    // Pull profile based on username lookup
+    const user = await userRepository.findByUsername(user_name);
 
     if (!user || !user.validPassword(password)) {
-      return res.status(401).json({ status: 'fail', message: 'Invalid corporate email address or passphrase.' });
+      return res.status(401).json({ status: 'fail', message: 'Invalid username or password.' });
     }
 
     if (!user.is_active) {
