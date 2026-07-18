@@ -4,33 +4,42 @@ import react from "@vitejs/plugin-react";
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   // Check if we are running in development locally
-  const isLocalDev = mode === "development" && !process.env.RAILWAY_ENVIRONMENT;
+  // const isLocalDev = process.env.NODE_ENV === "development" && !process.env.RAILWAY_ENVIRONMENT;
+  const isLocalDev = process.env.NODE_ENV === "development";
+
+  console.log(`Vite is running in ${process.env.NODE_ENV} mode. Local Development: ${isLocalDev}`);
 
   return {
     plugins: [react()],
-    
+
     // 1. Development Server Settings (npm run dev)
     server: {
       port: 5001,
       strictPort: true, // Prevents falling back to a random port if 5001 is busy
       host: true,       // Exposes server to network/routing for cloud platforms
-      allowedHosts: [".up.railway.app", "localhost", "127.0.0.1",".naap-aeronexus.com"],
-      
+      allowedHosts: [".up.railway.app", "localhost", "127.0.0.1", ".naap-aeronexus.com"],
+
       // ⚡ DYNAMIC MIX: Adjusts HMR based on where the app is being run
-      hmr: isLocalDev 
+      hmr: isLocalDev
         ? true // Standard local WebSocket configuration
         : {
-            clientPort: 443, // Forces secure WebSocket connection for HMR over HTTPS in production/cloud templates
-          },
-      
+          clientPort: 5000, // Forces secure WebSocket connection for HMR over HTTPS in production/cloud templates
+        },
+
       // Optional: Standard API reverse proxy configuration for your local server handshakes
       proxy: isLocalDev ? {
         '/api': {
-          target: 'http://localhost:5000', // Points to your local backend server during development
+          target: 'https://api.naap-aeronexus.com', // Points to your local backend server during development
           changeOrigin: true,
           secure: false,
         }
-      } : undefined
+      } : {
+        '/api': {
+          target: process.env.VITE_API_URL_PROD, // Points to your production backend server
+          changeOrigin: true,
+          secure: false,
+        }
+      }
     },
 
     // 2. Production Preview Settings (npm run preview)
