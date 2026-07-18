@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authCtrl = require('../controllers/authController');
-const otpCtrl = require('../controllers/OtpController'); // ⚡ ADDED: Imports the OTP handler directly
+const otpCtrl = require('../controllers/otpController'); // ⚡ ADDED: Imports the OTP handler directly
 
 // Existing authentication handling pipeline
 router.post('/login', authCtrl.login);

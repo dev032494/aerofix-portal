@@ -1,5 +1,5 @@
 // controllers/OtpController.js
-const otpRepository = require('../repositories/OtpRepository');
+const otpRepository = require('../repositories/otpRepository');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
