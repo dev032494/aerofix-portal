@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
       port: 5001,
       strictPort: true, // Prevents falling back to a random port if 5001 is busy
       host: true,       // Exposes server to network/routing for cloud platforms
-      allowedHosts: [".up.railway.app", "localhost", "127.0.0.1",".pandedailty.com"],
+      allowedHosts: [".up.railway.app", "localhost", "127.0.0.1",".pandedaily.com"],
       
       // ⚡ DYNAMIC MIX: Adjusts HMR based on where the app is being run
       hmr: isLocalDev 
@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => {
       port: 5001,
       strictPort: true,
       host: true,
-      allowedHosts: [".up.railway.app", ".pandedailty.com"],
+      allowedHosts: [".up.railway.app", ".pandedaily.com"],
     },
 
     // 3. Complete Production Build Settings (npm run build)
