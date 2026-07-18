@@ -8,7 +8,6 @@ export default function DeveloperLoginView({ onLoginSuccess }) {
   const [formData, setFormData] = useState({
     user_name: '',
     password: '',
-    developer_key: '' // Secondary authentication matrix verification
   });
 
   const [loading, setLoading] = useState(false);
@@ -36,7 +35,6 @@ export default function DeveloperLoginView({ onLoginSuccess }) {
       const res = await authService.login({
         user_name: formData.user_name,
         password: formData.password,
-        developer_key: formData.developer_key // Passed context validation
       });
 
       const { token, data } = res.data;
@@ -122,7 +120,7 @@ export default function DeveloperLoginView({ onLoginSuccess }) {
         <form onSubmit={handleDevSubmit} className="space-y-3.5 text-xs">
           
           <div className="space-y-1">
-            <label className="block font-bold text-slate-400 uppercase tracking-wide">Root Username *</label>
+            <label className="block font-bold text-slate-400 uppercase tracking-wide">Username *</label>
             <div className="relative text-sm">
               <User className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
               <input 
@@ -138,7 +136,7 @@ export default function DeveloperLoginView({ onLoginSuccess }) {
           </div>
 
           <div className="space-y-1">
-            <label className="block font-bold text-slate-400 uppercase tracking-wide">System Password *</label>
+            <label className="block font-bold text-slate-400 uppercase tracking-wide">Password *</label>
             <div className="relative text-sm">
               <Key className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
               <input 
@@ -153,21 +151,7 @@ export default function DeveloperLoginView({ onLoginSuccess }) {
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="block font-bold text-slate-400 uppercase tracking-wide">Developer Verification Passkey</label>
-            <div className="relative text-sm">
-              <Cpu className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-              <input 
-                type="password" 
-                name="developer_key" 
-                value={formData.developer_key} 
-                onChange={handleInputChange} 
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-cyan-500" 
-                placeholder="SECURE_PH_NODE_XXXX" 
-              />
-            </div>
-          </div>
-
+         
           {/* Root Submit Action */}
           <button 
             type="submit" 
