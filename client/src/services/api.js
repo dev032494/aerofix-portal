@@ -19,11 +19,10 @@ api.interceptors.request.use((config) => {
 export const authService = {
   login: (credentials) => api.post('/auth/login', credentials),
   
-  // ⚡ ADDED: Triggers the pre-registration security gateway challenge to verify email existence
+  // ⚡ Pre-registration security gateway challenge to verify email existence
   sendRegistrationOtp: (payload) => api.post('/auth/send-otp', payload),
   
-  // Connects the final registration payload (including the verified token parameter)
-  // directly to your user provisioning controller method layout path.
+  // Connects the final registration payload directly to your user provisioning controller
   register: (data) => api.post('/users', data), 
 };
 
@@ -49,9 +48,20 @@ export const workOrderService = {
 export const userService = {
   getAllUsers: () => api.get('/users'),
   createUser: (data) => api.post('/users', data),
-  updateProfile: (id, data) => api.put(`/users/${id}/profile`),
-  updatePassword: (id, data) => api.put(`/users/${id}/password`),
+  // ⚡ FIXED: Added missing "data" parameter to the axios .put request payload
+  updateProfile: (id, data) => api.put(`/users/${id}/profile`, data),
+  updatePassword: (id, data) => api.put(`/users/${id}/password`, data),
 };
 
+// ⚡ ADDED: Document Management & Table of Contents Search Index Subsystem
+export const documentService = {
+  getAll: () => api.get('/documents'),
+  search: (query) => api.get('/documents/search', { params: { q: query } }),
+  upload: (formData, onUploadProgress) => api.post('/documents', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress
+  }),
+  delete: (id) => api.delete(`/documents/${id}`),
+};
 
 export default api;

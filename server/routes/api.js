@@ -5,7 +5,8 @@ const router = express.Router();
 const userRoutes = require('./userRoutes');
 const aircraftRoutes = require('./aircraftRoutes');
 const workOrderRoutes = require('./workOrderRoutes');
-const libraryRouter = require('./libraryRoutes');
+// const libraryRouter = require('./libraryRoutes');
+const documentRoutes = require('./documentRoutes'); // ⚡ ADDED: Import new document sub-router
 
 
 // =========================================================================
@@ -22,6 +23,9 @@ router.use('/aircraft', aircraftRoutes);
 router.use('/work-orders', workOrderRoutes);
 
 // Technical Publications Library -> Maps to /api/v1/library
-router.use('/library', libraryRouter);
+// router.use('/library', libraryRouter);
+
+// ⚡ ADDED: Document Indexing & Table of Contents Sub-System -> Maps to /api/v1/documents
+router.use('/documents', documentRoutes);
 
 module.exports = { apiRouter: router };

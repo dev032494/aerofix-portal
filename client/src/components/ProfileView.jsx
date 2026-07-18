@@ -35,7 +35,7 @@ export default function ProfileView() {
         first_name: activeUser.first_name || '',
         last_name: activeUser.last_name || '',
         email: activeUser.email || '',
-        certificate_type: activeUser.certificate_type || 'A&P',
+        certificate_type: activeUser.certificate_type || '',
         certificate_number: activeUser.certificate_number || ''
       });
     }
@@ -151,17 +151,6 @@ export default function ProfileView() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="block font-bold text-slate-400 uppercase tracking-wide">FAA License Type</label>
-                  <input type="text" name="certificate_type" value={infoForm.certificate_type} onChange={handleInfoChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-sky-500 text-sm" placeholder="e.g. A&P" />
-                </div>
-                <div className="space-y-1">
-                  <label className="block font-bold text-slate-400 uppercase tracking-wide">Certificate License ID</label>
-                  <input type="text" name="certificate_number" value={infoForm.certificate_number} onChange={handleInfoChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-sky-500 font-mono text-sm" placeholder="e.g. 1245152" />
-                </div>
-              </div>
-
               <button type="submit" className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer text-sm">
                 <Save className="h-4 w-4" /> Save Record Shifts
               </button>
@@ -173,7 +162,7 @@ export default function ProfileView() {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col justify-between">
           <div className="space-y-4">
             <h3 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-              <Key className="h-4 w-4 text-amber-500" /> Security Credential Roll-Over
+              <Key className="h-4 w-4 text-amber-500" /> Change Password
             </h3>
 
             {passwordMessage && (
@@ -185,22 +174,22 @@ export default function ProfileView() {
 
             <form onSubmit={handleUpdatePassword} className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="block font-bold text-slate-400 uppercase tracking-wide">Current Shift Passphrase *</label>
+                <label className="block font-bold text-slate-400 uppercase tracking-wide">Current Password *</label>
                 <input type="password" name="current_password" required value={passwordForm.current_password} onChange={handlePasswordChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-sky-500" placeholder="••••••••" />
               </div>
 
               <div className="space-y-1">
-                <label className="block font-bold text-slate-400 uppercase tracking-wide">New Secure Passphrase *</label>
+                <label className="block font-bold text-slate-400 uppercase tracking-wide">New Password *</label>
                 <input type="password" name="new_password" required value={passwordForm.new_password} onChange={handlePasswordChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-sky-500" placeholder="••••••••" />
               </div>
 
               <div className="space-y-1">
-                <label className="block font-bold text-slate-400 uppercase tracking-wide">Confirm New Passphrase *</label>
+                <label className="block font-bold text-slate-400 uppercase tracking-wide">Confirm New Password *</label>
                 <input type="password" name="confirm_password" required value={passwordForm.confirm_password} onChange={handlePasswordChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-sky-500" placeholder="••••••••" />
               </div>
 
               <button type="submit" className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-sm">
-                <Shield className="h-4 w-4 text-amber-500" /> Re-Authorize Security Keys
+                <Shield className="h-4 w-4 text-amber-500" /> Save New Password
               </button>
             </form>
           </div>

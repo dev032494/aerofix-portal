@@ -1,5 +1,6 @@
 const userRepository = require('../repositories/userRepository');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt'); // ⚡ ADDED: Import bcrypt for secure comparison
 
 // Use a secure fallback sign-off key for development encryption signatures
 const JWT_SECRET = process.env.JWT_SECRET || 'aerofix_secret_sentinel_2026';
@@ -16,7 +17,15 @@ const login = async (req, res, next) => {
     // Pull profile based on username lookup
     const user = await userRepository.findByUsername(user_name);
 
-    if (!user || !user.validPassword(password)) {
+    // ⚡ UPDATED: Check bcrypt match if the user exists. 
+    // This prevents timing attacks and handles the asynchronous comparison securely.
+    let isPasswordValid = false;
+    if (user) {
+      isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    }
+
+    // Return generic error if either the user wasn't found OR the password didn't match
+    if (!user || !isPasswordValid) {
       return res.status(401).json({ status: 'fail', message: 'Invalid username or password.' });
     }
 
@@ -28,7 +37,7 @@ const login = async (req, res, next) => {
     const token = jwt.sign(
       { id: user.id, role: user.role, first_name: user.first_name, last_name: user.last_name },
       JWT_SECRET,
-      { expiresIn: '8h' } // Clears automatically after an 8-hour shift shift ends
+      { expiresIn: '8h' } // Clears automatically after an 8-hour shift ends
     );
 
     res.status(200).json({

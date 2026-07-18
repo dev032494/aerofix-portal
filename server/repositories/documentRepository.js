@@ -1,111 +1,134 @@
-const db = require('../models');
+const fs = require('fs');
 const { Op } = require('sequelize');
+const { Document } = require('../models');
 
-class DocumentRepository {
-  /**
-   * Safe getter lookups preventing crash loops if system casing falls out of match
-   */
-  get documentModel() {
-    return db.Document || db.document || db.documents;
-  }
+/**
+ * Extracts PDF Table of Contents (Outline) and builds a searchable token array.
+ * @param {string} filePath 
+ * @returns {Promise<{ toc: Array, searchIndexText: string }>}
+ */
+const parsePdfOutlineAndBuildIndex = async (filePath) => {
+  try {
+    // Dynamically import modern PDFJS ES Modules (.mjs) to stay CommonJS-friendly
+    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    await import('pdfjs-dist/legacy/build/pdf.worker.mjs'); // Self-registers the worker globally in Node
 
-  get revisionModel() {
-    return db.Revision || db.revision || db.revisions;
-  }
+    const dataBuffer = new Uint8Array(fs.readFileSync(filePath));
+    const loadingTask = pdfjsLib.getDocument({ 
+      data: dataBuffer, 
+      disableFontFace: true,
+      verbosity: 0 // Suppresses unnecessary development warnings in terminal
+    });
+    const pdfDoc = await loadingTask.promise;
 
-  /**
-   * Persists a new base document tracking architecture mapping
-   */
-  async createDocument(docData) {
-    if (!this.documentModel) throw new Error("AeroFix Sequelize Loader Exception: Document schema unresolved inside db map cluster.");
-    return await this.documentModel.create(docData);
-  }
+    const outline = await pdfDoc.getOutline();
+    if (!outline || outline.length === 0) {
+      return { toc: [], searchIndexText: "" };
+    }
 
-  /**
-   * Persists a single leaf release revision row tracking entry
-   */
-  async createRevision(revData) {
-    if (!this.revisionModel) throw new Error("AeroFix Sequelize Loader Exception: Revision schema unresolved inside db map cluster.");
-    return await this.revisionModel.create(revData);
-  }
+    const indexTokens = [];
 
-  /**
-   * Filters general publication lists matching sidebar flags criteria
-   */
-  async findByContext(filters) {
-    const Document = this.documentModel;
-    const Revision = this.revisionModel;
+    // Recursive outline parser to resolve destinations to page numbers
+    const parseItems = async (items) => {
+      const parsedItems = [];
 
-    if (!Document) throw new Error("Document schema model references unresolvable. Confirm entry execution configurations.");
+      for (const item of items) {
+        let pageNumber = null;
 
-    // Auto-detect alias maps matching what's written inside your relationship loaders
-    const revisionsAlias = Document.associations?.revisions ? 'revisions' : 'revisions';
+        if (item.dest) {
+          try {
+            let destinationRef = item.dest;
+            if (typeof destinationRef === 'string') {
+              destinationRef = await pdfDoc.getDestination(item.dest);
+            }
 
-    const queryOptions = {
-      where: {},
-      include: Revision ? [
-        {
-          model: Revision,
-          as: revisionsAlias,
-          where: { status: 'active' }, // Isolate currently active effective manual pages binaries
-          required: false
+            if (Array.isArray(destinationRef) && destinationRef.length > 0) {
+              const refObj = destinationRef[0];
+              if (refObj && typeof refObj === 'object') {
+                const pageIndex = await pdfDoc.getPageIndex(refObj);
+                pageNumber = pageIndex + 1; // Translate 0-index to actual human page number
+              }
+            }
+          } catch (destError) {
+            // Suppress warn logs for missing layout target destinations
+          }
         }
-      ] : [],
-      order: [['document_type', 'ASC'], ['title', 'ASC']]
+
+        // Aggregate for Full-Text search index tag
+        const representation = item.title + (pageNumber ? ` (Page ${pageNumber})` : '');
+        indexTokens.push(representation);
+
+        const node = {
+          title: item.title,
+          pageNumber: pageNumber,
+          items: []
+        };
+
+        if (item.items && item.items.length > 0) {
+          node.items = await parseItems(item.items);
+        }
+
+        parsedItems.push(node);
+      }
+
+      return parsedItems;
     };
 
-    if (filters.customization) {
-      queryOptions.where.customization = filters.customization;
-    }
+    const structuredToc = await parseItems(outline);
+    const searchIndexText = indexTokens.join(' | ');
 
-    if (filters.aircraft) {
-      queryOptions.where.aircraft_types = { 
-        [Op.like]: `%${filters.aircraft}%` 
-      };
-    }
-
-    if (filters.doctypes) {
-      const typesArray = typeof filters.doctypes === 'string' 
-        ? filters.doctypes.split(',') 
-        : filters.doctypes;
-      queryOptions.where.document_type = { [Op.in]: typesArray };
-    }
-
-    return await Document.findAll(queryOptions);
+    return { toc: structuredToc, searchIndexText };
+  } catch (error) {
+    console.error('Failed to parse document indexes:', error);
+    return { toc: [], searchIndexText: "" };
   }
+};
 
-  /**
-   * Pulls structural parent nodes coupled with all historic iterations sequentially
-   */
-  async findDocumentHistory(id) {
-    const Document = this.documentModel;
-    const Revision = this.revisionModel;
+module.exports = {
+  // ⚡ Handles receiving the fully compiled payload from the controller in a single transaction
+  create: async (data) => {
+    return await Document.create(data);
+  },
+
+  // ⚡ ADDED: Expose parsing engine directly so the controller can fetch metadata before the DB insert
+  parsePDF: async (filePath) => {
+    return await parsePdfOutlineAndBuildIndex(filePath);
+  },
+
+  findAll: async () => {
+    return await Document.findAll();
+  },
+
+  findById: async (id) => {
+    return await Document.findByPk(id);
+  },
+
+  update: async (id, data) => {
+    const document = await Document.findByPk(id);
+    if (!document) return null;
+    return await document.update(data);
+  },
+
+  delete: async (id) => {
+    const document = await Document.findByPk(id);
+    if (!document) return false;
     
-    if (!Document) throw new Error("Document database reference map down.");
-    const revisionsAlias = Document.associations?.revisions ? 'revisions' : 'revisions';
+    if (fs.existsSync(document.file_path)) {
+      fs.unlinkSync(document.file_path);
+    }
+    
+    await document.destroy();
+    return true;
+  },
 
-    return await Document.findByPk(id, {
-      include: Revision ? [{
-        model: Revision,
-        as: revisionsAlias,
-        required: false
-      }] : [],
-      order: Revision ? [
-        [{ model: Revision, as: revisionsAlias }, 'id', 'DESC'] // Push recent items to top layout
-      ] : []
+  searchIndex: async (query) => {
+    return await Document.findAll({
+      where: {
+        [Op.or]: [
+          { title: { [Op.like]: `%${query}%` } },
+          { search_index: { [Op.like]: `%${query}%` } }
+        ]
+      }
     });
   }
-
-  /**
-   * Sweeps active documents to clear old active tokens during revisions pushes
-   */
-  async supersedeOldRevisions(documentId) {
-    if (!this.revisionModel) throw new Error("Revision database reference map down.");
-    return await this.revisionModel.update(
-      { status: 'superseded' },
-      { where: { document_id: documentId } }
-    );
-  }
-}
-
-module.exports = new DocumentRepository();
+};

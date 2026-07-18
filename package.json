@@ -3,7 +3,7 @@
   "server",
   "client"
  ],
- "name": "aerofix-portal",
+ "name": "aeronexus",
  "version": "1.1.1",
  "scripts": {
   "dev:server": "dotenv -e .env -- npm run dev -w server",
@@ -28,6 +28,8 @@
   "crypto": "^1.0.1",
   "dotenv-cli": "^11.0.0",
   "dotnet": "^1.1.4",
-  "nodemailer": "^9.0.3"
+  "multer": "^2.2.0",
+  "nodemailer": "^9.0.3",
+  "pdfjs-dist": "^6.1.200"
  }
 }

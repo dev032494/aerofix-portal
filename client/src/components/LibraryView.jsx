@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
-import { Search, BookOpen, Download, History, Filter, RefreshCw, FileText, Plus, X, ShieldAlert, Eye, EyeOff, Maximize2, Minimize2 } from 'lucide-react';
+import { 
+  Search, BookOpen, Download, RefreshCw, FileText, Plus, X, 
+  Eye, EyeOff, Maximize2, Minimize2, ChevronDown, ChevronRight, ListCollapse, Trash2 
+} from 'lucide-react';
 
 export default function LibraryView() {
   const [documents, setDocuments] = useState([]);
@@ -8,116 +11,198 @@ export default function LibraryView() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Sidebar Selection Controls States
-  const [selectedCustomization, setSelectedCustomization] = useState('DEMO');
-  const [selectedAircraftType, setSelectedAircraftType] = useState('A320');
-  const [selectedDoctypes, setSelectedDoctypes] = useState(['AMM', 'IPC']);
-  
-  // Dynamic Viewing Viewer Workspace Pipeline States
-  const [activeViewingUrl, setActiveViewingUrl] = useState(null);
-  const [viewingTargetTitle, setViewingTargetTitle] = useState('');
+  // Interactive PDF Outline Viewport States
+  const [activeDoc, setActiveDoc] = useState(null);
+  const [activeViewingUrl, setActiveViewingUrl] = useState('');
   const [isFullscreenViewer, setIsFullscreenViewer] = useState(false);
+  const [showTocSidebar, setShowTocSidebar] = useState(false); // Default false on mobile/tablet to save screen real estate
 
-  // Modal & Audit Tracking Trees States
-  const [historyTarget, setHistoryTarget] = useState(null); 
-  const [activeModal, setActiveModal] = useState(null); // 'document' | 'revision' | 'history'
-  
-  const [formData, setFormData] = useState({
-    title: '', document_type: 'AMM', aircraft_types: 'A320', 
-    customization: 'DEMO', revision_number: 'Rev 01', revision_date: '', file_url: ''
-  });
+  // Upload Modal State
+  const [activeModal, setActiveModal] = useState(null); // 'upload'
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [formData, setFormData] = useState({ title: '' });
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const getApiUrl = () => import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+
+  // --- ROLE AUTHORIZATION PATTERN ---
+  const userRole = useMemo(() => {
+    try {
+      const token = localStorage.getItem('aerofix_token');
+      if (!token) return null;
+      
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      
+      const parsed = JSON.parse(jsonPayload);
+      return parsed.role?.toLowerCase() || parsed.role_id?.toLowerCase() || null;
+    } catch (e) {
+      console.error('Failed parsing security credential telemetry:', e);
+      return null;
+    }
+  }, []);
+
+  const canUpload = useMemo(() => {
+    return ['developer', 'admin', 'instructor'].includes(userRole);
+  }, [userRole]);
+  // ----------------------------------
+
+  const getDocUrl = (path) => {
+    if (!path) return '';
+    const base = getApiUrl().replace('/api/v1', '');
+    return `${base}/${path.replace(/\\/g, '/')}`;
+  };
 
   const fetchCatalog = async () => {
     setLoading(true);
     setError(null);
     try {
       const token = localStorage.getItem('aerofix_token');
-      const res = await axios.get(`${getApiUrl()}/library`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { 
-          customization: selectedCustomization, 
-          aircraft: selectedAircraftType, 
-          doctypes: selectedDoctypes.join(',') 
-        }
+      const res = await axios.get(`${getApiUrl()}/documents`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       setDocuments(res.data?.data?.documents || []);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to populate tech publications.');
+      setError(err.response?.data?.message || err.message || 'Failed to populate document inventory.');
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchDocumentHistory = async (docId) => {
+  const handleSearch = useCallback(async (query) => {
+    if (!query.trim()) {
+      fetchCatalog();
+      return;
+    }
+    setLoading(true);
     try {
       const token = localStorage.getItem('aerofix_token');
-      const res = await axios.get(`${getApiUrl()}/library/${docId}/history`, {
+      const res = await axios.get(`${getApiUrl()}/documents/search`, {
+        params: { q: query },
         headers: { Authorization: `Bearer ${token}` }
       });
-      setHistoryTarget(res.data?.data?.document);
+      setDocuments(res.data?.data?.documents || []);
     } catch (err) {
-      alert(`Could not pull tracking histories: ${err.message}`);
+      console.error('Search pipeline failed:', err);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => { 
-    fetchCatalog(); 
-  }, [selectedCustomization, selectedAircraftType, selectedDoctypes]);
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      handleSearch(searchTerm);
+    }, 400);
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, handleSearch]);
 
-  const handleCreateDocument = async (e) => {
+  const handleUploadSubmit = async (e) => {
     e.preventDefault();
+    if (!canUpload) return alert('Access Denied: You do not possess clearance parameters to commit global uploads.');
+    if (!selectedFile) return alert('Please select a valid PDF file to upload.');
+
+    const payload = new FormData();
+    payload.append('title', formData.title);
+    payload.append('file', selectedFile);
+
+    setLoading(true);
+    setUploadProgress(10);
     try {
       const token = localStorage.getItem('aerofix_token');
-      await axios.post(`${getApiUrl()}/library`, formData, { 
-        headers: { Authorization: `Bearer ${token}` } 
+      await axios.post(`${getApiUrl()}/documents`, payload, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}` 
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percentCompleted);
+        }
       });
+
       setActiveModal(null);
+      setFormData({ title: '' });
+      setSelectedFile(null);
+      setUploadProgress(0);
       fetchCatalog();
-    } catch (err) { 
-      alert(err.response?.data?.message || err.message); 
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || 'Processing failed.');
+      setUploadProgress(0);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handlePushRevision = async (e) => {
-    e.preventDefault();
+  const handleDeleteDocument = async (id, e) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this manual and its search indexing cache?')) return;
     try {
       const token = localStorage.getItem('aerofix_token');
-      await axios.post(`${getApiUrl()}/library/${historyTarget.id}/revisions`, {
-        revision_number: formData.revision_number,
-        revision_date: formData.revision_date,
-        file_url: formData.file_url
-      }, { headers: { Authorization: `Bearer ${token}` } });
-      
-      setActiveModal(null);
-      setHistoryTarget(null);
+      await axios.delete(`${getApiUrl()}/documents/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (activeDoc?.id === id) {
+        setActiveDoc(null);
+        setActiveViewingUrl('');
+      }
       fetchCatalog();
-    } catch (err) { 
-      alert(err.response?.data?.message || err.message); 
+    } catch (err) {
+      alert(err.response?.data?.message || err.message);
     }
   };
 
-  const filteredDocs = documents.filter(doc => 
-    doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.document_type.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleJumpToPage = (pageNumber) => {
+    if (!pageNumber || !activeDoc) return;
+    const baseFileUrl = getDocUrl(activeDoc.file_path);
+    setActiveViewingUrl(`${baseFileUrl}#page=${pageNumber}`);
+  };
 
-  // ⚡ AUTOMATIC LINK SANITIZER TO BYPASS X-FRAME-OPTIONS BLOCKS
-  const getSanitizedViewerUrl = (url) => {
-    if (!url) return '';
-    let cleanUrl = url;
-    if (cleanUrl.includes('drive.google.com') && cleanUrl.includes('/view')) {
-      cleanUrl = cleanUrl.split('/view')[0] + '/preview';
-    }
-    if (cleanUrl.includes('docs.google.com') && cleanUrl.includes('/edit')) {
-      cleanUrl = cleanUrl.split('/edit')[0] + '/preview';
-    }
-    return cleanUrl;
+  // Reusable recursive component to render nested Table of Contents Nodes
+  const TocTree = ({ items }) => {
+    return (
+      <ul className="pl-3 space-y-1 border-l border-slate-800 ml-1.5 mt-1">
+        {items.map((item, index) => {
+          const [isOpen, setIsOpen] = useState(false);
+          const hasChildren = item.items && item.items.length > 0;
+
+          return (
+            <li key={index} className="text-xs">
+              <div className="flex items-center gap-1 group py-0.5 rounded hover:bg-slate-900 px-1.5">
+                {hasChildren ? (
+                  <button onClick={() => setIsOpen(!isOpen)} className="text-slate-500 hover:text-slate-300 p-0.5">
+                    {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                  </button>
+                ) : (
+                  <span className="w-4.5" />
+                )}
+                
+                <span 
+                  onClick={() => item.pageNumber && handleJumpToPage(item.pageNumber)}
+                  className={`flex-1 truncate select-none py-0.5 ${item.pageNumber ? 'text-slate-300 hover:text-sky-400 cursor-pointer font-medium' : 'text-slate-500 cursor-default'}`}
+                  title={`${item.title} ${item.pageNumber ? `(Page ${item.pageNumber})` : ''}`}
+                >
+                  {item.title}
+                </span>
+
+                {item.pageNumber && (
+                  <span className="text-[10px] font-mono text-amber-500 bg-amber-500/10 px-1.5 py-0.2 rounded shrink-0">
+                    p. {item.pageNumber}
+                  </span>
+                )}
+              </div>
+              {hasChildren && isOpen && <TocTree items={item.items} />}
+            </li>
+          );
+        })}
+      </ul>
+    );
   };
 
   if (error) return (
@@ -129,111 +214,112 @@ export default function LibraryView() {
   );
 
   return (
-    <div className="w-full h-[calc(100vh-6rem)] md:h-[calc(100vh-4rem)] flex flex-col gap-4 animate-fadeIn relative overflow-hidden">
+    <div className="w-full h-[calc(100vh-6rem)] md:h-[calc(100vh-4rem)] flex flex-col gap-4 animate-fadeIn relative overflow-hidden text-slate-200 p-2 sm:p-4">
       
-      {/* MASTER RESPONSIVE WORKING CONTENT FLEX CONTAINER GRID */}
+      {/* MASTER RESPONSIVE WORKING CONTENT FLEX CONTAINER */}
       <div className="flex-1 w-full flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden relative">
         
-        {/* 🧭 CONTEXT CONTROLLER FILTER SIDEBAR PANEL (Hides completely on mobile/tablet screens when reader workspace activates to conserve system real estate) */}
-        <aside className={`w-full lg:w-64 bg-[#0d162d] border border-slate-800 rounded-2xl flex flex-col overflow-y-auto shrink-0 transition-all duration-300 ${activeViewingUrl ? 'hidden xl:flex' : 'flex'}`}>
-          <div className="p-4 bg-[#111c3a] border-b border-slate-800 flex items-center justify-between shrink-0">
-            <span className="font-black text-xs uppercase tracking-widest text-sky-400 flex items-center gap-1.5"><Filter className="h-3.5 w-3.5" /> Context</span>
-            <button onClick={() => { setSelectedCustomization('DEMO'); setSelectedAircraftType('A320'); setSelectedDoctypes(['AMM', 'IPC']); }} className="px-2 py-0.5 bg-slate-950 border border-slate-800 text-[10px] font-bold text-slate-400 uppercase rounded cursor-pointer hover:border-slate-600">Reset</button>
-          </div>
-
-          <div className="p-4 space-y-4 text-xs">
-            <div>
-              <label className="block text-slate-400 font-bold uppercase tracking-wider mb-1">Customization</label>
-              <div className="p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-amber-500 font-mono font-bold flex justify-between items-center">
-                <span>{selectedCustomization || 'NONE'}</span>
-                {selectedCustomization && <X className="h-3.5 w-3.5 text-slate-500 hover:text-white cursor-pointer" onClick={() => setSelectedCustomization('')} />}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-slate-400 font-bold uppercase tracking-wider mb-1">Aircraft Type</label>
-              <select value={selectedAircraftType} onChange={(e) => setSelectedAircraftType(e.target.value)} className="w-full bg-slate-950 border border-slate-800 px-3 py-2 text-amber-400 font-bold font-mono rounded-xl focus:outline-none focus:border-sky-500">
-                <option value="A318">A318 Matrix</option>
-                <option value="A319">A319 Matrix</option>
-                <option value="A320">A320 Matrix</option>
-                <option value="A321">A321 Matrix</option>
-                <option value="C150">Cessna 150</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-slate-400 font-bold uppercase tracking-wider mb-1.5">Doctypes Filter</label>
-              <div className="space-y-1.5">
-                {['AMM', 'IPC', 'TSM', 'WDM'].map(type => (
-                  <div 
-                    key={type} 
-                    onClick={() => setSelectedDoctypes(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type])}
-                    className={`p-2.5 border rounded-xl font-bold font-mono flex items-center justify-between cursor-pointer transition-all ${selectedDoctypes.includes(type) ? 'bg-amber-500/10 border-amber-500/40 text-amber-400' : 'bg-slate-950 border-slate-850 text-slate-500'}`}
-                  >
-                    <span>{type}</span>
-                    {selectedDoctypes.includes(type) && <span className="text-[9px] bg-amber-500 text-slate-950 px-1 rounded uppercase font-black">Active</span>}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <button onClick={() => { setFormData({ title: '', document_type: 'AMM', aircraft_types: selectedAircraftType, customization: 'DEMO', revision_number: 'Rev 01', revision_date: '', file_url: '' }); setActiveModal('document'); }} className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-xl flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-md">
-              <Plus className="h-4 w-4" /> Inject New Manual
-            </button>
-          </div>
-        </aside>
-
         {/* 📋 CENTRAL DATA CATALOGUE LOG DISPLAY PANEL */}
-        <section className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden transition-all duration-300 ${activeViewingUrl && !isFullscreenViewer ? 'hidden lg:flex lg:max-w-[35%] xl:max-w-[30%]' : activeViewingUrl && isFullscreenViewer ? 'hidden' : 'flex'}`}>
-          <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl flex items-center gap-3 shrink-0">
-            <div className="w-10 h-10 bg-slate-950 border border-slate-800 rounded-xl text-sky-400 flex items-center justify-center shadow-inner"><BookOpen className="h-5 w-5" /></div>
+        {/* Responsive Behavior: Hidden completely on screens smaller than lg if a document is currently active */}
+        <section className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden transition-all duration-300 
+          ${activeViewingUrl ? 'hidden lg:flex lg:max-w-[35%] xl:max-w-[30%]' : 'flex'}`}>
+          
+          <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl flex flex-col gap-3 shrink-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-black text-xs uppercase tracking-widest text-sky-400 flex items-center gap-1.5 truncate">
+                <BookOpen className="h-4 w-4 shrink-0" /> Systems Catalog
+              </span>
+              
+              {canUpload && (
+                <button 
+                  onClick={() => setActiveModal('upload')} 
+                  className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 cursor-pointer transition-colors shadow shrink-0"
+                >
+                  <Plus className="h-3.5 w-3.5" /> <span className="hidden xs:inline">Upload PDF</span>
+                </button>
+              )}
+            </div>
+            
             <div className="relative flex-1 text-sm">
               <Search className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-              <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-white text-xs focus:outline-none focus:border-sky-500" placeholder="Filter current catalog list by text title properties..." />
+              <input 
+                type="text" 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white text-xs focus:outline-none focus:border-sky-500" 
+                placeholder="Search PDF indices, titles, TOC..." 
+              />
             </div>
           </div>
 
-          <div className="text-[10px] font-bold tracking-wider text-slate-500 uppercase px-1 pt-3 pb-1 shrink-0">Results Count: {filteredDocs.length} Manual Indexes</div>
+          <div className="text-[10px] font-bold tracking-wider text-slate-500 uppercase px-1 pt-3 pb-1 shrink-0 flex justify-between">
+            <span>Results: {documents.length} Manuals</span>
+            {loading && <RefreshCw className="h-3 w-3 animate-spin text-sky-400" />}
+          </div>
 
           <div className="flex-1 overflow-y-auto space-y-2 pr-1 pb-4 custom-scrollbar">
             {documents.length === 0 && !loading ? (
               <div className="text-center py-20 bg-slate-900/40 border border-slate-850 rounded-2xl text-slate-500 italic text-xs">
-                No technical documents found matching selected context filters.
+                No technical documents found matching search terms.
               </div>
-            ) : filteredDocs.map(doc => {
-              const activeRev = doc.revisions?.find(r => r.status === 'active');
-              const isCurrentlyViewing = activeViewingUrl === activeRev?.file_url;
+            ) : documents.map(doc => {
+              const docFileUrl = getDocUrl(doc.file_path);
+              const isCurrentlyViewing = activeViewingUrl.startsWith(docFileUrl) && activeDoc?.id === doc.id;
 
               return (
-                <div key={doc.id} className={`p-4 rounded-xl flex flex-col sm:flex-row lg:flex-col xl:flex-row justify-between items-start sm:items-center lg:items-start xl:items-center gap-4 transition-all border group ${isCurrentlyViewing ? 'bg-sky-950/20 border-sky-500/40 shadow-md shadow-sky-500/5' : 'bg-slate-900 border-slate-800 hover:border-slate-700'}`}>
-                  <div className="min-w-0 space-y-0.5 w-full">
-                    <h3 className={`font-black text-sm tracking-tight truncate transition-colors ${isCurrentlyViewing ? 'text-sky-400' : 'text-white group-hover:text-sky-400'}`}><span className="text-amber-400 font-mono font-bold mr-1.5">{doc.document_type}</span>{doc.title}</h3>
-                    <p className="text-xs text-slate-400 font-medium truncate">{doc.aircraft_types} | <span className="font-mono text-[11px] font-bold text-slate-500 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-850">{doc.customization}</span></p>
-                    {activeRev && <p className="text-[10px] font-mono font-bold text-slate-500 pt-0.5">{activeRev.revision_number} ({activeRev.revision_date})</p>}
+                <div 
+                  key={doc.id} 
+                  onClick={() => {
+                    if (isCurrentlyViewing) {
+                      setActiveViewingUrl('');
+                      setActiveDoc(null);
+                    } else {
+                      setActiveDoc(doc);
+                      setActiveViewingUrl(docFileUrl);
+                    }
+                  }}
+                  className={`p-4 rounded-xl flex justify-between items-center gap-3 transition-all border group cursor-pointer ${isCurrentlyViewing ? 'bg-sky-950/20 border-sky-500/40 shadow-md shadow-sky-500/5' : 'bg-slate-900 border-slate-800 hover:border-slate-700'}`}
+                >
+                  <div className="min-w-0 space-y-1 flex-1">
+                    <h3 className={`font-black text-xs sm:text-sm tracking-tight truncate transition-colors ${isCurrentlyViewing ? 'text-sky-400' : 'text-white group-hover:text-sky-400'}`}>
+                      {doc.title}
+                    </h3>
+                    <div className="flex gap-2 items-center text-[10px]">
+                      <span className="font-mono text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-850 truncate">
+                        {doc.table_of_contents?.length || 0} Outlines
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1 bg-slate-950 border border-slate-850 p-1 rounded-xl self-end sm:self-auto lg:self-end xl:self-auto shrink-0 shadow-inner">
-                    {/* ⚡ ACTIVE INLINE VIEWER TRIGGER */}
-                    {activeRev && (
+                  
+                  <div className="flex items-center gap-1 bg-slate-950 border border-slate-850 p-1 rounded-xl shrink-0 shadow-inner" onClick={(e) => e.stopPropagation()}>
+                    <button 
+                      onClick={() => {
+                        if (isCurrentlyViewing) {
+                          setActiveViewingUrl('');
+                          setActiveDoc(null);
+                        } else {
+                          setActiveDoc(doc);
+                          setActiveViewingUrl(docFileUrl);
+                        }
+                      }}
+                      title={isCurrentlyViewing ? "Close Digital Viewer" : "Open PDF Outlines Viewer"}
+                      className={`p-1.5 sm:p-2 rounded-lg cursor-pointer transition-all ${isCurrentlyViewing ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                    >
+                      {isCurrentlyViewing ? <EyeOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+                    </button>
+                    <a href={docFileUrl} target="_blank" rel="noreferrer" title="Open PDF original file in new tab" className="p-1.5 sm:p-2 text-slate-400 hover:text-white rounded-lg transition-colors">
+                      <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </a>
+                    
+                    {canUpload && (
                       <button 
-                        onClick={() => {
-                          if (isCurrentlyViewing) {
-                            setActiveViewingUrl(null);
-                            setViewingTargetTitle('');
-                            setIsFullscreenViewer(false);
-                          } else {
-                            setActiveViewingUrl(activeRev.file_url);
-                            setViewingTargetTitle(`${doc.document_type} ${doc.title} (${activeRev.revision_number})`);
-                          }
-                        }}
-                        title={isCurrentlyViewing ? "Close Digital Viewer" : "Open Digital Content Viewer"}
-                        className={`p-2 rounded-lg cursor-pointer transition-all ${isCurrentlyViewing ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'text-slate-400 hover:text-white hover:bg-slate-900'}`}
+                        onClick={(e) => handleDeleteDocument(doc.id, e)} 
+                        title="De-index Document" 
+                        className="p-1.5 sm:p-2 text-slate-400 hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
                       >
-                        {isCurrentlyViewing ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </button>
                     )}
-                    {activeRev && <a href={activeRev.file_url} target="_blank" rel="noreferrer" title="Open source target external" className="p-2 text-slate-400 hover:text-white hover:bg-slate-900 rounded-lg transition-colors"><FileText className="h-4 w-4" /></a>}
-                    {activeRev && <a href={activeRev.file_url} download title="Save binary file down" className="p-2 text-slate-400 hover:text-white hover:bg-slate-900 rounded-lg transition-colors"><Download className="h-4 w-4" /></a>}
-                    <button onClick={async () => { await fetchDocumentHistory(doc.id); setActiveModal('history'); }} title="Audit history lifecycle tracks" className="p-2 text-slate-400 hover:text-white hover:bg-slate-900 rounded-lg cursor-pointer transition-colors"><History className="h-4 w-4" /></button>
                   </div>
                 </div>
               );
@@ -242,20 +328,31 @@ export default function LibraryView() {
         </section>
 
         {/* =========================================================================
-            ⚡ EXPANDABLE ULTRA-WIDE EMBEDDED DIGITAL WORKSPACE MODULE VIEWPORT
+            ⚡ COLLAPSIBLE DUAL-PANE PDF + OUTLINE DIGITAL WORKSPACE VIEWPORT
             ========================================================================= */}
-        {activeViewingUrl && (
-          <section className={`h-full bg-slate-900 border border-slate-800 rounded-2xl flex flex-col overflow-hidden shadow-2xl transition-all duration-300 min-w-0 ${isFullscreenViewer ? 'w-full lg:flex-1' : 'w-full lg:flex-[0_0_65%] xl:flex-[0_0_70%]'}`}>
-            <div className="p-3 bg-slate-950 border-b border-slate-800 flex justify-between items-center px-4 shrink-0 h-14">
-              <div className="flex items-center gap-2.5 truncate max-w-[65%] sm:max-w-[80%]">
+        {/* Responsive Behavior: Spans 100% viewport width when active on mobile/tablet. Adjusts dynamic split weights on desktop. */}
+        {activeViewingUrl && activeDoc && (
+          <section className={`h-full bg-slate-900 border border-slate-800 rounded-2xl flex flex-col overflow-hidden shadow-2xl transition-all duration-300 min-w-0 w-full 
+            ${isFullscreenViewer ? 'lg:flex-1' : 'lg:flex-[0_0_65%] xl:flex-[0_0_70%]'}`}>
+            
+            {/* Control Bar Header */}
+            <div className="p-3 bg-slate-950 border-b border-slate-800 flex justify-between items-center px-3 sm:px-4 shrink-0 h-14">
+              <div className="flex items-center gap-2 truncate max-w-[50%] sm:max-w-[70%]">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                <span className="font-black text-xs md:text-sm text-slate-200 font-sans truncate tracking-wide uppercase" title={viewingTargetTitle}>
-                  {viewingTargetTitle}
+                <span className="font-black text-xs md:text-sm text-slate-200 font-sans truncate tracking-wide uppercase" title={activeDoc.title}>
+                  {activeDoc.title}
                 </span>
               </div>
               
-              <div className="flex items-center gap-1.5 bg-slate-900 p-1 border border-slate-800 rounded-xl shrink-0">
-                {/* 🔄 EXPAND / COMPRESS LAYOUT SCREEN SIZE INTERCEPTOR */}
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-900 p-1 border border-slate-800 rounded-xl shrink-0">
+                {/* Responsive TOC Toggle Button: Works globally, highly visual */}
+                <button 
+                  onClick={() => setShowTocSidebar(!showTocSidebar)}
+                  title="Toggle Table of Contents"
+                  className={`p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer transition-colors ${showTocSidebar ? 'bg-slate-850 text-sky-400' : ''}`}
+                >
+                  <ListCollapse className="h-4 w-4" />
+                </button>
                 <button
                   onClick={() => setIsFullscreenViewer(!isFullscreenViewer)}
                   title={isFullscreenViewer ? "Split Workspace Interface Layout" : "Maximize Document Viewport Pane"}
@@ -264,7 +361,7 @@ export default function LibraryView() {
                   {isFullscreenViewer ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                 </button>
                 <button 
-                  onClick={() => { setActiveViewingUrl(null); setViewingTargetTitle(''); setIsFullscreenViewer(false); }}
+                  onClick={() => { setActiveViewingUrl(''); setActiveDoc(null); setIsFullscreenViewer(false); }}
                   className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/20 cursor-pointer transition-colors"
                   title="Close Reader Console"
                 >
@@ -273,15 +370,42 @@ export default function LibraryView() {
               </div>
             </div>
             
-            <div className="flex-1 bg-slate-950 p-1 md:p-2.5 relative h-full w-full">
-              {/* ⚡ RENDERS INTERNAL SANITIZED RESOURCE THROUGH SECURE IFRAME PORTS */}
-              <iframe 
-                src={`${getSanitizedViewerUrl(activeViewingUrl)}#toolbar=1&navpanes=0&scrollbar=1`}
-                className="w-full h-full rounded-xl bg-[#1e2538] border border-slate-850 shadow-inner"
-                title="AeroFix Integrated Document Workspace Console"
-                allow="autoplay; fullscreen"
-                loading="lazy"
-              />
+            {/* Split Screen Workspace Area */}
+            {/* Responsive Behavior: On mobile/tablet, the TOC sidebar overlays or collapses cleanly so the viewport doesn't shrink. */}
+            <div className="flex-1 bg-slate-950 flex h-full w-full overflow-hidden relative">
+              
+              {/* Interactive TOC Sidebar */}
+              {showTocSidebar && (
+                <aside className="absolute inset-y-0 left-0 z-30 w-72 md:relative border-r border-slate-800 bg-slate-950/95 md:bg-slate-950/60 shrink-0 flex flex-col h-full overflow-hidden shadow-2xl md:shadow-none animate-slideIn">
+                  <div className="p-3 bg-slate-900/50 border-b border-slate-800 shrink-0 flex justify-between items-center">
+                    <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">Document Index Outline</span>
+                    {/* Close button visible on smaller screens for mobile drawer UX */}
+                    <button onClick={() => setShowTocSidebar(false)} className="md:hidden text-slate-500 hover:text-white">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+                    {activeDoc.table_of_contents && activeDoc.table_of_contents.length > 0 ? (
+                      <TocTree items={activeDoc.table_of_contents} />
+                    ) : (
+                      <div className="text-center py-10 text-slate-500 italic text-[11px] px-4">
+                        No structural Table of Contents outline detected in this PDF.
+                      </div>
+                    )}
+                  </div>
+                </aside>
+              )}
+
+              {/* Secure Web PDF Port */}
+              <div className="flex-1 p-1 md:p-2.5 relative h-full w-full">
+                <iframe 
+                  src={activeViewingUrl}
+                  className="w-full h-full rounded-xl bg-[#1e2538] border border-slate-850 shadow-inner"
+                  title="AeroFix Integrated Document Workspace Console"
+                  allow="autoplay; fullscreen"
+                  loading="lazy"
+                />
+              </div>
             </div>
           </section>
         )}
@@ -289,61 +413,85 @@ export default function LibraryView() {
       </div>
 
       {/* =========================================================================
-          ⚡ RESPONSIVE INTERACTIVE FLOATING MODALS OVERLAYS
+          ⚡ RESPONSIVE INTERACTIVE FLOATING UPLOAD MODAL OVERLAY
           ========================================================================= */}
-      {activeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-fadeIn">
+      {activeModal === 'upload' && canUpload && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-xs animate-fadeIn">
           <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
             <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-850 shrink-0">
-              <h3 className="font-bold text-white text-sm uppercase tracking-wider">{activeModal === 'document' && 'Provision Base Manual'}{activeModal === 'revision' && 'Issue New Active Revision'}{activeModal === 'history' && 'Audit trail History Archive'}</h3>
-              <button onClick={() => { setActiveModal(null); if (activeModal !== 'revision') setHistoryTarget(null); }} className="text-slate-400 hover:text-white p-1 cursor-pointer"><X className="h-5 w-5" /></button>
+              <h3 className="font-bold text-white text-xs sm:text-sm uppercase tracking-wider">Index & Upload New PDF Manual</h3>
+              <button onClick={() => { setActiveModal(null); setFormData({ title: '' }); setSelectedFile(null); }} className="text-slate-400 hover:text-white p-1 cursor-pointer">
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            {/* FORM MODAL 1: PROVISION NEW ENTRY BASE MANUAL */}
-            {activeModal === 'document' && (
-              <form onSubmit={handleCreateDocument} className="p-5 space-y-4 overflow-y-auto text-xs">
-                <div><label className="block font-bold text-slate-400 mb-1 uppercase tracking-wider">Manual Label Title *</label><input type="text" name="title" required value={formData.title} onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500 font-sans text-sm" placeholder="Aircraft Maintenance Manual" /></div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div><label className="block font-bold text-slate-400 mb-1 uppercase tracking-wider">Doctype Label</label><select name="document_type" value={formData.document_type} onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-xs"><option value="AMM">AMM</option><option value="IPC">IPC</option><option value="TSM">TSM</option><option value="WDM">WDM</option></select></div>
-                  <div><label className="block font-bold text-slate-400 mb-1 uppercase tracking-wider">Aircraft Applicability *</label><input type="text" name="aircraft_types" required value={formData.aircraft_types} onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-mono" placeholder="A320, A321" /></div>
-                </div>
-                <div className="grid grid-cols-2 gap-3 border-t border-slate-800/60 pt-3">
-                  <div><label className="block font-bold text-slate-400 mb-1 uppercase tracking-wider">Revision Index *</label><input type="text" name="revision_number" required value={formData.revision_number} onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-mono" placeholder="Rev 01" /></div>
-                  <div><label className="block font-bold text-slate-400 mb-1 uppercase tracking-wider">Revision Date *</label><input type="text" name="revision_date" required value={formData.revision_date} onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-mono" placeholder="21-May-2026" /></div>
-                </div>
-                <div><label className="block font-bold text-slate-400 mb-1 uppercase tracking-wider">Resource PDF URL *</label><input type="text" name="file_url" required value={formData.file_url} onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-mono" placeholder="https://storage.aerofix.com/docs/amm.pdf" /></div>
-                <div className="pt-4 flex gap-2 border-t border-slate-800"><button type="button" onClick={() => setActiveModal(null)} className="w-1/2 bg-slate-800 py-2.5 text-slate-300 font-bold rounded-xl cursor-pointer">Abort</button><button type="submit" className="w-1/2 bg-sky-600 py-2.5 text-white font-bold rounded-xl shadow-md cursor-pointer">Commit Index</button></div>
-              </form>
-            )}
-
-            {/* FORM MODAL 2: SUPERSEDE OLD CODES AND COMMIT NEW ACTIVE POINTER */}
-            {activeModal === 'revision' && (
-              <form onSubmit={handlePushRevision} className="p-5 space-y-4 overflow-y-auto text-xs">
-                <div className="p-3 bg-amber-500/5 text-amber-400 border border-amber-500/10 rounded-xl flex gap-2 leading-relaxed"><ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" /><p>Executing this form will switch previous items to <span className="font-bold underline">superseded</span> and commit the new active pointer entry.</p></div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div><label className="block font-bold text-slate-400 mb-1 uppercase tracking-wider">New Rev Code *</label><input type="text" name="revision_number" required value={formData.revision_number} onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-mono" placeholder="Rev 24" /></div>
-                  <div><label className="block font-bold text-slate-400 mb-1 uppercase tracking-wider">Effective Lock Date *</label><input type="text" name="revision_date" required value={formData.revision_date} onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-mono" placeholder="21-May-2026" /></div>
-                </div>
-                <div><label className="block font-bold text-slate-400 mb-1 uppercase tracking-wider">New Source File URL Path *</label><input type="text" name="file_url" required value={formData.file_url} onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-mono" placeholder="https://storage.aerofix.com/docs/new_amm.pdf" /></div>
-                <div className="pt-4 flex gap-2 border-t border-slate-800"><button type="button" onClick={() => setActiveModal('history')} className="w-1/2 bg-slate-800 py-2.5 text-slate-300 font-bold rounded-xl cursor-pointer">Back</button><button type="submit" className="w-1/2 bg-amber-600 py-2.5 text-white font-bold rounded-xl shadow-md cursor-pointer">Supersede & Commit</button></div>
-              </form>
-            )}
-
-            {/* AUDIT MODAL 3: AUDIT TRAIL TIMELINE LOG ARCHIVES LIST */}
-            {activeModal === 'history' && historyTarget && (
-              <div className="p-5 flex flex-col overflow-hidden text-xs space-y-4">
-                <div className="space-y-0.5 shrink-0"><h4 className="font-black text-white text-base font-sans leading-tight">{historyTarget.title}</h4><p className="text-slate-500 font-mono tracking-wide text-[11px] uppercase">Applicability: {historyTarget.aircraft_types}</p></div>
-                <div className="flex-1 overflow-y-auto space-y-2 border-y border-slate-800/80 py-3 my-1 pr-1 max-h-[260px]">
-                  {historyTarget.revisions?.map(rev => (
-                    <div key={rev.id} className="p-3 bg-slate-950 border border-slate-850 rounded-xl flex justify-between items-center gap-3">
-                      <div className="space-y-0.5"><p className="font-bold font-mono text-slate-200">{rev.revision_number}</p><p className="text-[10px] text-slate-500 font-medium">Released: {rev.revision_date}</p></div>
-                      <span className={`px-2 py-0.5 border text-[9px] font-black uppercase rounded tracking-wider ${rev.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-900 text-slate-600 border-slate-850'}`}>{rev.status}</span>
-                    </div>
-                  )) || <p className="text-center italic py-4 text-slate-500">No revisions found.</p>}
-                </div>
-                <button onClick={() => { setFormData({ ...formData, revision_number: `Rev ${parseInt(historyTarget.revisions?.[0]?.revision_number?.replace(/\D/g, '') || 1) + 1}`, revision_date: '', file_url: '' }); setActiveModal('revision'); }} className="w-full bg-slate-800 border border-slate-700 text-white hover:text-sky-400 font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 shadow-md"><Plus className="h-4 w-4" /> Push Revision Level</button>
+            <form onSubmit={handleUploadSubmit} className="p-4 sm:p-5 space-y-4 overflow-y-auto text-xs">
+              <div>
+                <label className="block font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Document Title *</label>
+                <input 
+                  type="text" 
+                  name="title" 
+                  required 
+                  value={formData.title} 
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500 font-sans text-sm" 
+                  placeholder="e.g., Cessna Maintenance Outline" 
+                />
               </div>
-            )}
+              
+              <div>
+                <label className="block font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Binary PDF Document File *</label>
+                <div className="border-2 border-dashed border-slate-800 rounded-xl p-4 text-center hover:border-slate-700 transition-colors bg-slate-950 relative">
+                  <input 
+                    type="file" 
+                    accept="application/pdf"
+                    required
+                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="space-y-1">
+                    <FileText className="h-8 w-8 text-sky-500 mx-auto" />
+                    <p className="text-[11px] text-slate-300 font-medium break-all px-2">
+                      {selectedFile ? selectedFile.name : 'Click or Drag files here to choose'}
+                    </p>
+                    <p className="text-[10px] text-slate-500 font-mono">PDF files only</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Tracking Indicator */}
+              {uploadProgress > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex justify-between font-mono text-[10px] text-slate-400 font-bold">
+                    <span>{uploadProgress === 100 ? 'Indexing PDF Outline...' : 'Uploading Asset...'}</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-sky-500 transition-all duration-300" 
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-4 flex gap-2 border-t border-slate-800">
+                <button 
+                  type="button" 
+                  onClick={() => { setActiveModal(null); setFormData({ title: '' }); setSelectedFile(null); }} 
+                  className="w-1/2 bg-slate-800 py-2.5 text-slate-300 font-bold rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-1/2 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 py-2.5 text-white font-bold rounded-xl shadow-md cursor-pointer transition-colors"
+                >
+                  Upload & Index
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -32,7 +32,7 @@ const modelFactories = [
   require('./taskCard'),
   require('./taskCardPart'),
   require('./taskCardStep'),
-  require('./document'),
+  require('./documents'),
   require('./revision')
 ];
 

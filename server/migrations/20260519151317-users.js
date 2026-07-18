@@ -10,11 +10,6 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true
       },
-      student_id: {
-        type: Sequelize.STRING(20),
-        allowNull: true,
-        unique: true
-      },
       first_name: {
         type: Sequelize.STRING(120), // Updated from 60 to 120
         allowNull: false

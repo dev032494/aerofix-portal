@@ -1,142 +1,153 @@
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto'); 
 const documentRepository = require('../repositories/documentRepository');
+const { Document } = require('../models'); 
 
-/**
- * GET /api/v1/library
- * Resolves filtered documents listing based on the Context Sidebar selections
- */
-const getLibraryCatalog = async (req, res, next) => {
+// Guarantee upload directory exists recursively on server startup
+const UPLOAD_DIR = path.join(__dirname, '../uploads/documents'); 
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+
+const uploadDocument = async (req, res, next) => {
   try {
-    const { customization, aircraft, doctypes } = req.query;
-    const documents = await documentRepository.findByContext({ 
-      customization, 
-      aircraft, 
-      doctypes 
+    // 🚨 RUNTIME DIAGNOSTICS: Print absolute paths and folder contents to find the ghost file
+    const modelsDir = path.join(__dirname, '../models');
+    console.log('==================================================');
+    console.log('🔍 DEEP RUNTIME DIAGNOSTIC CHECK');
+    console.log('📂 Models Directory Absolute Path:', modelsDir);
+    console.log('📄 Files found inside this folder:', fs.readdirSync(modelsDir));
+    console.log('🧬 Active model attributes loaded in memory:', Object.keys(Document.rawAttributes));
+    console.log('==================================================');
+
+    // 1. 💽 PHYSICAL UPLOAD: Multer has successfully written the physical file to disk
+    if (!req.file) {
+      return res.status(400).json({ status: 'fail', message: 'Please upload a valid PDF file.' });
+    }
+
+    console.log(`📡 Multer physical disk write success: ${req.file.path}`);
+
+    const { title, document_type, aircraft_types, customization } = req.body;
+    if (!title) {
+      // 🧹 Cleanup: Delete the uploaded file immediately if validation fails
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ status: 'fail', message: 'Document title is required.' });
+    }
+
+    // STEP 2: GET THE CLEAN PUBLIC WEB PATH FOR THE DATABASE
+    const fileName = path.basename(req.file.path);
+    const dbFriendlyPath = `uploads/documents/${fileName}`; 
+
+    // Normalize slashes on the physical disk path for PDFJS parsing safety
+    const normalizedPhysicalPath = req.file.path.replace(/\\/g, '/');
+
+    // 3. 🔍 PDF PARSING: Extract structural TOC outline and build search index *before* writing to DB
+    let tableOfContents = [];
+    let searchIndex = "";
+    try {
+      const parsedData = await documentRepository.parsePDF(normalizedPhysicalPath);
+      tableOfContents = parsedData.toc;
+      searchIndex = parsedData.searchIndexText;
+    } catch (tocError) {
+      console.warn(`⚠️ TOC indexing failed for document "${title}":`, tocError.message);
+    }
+
+    // Explicitly generate a cryptographically secure UUID v4 for the document ID
+    const documentId = crypto.randomUUID();
+
+    // 4. 💾 DATABASE INSERTION: Write the complete compiled payload
+    const documentPayload = {
+      id: documentId,
+      title,
+      file_path: dbFriendlyPath,
+      document_type: document_type || 'SM',
+      aircraft_types: aircraft_types || 'C150',
+      customization: customization || 'CESSNA',
+      table_of_contents: tableOfContents,
+      search_index: searchIndex
+    };
+
+    console.log('Sending payload to repository:', documentPayload);
+
+    const document = await documentRepository.create(documentPayload);
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Document uploaded, indexed, and paths mapped successfully.',
+      data: { document }
     });
-    
-    res.status(200).json({ 
-      status: 'success', 
-      data: { documents } 
-    });
+  } catch (error) {
+    // Clean up orphaned files from disk if the database write crashes
+    // if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+    //   try {
+    //     fs.unlinkSync(req.file.path);
+    //     console.log(`🧹 Cleaned up orphaned file from disk: ${req.file.path}`);
+    //   } catch (cleanupError) {
+    //     console.error('Failed to clean up file after controller error:', cleanupError);
+    //   }
+    // }
+    next(error);
+  }
+};
+
+const getAllDocuments = async (req, res, next) => {
+  try {
+    const documents = await documentRepository.findAll();
+    res.status(200).json({ status: 'success', data: { documents } });
   } catch (error) {
     next(error);
   }
 };
 
-/**
- * GET /api/v1/library/:id/history
- * Unpacks historical revision logs mapping to an explicitly requested documentation ID
- */
-const getDocumentHistory = async (req, res, next) => {
+const searchDocuments = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.status(400).json({ status: 'fail', message: 'Search term "q" is required.' });
+    }
+
+    const documents = await documentRepository.searchIndex(q);
+    res.status(200).json({ status: 'success', results: documents.length, data: { documents } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteDocument = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const document = await documentRepository.findDocumentHistory(id);
     
+    // We retrieve the document first to get the correct physical path for unlinking
+    const document = await documentRepository.findById(id);
     if (!document) {
-      return res.status(404).json({ 
-        status: 'fail', 
-        message: 'Technical publication index file not found matching that pointer.' 
-      });
+      return res.status(404).json({ status: 'fail', message: 'Document not found.' });
     }
+
+    // Extract filename to resolve where it exists on physical disk
+    const fileName = path.basename(document.file_path);
+    const physicalPathOnDisk = path.join(UPLOAD_DIR, fileName);
+
+    // Synchronously remove file from disk
+    if (fs.existsSync(physicalPathOnDisk)) {
+      fs.unlinkSync(physicalPathOnDisk);
+    }
+
+    // Destroy database record
+    await document.destroy();
     
-    res.status(200).json({ 
-      status: 'success', 
-      data: { document } 
+    res.status(200).json({
+      status: 'success',
+      message: 'Document and localized file deleted successfully.'
     });
   } catch (error) {
     next(error);
   }
 };
 
-/**
- * POST /api/v1/library
- * Commits a baseline manual tracking row while binding its initial effective revision leaf
- */
-const injectNewDocument = async (req, res, next) => {
-  try {
-    // Robust extraction layers supporting both standard snake_case and camelCase parameters
-    const title = req.body.title;
-    const document_type = req.body.document_type || req.body.documentType;
-    const aircraft_types = req.body.aircraft_types || req.body.aircraftTypes;
-    const customization = req.body.customization || 'DEFAULT';
-    const revision_number = req.body.revision_number || req.body.revisionNumber || 'Rev 01';
-    const revision_date = req.body.revision_date || req.body.revisionDate;
-    const file_url = req.body.file_url || req.body.fileUrl;
-
-    if (!title || !document_type || !aircraft_types || !revision_date || !file_url) {
-      return res.status(400).json({ 
-        status: 'fail', 
-        message: 'Missing mandatory payload field parameters.' 
-      });
-    }
-
-    // 1. Write the parent manual row configuration metadata
-    const document = await documentRepository.createDocument({ 
-      title, 
-      document_type, 
-      aircraft_types, 
-      customization 
-    });
-    
-    // 2. Pin the initial child revision instance attached to the parent ID
-    const initialRevision = await documentRepository.createRevision({
-      document_id: document.id,
-      revision_number,
-      revision_date,
-      file_url,
-      status: 'active',
-      compiled_by: req.user?.id || null
-    });
-
-    res.status(201).json({ 
-      status: 'success', 
-      data: { document, initialRevision } 
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * POST /api/v1/library/:id/revisions
- * Automatically supersedes active items and pushes an explicit revision update line
- */
-const pushNewRevision = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { revision_number, revision_date, file_url } = req.body;
-
-    if (!revision_number || !revision_date || !file_url) {
-      return res.status(400).json({ 
-        status: 'fail', 
-        message: 'Missing revision payload parameter data.' 
-      });
-    }
-
-    // 1. Transactional Update: Set existing versions for this document to 'superseded'
-    await documentRepository.supersedeOldRevisions(id);
-
-    // 2. Write the fresh active release pointer row 
-    const revision = await documentRepository.createRevision({
-      document_id: id,
-      revision_number,
-      revision_date,
-      file_url,
-      status: 'active',
-      compiled_by: req.user?.id || null
-    });
-
-    res.status(201).json({ 
-      status: 'success', 
-      data: { revision } 
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-module.exports = { 
-  getLibraryCatalog, 
-  getDocumentHistory, 
-  injectNewDocument, 
-  pushNewRevision 
+module.exports = {
+  uploadDocument,
+  getAllDocuments,
+  searchDocuments,
+  deleteDocument
 };

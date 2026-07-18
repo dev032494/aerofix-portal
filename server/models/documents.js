@@ -1,38 +1,61 @@
+'use strict';
+const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
-  const Document = sequelize.define('Document', {
+  class Document extends Model {
+    static associate(models) {
+      // Define associations here if needed
+    }
+  }
+
+  Document.init({
     id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true
     },
     title: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true
+      }
+    },
+    file_path: {
       type: DataTypes.STRING,
       allowNull: false
     },
     document_type: {
-      type: DataTypes.STRING(20), // AMM, IPC, TSM, WDM
-      allowNull: false
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'SM'
     },
     aircraft_types: {
-      type: DataTypes.STRING, // Store string format e.g: "A318, A319, A320, A321"
-      allowNull: false
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'C150'
     },
     customization: {
-      type: DataTypes.STRING(50), // e.g., DEMO
-      defaultValue: 'DEFAULT'
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'CESSNA'
     },
-    revision_date: {
-      type: DataTypes.STRING(30), // Formatted tracking string e.g: "01-Aug-2017"
-      allowNull: false
+    table_of_contents: {
+      type: DataTypes.JSON,
+      allowNull: true
     },
-    file_url: {
+    search_index: {
       type: DataTypes.TEXT,
-      allowNull: false
+      allowNull: true
     }
   }, {
+    sequelize,
+    modelName: 'Document',
     tableName: 'documents',
     timestamps: true,
-    underscored: true
+    underscored: false, // ⚡ FIX: Turn off naming translation algorithms entirely
+    createdAt: 'created_at', // ⚡ Directly map camelCase runtime timestamps to snake_case DB columns
+    updatedAt: 'updated_at'
   });
 
   return Document;
