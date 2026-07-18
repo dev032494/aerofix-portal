@@ -51,7 +51,7 @@ export default function DeveloperLoginView({ onLoginSuccess }) {
       onLoginSuccess(data.user);
 
     } catch (err) {
-      setError(err.message || err.response?.data?.message || 'Cryptographic authentication challenge failed.');
+      setError(err.response?.data?.message || 'Cryptographic authentication challenge failed.');
     } finally {
       setLoading(false);
     }

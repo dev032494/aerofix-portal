@@ -40,7 +40,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ 
   storage, 
   fileFilter,
-  limits: { fileSize: 50 * 1024 * 1024 } // 50MB file size limit threshold
+  limits: { fileSize: 500 * 1024 * 1024 } // 500MB file size limit threshold
 });
 
 // Route definitions
