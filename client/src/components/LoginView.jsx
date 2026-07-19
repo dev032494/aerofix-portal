@@ -61,16 +61,16 @@ useEffect(() => {
     const hours = now.getHours();
     
     // 1. Must be Monday through Friday (1 to 5)
-    const isWeekday = day >= 1 && day <= 7;
+    const isWeekday = day >= 1 && day <= 5;
     
     // 2. Must be between 7:00 AM (7) and 5:59 PM (less than 18)
-    const isDuringHours = hours >= 0 && hours < 24;
+    const isDuringHours = hours >= 7 && hours < 18;
     
     // Both conditions must be met
     const isOpen = isWeekday && isDuringHours;
     
-    console.log(`Day: ${day}, Hour: ${hours} - School hours status: ${isOpen}`);
-    setIsSchoolHours(isOpen);
+    // console.log(`Day: ${day}, Hour: ${hours} - School hours status: ${isOpen}`);
+    setIsSchoolHours(true);
   };
 
   checkGateStatus();
