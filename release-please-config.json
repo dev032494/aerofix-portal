@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "changelog-sections": [
     { "type": "feat", "section": "🚀 Features" },
     { "type": "fix", "section": "🐛 Bug Fixes" },
@@ -9,16 +10,12 @@
   "packages": {
     "client": {
       "release-type": "node",
-      "path": "client",
-      "changelog-path": "CHANGELOG.md"
+      "package-name": "client"
     },
     "server": {
       "release-type": "node",
-      "path": "server",
-      "changelog-path": "CHANGELOG.md"
+      "package-name": "server"
     }
   },
-  "bootstrap-sha": "038405ce237d5508ea8c68255eedf925838ba073",
-  "include-component-in-tag": true,
-  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
+  "bootstrap-sha": "038405ce237d5508ea8c68255eedf925838ba073"
 }
