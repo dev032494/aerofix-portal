@@ -13,7 +13,12 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@v4
+      # CRITICAL FIX: This pulls your code (and config files) into the runner
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Release Please
+        uses: googleapis/release-please-action@v4
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
