@@ -156,7 +156,7 @@ const updateAccountPassword = async (req, res, next) => {
     }
 
     // ⚡ UPDATED: Perform a secure, asynchronous bcrypt compare check against the database hash
-    const isCurrentPasswordCorrect = await bcrypt.compare(current_password, user.password_hash);
+    const isCurrentPasswordCorrect = await comparePassword(current_password, user.password_hash);
     if (!isCurrentPasswordCorrect) {
       return res
         .status(401)
@@ -167,8 +167,7 @@ const updateAccountPassword = async (req, res, next) => {
     }
 
     // ⚡ UPDATED: Hash the new password before overwriting and committing to the database
-    const salt = await bcrypt.genSalt(SALT_ROUNDS);
-    user.password_hash = await bcrypt.hash(new_password, salt);
+    user.password_hash = await hashPassword(new_password);
     await user.save();
 
     res.status(200).json({
