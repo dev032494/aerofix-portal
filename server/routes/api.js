@@ -8,6 +8,7 @@ const workOrderRoutes = require('./workOrderRoutes');
 // const libraryRouter = require('./libraryRoutes');
 const documentRoutes = require('./documentRoutes'); // ⚡ ADDED: Import new document sub-router
 const userActivationLogRoutes = require('./userActivationLogRoutes'); // ⚡ ADDED: Import new user activation log sub-router
+const activityLogRoutes = require('./activityLogRoutes'); // ⚡ ADDED: Import new activity log sub-router
 
 
 // =========================================================================
@@ -31,5 +32,7 @@ router.use('/documents', documentRoutes);
 
 // ⚡ ADDED: User Activation Log Sub-System -> Maps to /api/v1/activation-logs
 router.use('/activation-logs', userActivationLogRoutes);
+
+router.use('/activity-logs', activityLogRoutes); // ⚡ ADDED: Activity Log Sub-System
 
 module.exports = { apiRouter: router };

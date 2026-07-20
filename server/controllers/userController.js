@@ -1,13 +1,40 @@
 const userRepository = require("../repositories/userRepository");
 const otpRepository = require('../repositories/otpRepository');
-const logRepository = require('../repositories/userActivationLogRepository'); // ⚡ ADDED: Audit trail repository
-const { User, sequelize } = require('../models'); // ⚡ ADDED: Sequelize for transactions
+const logRepository = require('../repositories/userActivationLogRepository');
+const activityLogRepository = require('../repositories/activityLogRepository'); // ⚡ ADDED: General Activity Log Repository
+const { sequelize } = require('../models');
 const { hashPassword, comparePassword } = require('../util/helper/bcryptHepler');
+
+/**
+ * Extract request context helpers
+ */
+const getReqContext = (req) => ({
+  ipAddress: req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+  userAgent: req.headers['user-agent'],
+  method: req.method,
+  path: req.originalUrl,
+  userId: req.user ? req.user.id : null
+});
 
 const getAllUsers = async (req, res, next) => {
   // #swagger.tags = ['User Registry Management']
+  const ctx = getReqContext(req);
   try {
     const users = await userRepository.findAllSafe();
+
+    // ⚡ LOG: Record view/query action in Activity Logs
+    await activityLogRepository.createLog({
+      userId: ctx.userId,
+      action: 'USER_REGISTRY_VIEWED',
+      module: 'USERS',
+      description: `User registry roster queried. Total fetched: ${users.length} profiles.`,
+      ipAddress: ctx.ipAddress,
+      userAgent: ctx.userAgent,
+      method: ctx.method,
+      path: ctx.path,
+      statusCode: 200
+    });
+
     res.status(200).json({
       status: "success",
       data: { users },
@@ -19,7 +46,9 @@ const getAllUsers = async (req, res, next) => {
 
 const createNewUserProfile = async (req, res, next) => {
   // #swagger.tags = ['User Registry Management']
+  const ctx = getReqContext(req);
   const t = await sequelize.transaction();
+
   try {
     const {
       first_name,
@@ -31,7 +60,6 @@ const createNewUserProfile = async (req, res, next) => {
       role,
       otp
     } = req.body;
-    const actionedBy = req.user ? req.user.id : null;
 
     // 1. 🛡️ PRE-REGISTRATION SECURITY CHECK
     if (!otp) {
@@ -54,7 +82,7 @@ const createNewUserProfile = async (req, res, next) => {
     // 2. 🔐 CRYPTOGRAPHIC SECURITY LAYER
     const hashedPassword = await hashPassword(password);
 
-    // 3. Reconstruct variables using snake_case properties
+    // 3. Reconstruct user payload
     const userPayload = {
       first_name,
       middle_name,
@@ -67,15 +95,29 @@ const createNewUserProfile = async (req, res, next) => {
       is_verified: true,
     };
 
-    // 4. Complete database profile registration within transaction
+    // 4. Complete database profile registration
     const user = await userRepository.create(userPayload, { transaction: t });
 
-    // ⚡ ADDED: Write initial account creation log entry
+    // ⚡ Write to Activation Audit Logs
     await logRepository.createLog({
       userId: user.id,
-      actionedBy,
-      action: 'rejected', // Accounts start inactive until approved/activated
+      actionedBy: ctx.userId,
+      action: 'rejected',
       notes: 'Initial account provisioned via OTP verification. Pending activation.'
+    }, t);
+
+    // ⚡ Write to System Activity Logs
+    await activityLogRepository.createLog({
+      userId: ctx.userId || user.id,
+      action: 'USER_ACCOUNT_CREATED',
+      module: 'USERS',
+      description: `New user account created for [${user.first_name} ${user.last_name}] (${user.email}) with role [${user.role}].`,
+      ipAddress: ctx.ipAddress,
+      userAgent: ctx.userAgent,
+      method: ctx.method,
+      path: ctx.path,
+      statusCode: 201,
+      payload: { targetUserId: user.id, email: user.email, role: user.role }
     }, t);
 
     await t.commit();
@@ -93,7 +135,6 @@ const createNewUserProfile = async (req, res, next) => {
       is_verified: user.is_verified,
     };
 
-    // 6. Return success context
     res.status(201).json({
       status: "success",
       message: "Profile provisioned successfully. Your institutional account access is verified and active.",
@@ -114,7 +155,9 @@ const createNewUserProfile = async (req, res, next) => {
 
 const updateProfileData = async (req, res, next) => {
   // #swagger.tags = ['User Registry Management']
+  const ctx = getReqContext(req);
   const t = await sequelize.transaction();
+
   try {
     const { id } = req.params;
     const {
@@ -123,7 +166,6 @@ const updateProfileData = async (req, res, next) => {
       email,
       is_active
     } = req.body;
-    const actionedBy = req.user ? req.user.id : null;
 
     const user = await userRepository.findById(id, { transaction: t });
     if (!user) {
@@ -143,17 +185,31 @@ const updateProfileData = async (req, res, next) => {
 
     await user.save({ transaction: t });
 
-    // ⚡ ADDED: Create audit log if activation state changed or profile updated
     const decisiveAction = user.is_active ? 'approved' : 'rejected';
     const notesLog = is_active !== undefined && is_active !== previousState
       ? `Profile data modified and account active state changed to ${user.is_active}.`
       : `User profile fields (name/email) updated by operator.`;
 
+    // ⚡ Write Activation Log
     await logRepository.createLog({
       userId: user.id,
-      actionedBy,
+      actionedBy: ctx.userId,
       action: decisiveAction,
       notes: notesLog
+    }, t);
+
+    // ⚡ Write Activity Log
+    await activityLogRepository.createLog({
+      userId: ctx.userId,
+      action: 'USER_PROFILE_UPDATED',
+      module: 'USERS',
+      description: `Profile updated for target user ID: [${user.id}] (${user.email}).`,
+      ipAddress: ctx.ipAddress,
+      userAgent: ctx.userAgent,
+      method: ctx.method,
+      path: ctx.path,
+      statusCode: 200,
+      payload: { targetUserId: user.id, updatedFields: { first_name, last_name, email, is_active } }
     }, t);
 
     await t.commit();
@@ -182,11 +238,12 @@ const updateProfileData = async (req, res, next) => {
  */
 const updateUserActiveStatus = async (req, res, next) => {
   // #swagger.tags = ['User Registry Management']
+  const ctx = getReqContext(req);
   const t = await sequelize.transaction();
+
   try {
     const { id } = req.params;
     const { is_active } = req.body;
-    const actionedBy = req.user ? req.user.id : null;
 
     if (typeof is_active !== 'boolean') {
       await t.rollback();
@@ -208,12 +265,26 @@ const updateUserActiveStatus = async (req, res, next) => {
     user.is_active = is_active;
     await user.save({ transaction: t });
 
-    // ⚡ ADDED: Log activation status transition
+    // ⚡ Write Activation Log
     await logRepository.createLog({
       userId: user.id,
-      actionedBy,
+      actionedBy: ctx.userId,
       action: is_active ? 'approved' : 'rejected',
       notes: `User status explicitly ${is_active ? 'activated (approved)' : 'deactivated (rejected)'} via registry toggle.`
+    }, t);
+
+    // ⚡ Write Activity Log
+    await activityLogRepository.createLog({
+      userId: ctx.userId,
+      action: is_active ? 'USER_ACCOUNT_ACTIVATED' : 'USER_ACCOUNT_DEACTIVATED',
+      module: 'USERS',
+      description: `Account active state toggled to [${is_active}] for user ID: [${user.id}] (${user.email}).`,
+      ipAddress: ctx.ipAddress,
+      userAgent: ctx.userAgent,
+      method: ctx.method,
+      path: ctx.path,
+      statusCode: 200,
+      payload: { targetUserId: user.id, is_active }
     }, t);
 
     await t.commit();
@@ -240,11 +311,12 @@ const updateUserActiveStatus = async (req, res, next) => {
  */
 const updateAccountPassword = async (req, res, next) => {
   // #swagger.tags = ['User Registry Management']
+  const ctx = getReqContext(req);
   const t = await sequelize.transaction();
+
   try {
     const { id } = req.params;
     const { current_password, new_password } = req.body;
-    const actionedBy = req.user ? req.user.id : null;
 
     const user = await userRepository.findById(id, { transaction: t });
     if (!user) {
@@ -257,6 +329,20 @@ const updateAccountPassword = async (req, res, next) => {
     const isCurrentPasswordCorrect = await comparePassword(current_password, user.password_hash);
     if (!isCurrentPasswordCorrect) {
       await t.rollback();
+
+      // ⚡ Write Failed Attempt Activity Log
+      await activityLogRepository.createLog({
+        userId: ctx.userId || user.id,
+        action: 'PASSWORD_CHANGE_FAILED',
+        module: 'USERS',
+        description: `Failed password change attempt for user ID: [${user.id}] - Incorrect current password.`,
+        ipAddress: ctx.ipAddress,
+        userAgent: ctx.userAgent,
+        method: ctx.method,
+        path: ctx.path,
+        statusCode: 401
+      });
+
       return res
         .status(401)
         .json({
@@ -268,12 +354,26 @@ const updateAccountPassword = async (req, res, next) => {
     user.password_hash = await hashPassword(new_password);
     await user.save({ transaction: t });
 
-    // ⚡ ADDED: Audit trail log for credential changes
+    // ⚡ Write Activation Log
     await logRepository.createLog({
       userId: user.id,
-      actionedBy,
+      actionedBy: ctx.userId,
       action: user.is_active ? 'approved' : 'rejected',
       notes: 'Account security credentials / password updated successfully.'
+    }, t);
+
+    // ⚡ Write Success Activity Log
+    await activityLogRepository.createLog({
+      userId: ctx.userId || user.id,
+      action: 'PASSWORD_CHANGE_SUCCESS',
+      module: 'USERS',
+      description: `Password updated successfully for user ID: [${user.id}] (${user.email}).`,
+      ipAddress: ctx.ipAddress,
+      userAgent: ctx.userAgent,
+      method: ctx.method,
+      path: ctx.path,
+      statusCode: 200,
+      payload: { targetUserId: user.id }
     }, t);
 
     await t.commit();

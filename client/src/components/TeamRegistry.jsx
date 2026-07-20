@@ -20,7 +20,9 @@ export default function StudentApprovalRegistry() {
     userService.getAllUsers()
       .then(res => { 
         const allUsers = res.data?.data?.users || res.data?.users || [];
-        setRegistrations(allUsers); 
+        // Strictly filter for student role accounts
+        const studentOnlyUsers = allUsers.filter(u => (u.role || '').toLowerCase() === 'student');
+        setRegistrations(studentOnlyUsers); 
         setError(null); 
         setLoading(false); 
       })
@@ -49,8 +51,12 @@ export default function StudentApprovalRegistry() {
 
   const pendingCount = registrations.filter(s => !isStudentActive(s) && !isStudentVerified(s)).length;
 
-  // Filter students based on search query AND status dropdown selection
+  // Filter student list based on search query AND status dropdown selection
   const filteredStudents = registrations.filter(student => {
+    // Double-check role enforcement
+    const isStudentRole = (student.role || '').toLowerCase() === 'student';
+    if (!isStudentRole) return false;
+
     const fullName = getStudentName(student).toLowerCase();
     const email = (student.email || '').toLowerCase();
     const term = searchTerm.toLowerCase();
@@ -127,7 +133,7 @@ export default function StudentApprovalRegistry() {
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-600" />
               <input 
                 type="text"
-                placeholder="Search name or email..."
+                placeholder="Search student name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 font-medium"
@@ -166,7 +172,7 @@ export default function StudentApprovalRegistry() {
                         <div className="text-slate-400 font-mono mt-0.5 text-[11px]">{student.email}</div>
                       </td>
                       <td className="p-4 align-middle text-slate-300 font-medium capitalize">
-                        {student.role || <span className="text-slate-500 italic">Unassigned Track</span>}
+                        {student.role || 'student'}
                       </td>
                       <td className="p-4 text-center align-middle">
                         <button

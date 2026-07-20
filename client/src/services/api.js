@@ -77,4 +77,10 @@ export const userActivationService = {
     api.get('/activation-logs', { params: { limit, offset } })
 };
 
+export const activityLogService = {
+  getLogs: (params) => api.get('/activity-logs', { params }),
+  getModules: () => api.get('/activity-logs/modules'),
+  logActivity: (data) => api.post('/activity-logs', data)
+};
+
 export default api;

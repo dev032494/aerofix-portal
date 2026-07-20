@@ -10,7 +10,8 @@ import {
   LogOut,
   User,
   BookOpen,
-  ShieldAlert, // Added explicit auditing icon for the dev dashboard
+  ShieldAlert,
+  Activity, // ⚡ ADDED: Icon for System Activity Logs
 } from "lucide-react";
 
 // Import your views
@@ -18,10 +19,11 @@ import AircraftDashboard from "./components/AircraftDashboard";
 import WorkOrderView from "./components/WorkOrderView";
 import TeamRegistry from "./components/TeamRegistry";
 import LoginView from "./components/LoginView"; 
-import DeveloperLoginView from "./components/DeveloperLoginView"; // The new dev login
+import DeveloperLoginView from "./components/DeveloperLoginView"; 
 import ProfileView from "./components/ProfileView"; 
 import LibraryView from "./components/LibraryView"; 
-import UserActivationDashboard from "./components/UserActivationDashboard"; // ⚡ ADDED: Admin verification module
+import UserActivationDashboard from "./components/UserActivationDashboard"; 
+import ActivityLogDashboard from "./components/ActivityLogDashboard"; // ⚡ ADDED: Developer Activity Log Dashboard View
 
 // --- PROTECTED ROUTE INTERCEPTOR ---
 // Guard wrapper that redirects unauthenticated users to the standard login page
@@ -40,7 +42,7 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
   const navigate = useNavigate();
 
   const isStudent = currentUser.role === "student";
-  const isDeveloper = currentUser.role === "developer"; // ⚡ Added strict operational verification rule
+  const isDeveloper = currentUser.role === "developer"; // Strict operational verification rule
 
   useEffect(() => {
     if (isStudent && !["library", "profile"].includes(activeTab)) {
@@ -123,14 +125,23 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
               <User className="h-5 w-5 shrink-0" /> My Profile Account
             </button>
 
-            {/* ⚡ SECURE MODULE LINK: Accessible strictly by the Developer role configuration */}
+            {/* ⚡ SECURE DEVELOPER MODULE LINKS: Accessible strictly by the Developer role configuration */}
             {isDeveloper && (
-              <button
-                onClick={() => { setActiveTab("activationLogs"); setIsMobileMenuOpen(false); }}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold w-full text-left transition-all cursor-pointer border border-amber-500/10 ${activeTab === "activationLogs" ? "bg-amber-600 text-white shadow-lg shadow-amber-600/20" : "text-amber-400/80 hover:bg-amber-950/20 hover:text-amber-300"}`}
-              >
-                <ShieldAlert className="h-5 w-5 shrink-0" /> Activation Logs
-              </button>
+              <>
+                <button
+                  onClick={() => { setActiveTab("activationLogs"); setIsMobileMenuOpen(false); }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold w-full text-left transition-all cursor-pointer border border-amber-500/10 ${activeTab === "activationLogs" ? "bg-amber-600 text-white shadow-lg shadow-amber-600/20" : "text-amber-400/80 hover:bg-amber-950/20 hover:text-amber-300"}`}
+                >
+                  <ShieldAlert className="h-5 w-5 shrink-0" /> Activation Logs
+                </button>
+
+                <button
+                  onClick={() => { setActiveTab("activityLogs"); setIsMobileMenuOpen(false); }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold w-full text-left transition-all cursor-pointer border border-sky-500/10 ${activeTab === "activityLogs" ? "bg-sky-600 text-white shadow-lg shadow-sky-600/20" : "text-sky-400/80 hover:bg-sky-950/20 hover:text-sky-300"}`}
+                >
+                  <Activity className="h-5 w-5 shrink-0" /> System Activity Logs
+                </button>
+              </>
             )}
           </nav>
         </div>
@@ -166,8 +177,10 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
           {activeTab === "library" && <LibraryView />} 
           {activeTab === "team" && !isStudent && <TeamRegistry />}
           {activeTab === "profile" && <ProfileView />}
-          {/* ⚡ SECURE MODULE CONTAINER: Protects view rendering against standard manual state modifications */}
+          
+          {/* ⚡ SECURE DEVELOPER MODULE CONTAINERS */}
           {activeTab === "activationLogs" && isDeveloper && <UserActivationDashboard />}
+          {activeTab === "activityLogs" && isDeveloper && <ActivityLogDashboard />}
         </div>
       </main>
     </div>
