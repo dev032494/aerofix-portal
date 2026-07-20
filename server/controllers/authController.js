@@ -30,7 +30,7 @@ const login = async (req, res, next) => {
     }
 
     if (!user.is_active) {
-      return res.status(403).json({ status: 'fail', message: 'This employee account has been deactivated.' });
+      return res.status(403).json({ status: 'fail', message: 'Your account is not yet activated. Please contact administrator' });
     }
 
     // Generate JWT access payload token tracking role and signature properties

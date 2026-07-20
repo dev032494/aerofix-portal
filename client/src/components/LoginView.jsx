@@ -5,7 +5,7 @@ import logoImg from '../assets/logo.png'; // Referencing the verbatim filename f
 
 export default function LoginView({ onLoginSuccess }) {
   // Navigation State switching between 'login', 'register', and 'otp' modes
-  const [viewMode, setViewMode] = useState('login'); 
+  const [viewMode, setViewMode] = useState('login');
 
   // Operating Hours State Intercepts
   const [isSchoolHours, setIsSchoolHours] = useState(true);
@@ -51,34 +51,34 @@ export default function LoginView({ onLoginSuccess }) {
     }
   }, [onLoginSuccess]);
 
-// Check school hours: Open Monday to Friday, between 7:00 AM and 6:00 PM.
-useEffect(() => {
-  const checkGateStatus = () => {
-    const now = new Date();
-    setCurrentTime(now); // Updates the clock hook instance dynamically every single second
-    
-    const day = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 5 = Friday, 6 = Saturday
-    const hours = now.getHours();
-    
-    // 1. Must be Monday through Friday (1 to 5)
-    const isWeekday = day >= 1 && day <= 5;
-    
-    // 2. Must be between 7:00 AM (7) and 5:59 PM (less than 18)
-    const isDuringHours = hours >= 7 && hours < 18;
-    
-    // Both conditions must be met
-    const isOpen = isWeekday && isDuringHours;
-    
-    // console.log(`Day: ${day}, Hour: ${hours} - School hours status: ${isOpen}`);
-    setIsSchoolHours(true);
-  };
+  // Check school hours: Open Monday to Friday, between 7:00 AM and 6:00 PM.
+  useEffect(() => {
+    const checkGateStatus = () => {
+      const now = new Date();
+      setCurrentTime(now); // Updates the clock hook instance dynamically every single second
 
-  checkGateStatus();
-  // Swapped interval configuration to 1000ms to facilitate fluid second-hand counter ticks
-  const interval = setInterval(checkGateStatus, 1000); 
+      const day = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 5 = Friday, 6 = Saturday
+      const hours = now.getHours();
 
-  return () => clearInterval(interval);
-}, []);
+      // 1. Must be Monday through Friday (1 to 5)
+      const isWeekday = day >= 1 && day <= 5;
+
+      // 2. Must be between 7:00 AM (7) and 5:59 PM (less than 18)
+      const isDuringHours = hours >= 7 && hours < 18;
+
+      // Both conditions must be met
+      const isOpen = isWeekday && isDuringHours;
+
+      // console.log(`Day: ${day}, Hour: ${hours} - School hours status: ${isOpen}`);
+      setIsSchoolHours(true);
+    };
+
+    checkGateStatus();
+    // Swapped interval configuration to 1000ms to facilitate fluid second-hand counter ticks
+    const interval = setInterval(checkGateStatus, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Side-effect to handle the visual countdown timer ticks cleanly
   useEffect(() => {
@@ -148,11 +148,11 @@ useEffect(() => {
     setError(null);
     try {
       if (viewMode === 'login') {
-        const res = await authService.login({ 
-          user_name: formData.user_name, 
-          password: formData.password 
+        const res = await authService.login({
+          user_name: formData.user_name,
+          password: formData.password
         });
-        
+
         const { token, data } = res.data;
         // Updated keys to match required aerofix naming standard
         localStorage.setItem('aerofix_token', token);
@@ -206,7 +206,7 @@ useEffect(() => {
         user_name: formData.user_name,
         password: formData.password,
         otp: codeString, // Embedded validation parameter context validation
-        role: 'student' 
+        role: 'student'
       });
 
       // Show success interface modal and schedule auto-redirect loop sequence
@@ -246,13 +246,13 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen w-screen flex items-center justify-center bg-slate-950 p-4 font-sans relative overflow-hidden">
-      
+
       {/* Background ambient radial glow panels matching the theme colors */}
       <div className={`absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl transition-colors duration-1000 ${isSchoolHours ? 'bg-emerald-500/5' : 'bg-rose-500/5'}`} />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
 
       <div className={`w-full max-w-md bg-slate-900 border rounded-2xl shadow-2xl p-6 sm:p-8 relative z-10 space-y-5 transition-all duration-500 ${isSchoolHours ? 'border-slate-800' : 'border-rose-950/50'} ${loading ? 'scale-[0.99] shadow-xl' : 'scale-100'}`}>
-        
+
         {/* NETWORK ACTION BLUR OVERLAY FOR PROGRESSIVE INTERACTION GATES */}
         {loading && !isSuccess && (
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-30 rounded-2xl flex flex-col items-center justify-center text-center space-y-3 animate-fadeIn">
@@ -305,9 +305,9 @@ useEffect(() => {
         {/* Branding Title Header updated for National Aviation Academy of the Philippines */}
         <div className="text-center space-y-3">
           <div className="mx-auto w-24 h-24 flex items-center justify-center">
-            <img 
-              src={logoImg} 
-              alt="Academy Official Seal" 
+            <img
+              src={logoImg}
+              alt="Academy Official Seal"
               className={`w-full h-full object-contain object-center transition-all duration-500 ${isSchoolHours ? 'drop-shadow-[0_0_10px_rgba(52,211,153,0.2)]' : 'drop-shadow-[0_0_10px_rgba(244,63,94,0.2)] grayscale-[30%]'}`}
             />
           </div>
@@ -349,7 +349,7 @@ useEffect(() => {
                 </p>
               </div>
             </div>
-            
+
             <div className="text-xs bg-slate-950 border border-slate-800 rounded-xl p-3.5 space-y-1 text-left">
               <span className="block font-bold text-slate-400 uppercase tracking-wide text-[10px]">Portal Operating Bounds:</span>
               <div className="flex justify-between items-center text-white font-mono text-xs pt-0.5">
@@ -363,11 +363,11 @@ useEffect(() => {
           <>
             {viewMode !== 'otp' ? (
               <form onSubmit={handleFormSubmit} className="space-y-3.5 text-xs">
-                
+
                 {/* REGISTRATION FIELDS INTERCEPT BLOCK */}
                 {viewMode === 'register' && (
                   <div className="space-y-3.5 animate-fadeIn">
-                    
+
                     <div className="grid grid-cols-3 gap-2">
                       <div className="space-y-1">
                         <label className="block font-bold text-slate-400 uppercase tracking-wide">First Name *</label>
@@ -411,8 +411,8 @@ useEffect(() => {
                 </div>
 
                 {/* Submit Trigger */}
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={loading}
                   className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 text-white font-bold py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer text-xs mt-4"
                 >
@@ -436,7 +436,7 @@ useEffect(() => {
                   <label className="block font-bold text-slate-400 uppercase tracking-wide">
                     Email Authentication Gateway
                   </label>
-                  
+
                   {/* Boxed individual digit layout slots */}
                   <div className="flex justify-center gap-2 pt-2" onPaste={handleOtpPaste}>
                     {otpCode.map((data, index) => (
@@ -455,15 +455,15 @@ useEffect(() => {
                   </div>
                 </div>
 
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={loading}
                   className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 text-white font-bold py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer text-xs"
                 >
                   <ShieldCheck className="h-4 w-4" />
                   <span>Verify Code & Create Account</span>
                 </button>
-                
+
                 <div className="text-center">
                   <button
                     type="button"
@@ -471,8 +471,8 @@ useEffect(() => {
                     onClick={handleResendOtp}
                     className="text-[11px] text-slate-500 hover:text-slate-300 disabled:text-slate-600 font-medium transition-colors cursor-pointer disabled:cursor-not-allowed"
                   >
-                    {countdown > 0 
-                      ? `Resend code available in ${countdown}s` 
+                    {countdown > 0
+                      ? `Resend code available in ${countdown}s`
                       : "Didn't receive the email code? Resend validation code"}
                   </button>
                 </div>
@@ -486,7 +486,7 @@ useEffect(() => {
                 onClick={() => {
                   setError(null);
                   setOtpCode(['', '', '', '', '', '']); // Clean code arrays
-                  
+
                   // Handle routing transitions cleanly
                   if (viewMode === 'otp') {
                     setViewMode('register');

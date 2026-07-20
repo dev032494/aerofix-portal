@@ -7,6 +7,7 @@ const aircraftRoutes = require('./aircraftRoutes');
 const workOrderRoutes = require('./workOrderRoutes');
 // const libraryRouter = require('./libraryRoutes');
 const documentRoutes = require('./documentRoutes'); // ⚡ ADDED: Import new document sub-router
+const userActivationLogRoutes = require('./userActivationLogRoutes'); // ⚡ ADDED: Import new user activation log sub-router
 
 
 // =========================================================================
@@ -27,5 +28,8 @@ router.use('/work-orders', workOrderRoutes);
 
 // ⚡ ADDED: Document Indexing & Table of Contents Sub-System -> Maps to /api/v1/documents
 router.use('/documents', documentRoutes);
+
+// ⚡ ADDED: User Activation Log Sub-System -> Maps to /api/v1/activation-logs
+router.use('/activation-logs', userActivationLogRoutes);
 
 module.exports = { apiRouter: router };

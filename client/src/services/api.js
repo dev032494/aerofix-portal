@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+// Dynamically handle root endpoint version prefixes
+const API_PREFIX = '/v1';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://192.168.1.37:5000/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || `http://192.168.1.37:5000/api${API_PREFIX}`,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -18,12 +21,12 @@ api.interceptors.request.use((config) => {
 
 export const authService = {
   login: (credentials) => api.post('/auth/login', credentials),
-  
+
   // ⚡ Pre-registration security gateway challenge to verify email existence
   sendRegistrationOtp: (payload) => api.post('/auth/send-otp', payload),
-  
+
   // Connects the final registration payload directly to your user provisioning controller
-  register: (data) => api.post('/users', data), 
+  register: (data) => api.post('/users', data),
 };
 
 export const aircraftService = {
@@ -48,12 +51,13 @@ export const workOrderService = {
 export const userService = {
   getAllUsers: () => api.get('/users'),
   createUser: (data) => api.post('/users', data),
-  // ⚡ FIXED: Added missing "data" parameter to the axios .put request payload
   updateProfile: (id, data) => api.put(`/users/${id}/profile`, data),
   updatePassword: (id, data) => api.put(`/users/${id}/password`, data),
+  // ⚡ UPDATED: Toggle or update account active status directly
+  updateStatus: (id, isActive) => api.patch(`/users/${id}/status`, { is_active: isActive }),
 };
 
-// ⚡ ADDED: Document Management & Table of Contents Search Index Subsystem
+// ⚡ Document Management & Table of Contents Search Index Subsystem
 export const documentService = {
   getAll: () => api.get('/documents'),
   search: (query) => api.get('/documents/search', { params: { q: query } }),
@@ -62,6 +66,15 @@ export const documentService = {
     onUploadProgress
   }),
   delete: (id) => api.delete(`/documents/${id}`),
+};
+
+export const userActivationService = {
+  // Submit an approval/rejection action
+  processApproval: (payload) => api.post('/activation-logs', payload),
+
+  // Retrieve global paginated history
+  getGlobalHistory: (limit, offset) =>
+    api.get('/activation-logs', { params: { limit, offset } })
 };
 
 export default api;

@@ -109,7 +109,6 @@ export default function ProfileView() {
           <p className="text-xs text-slate-400 font-mono tracking-wide truncate">{user.email}</p>
           <div className="flex gap-2 justify-center sm:justify-start pt-1.5 flex-wrap">
             <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 rounded-md">Role: {user.role}</span>
-            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-md flex items-center gap-1"><CheckCircle className="h-3 w-3" /> PIN Armed</span>
           </div>
         </div>
       </div>

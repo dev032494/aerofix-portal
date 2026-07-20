@@ -23,6 +23,7 @@ if (config.use_env_variable) {
 // =========================================================================
 const modelFactories = [
   require('./user'),
+  require('./userActivationLog'), // 👈 ADDED: UserActivationLog model registration
   require('./aircraft'),
   require('./engine'),
   require('./logbookEntry'),

@@ -1,121 +1,210 @@
 import React, { useState, useEffect } from 'react';
 import { userService } from '../services/api';
-import { Users, UserPlus, Mail, X, CheckCircle } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Clock, Search, Power, Filter } from 'lucide-react';
 
-export default function TeamRegistry() {
-  const [users, setUsers] = useState([]);
+export default function StudentApprovalRegistry() {
+  const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ first_name: '', last_name: '', email: '', password: '', role: 'mechanic', certificate_type: 'A&P', certificate_number: '', signature_pin: '' });
+  const [updatingStatusId, setUpdatingStatusId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'active' | 'pending' | 'inactive'
 
-  const fetchUsers = () => {
+  // Helper to extract property values handling both camelCase and snake_case models
+  const getStudentName = (s) => `${s.first_name || s.firstName || ''} ${s.last_name || s.lastName || ''}`.trim() || 'Unknown Student';
+  const isStudentActive = (s) => Boolean(s.is_active ?? s.isActive);
+  const isStudentVerified = (s) => Boolean(s.is_verified ?? s.isValidated);
+
+  const fetchRegistrations = () => {
     setLoading(true);
     userService.getAllUsers()
-      .then(res => { setUsers(res.data?.data?.users || []); setError(null); setLoading(false); })
-      .catch(err => { setError(err.message); setLoading(false); });
+      .then(res => { 
+        const allUsers = res.data?.data?.users || res.data?.users || [];
+        setRegistrations(allUsers); 
+        setError(null); 
+        setLoading(false); 
+      })
+      .catch(err => { 
+        setError(err.message || 'Failed to connect to database.'); 
+        setLoading(false); 
+      });
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => { 
+    fetchRegistrations(); 
+  }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
+  // Directly toggle active user state from master roster
+  const handleToggleStatus = async (studentId, currentStatus) => {
+    setUpdatingStatusId(studentId);
     try {
-      await userService.createUser(formData);
-      setIsModalOpen(false);
-      setFormData({ first_name: '', last_name: '', email: '', password: '', role: 'mechanic', certificate_type: 'A&P', certificate_number: '', signature_pin: '' });
-      fetchUsers();
-    } catch (err) { alert(`Validation rejected: ${err.message}`); }
+      await userService.updateStatus(studentId, !currentStatus);
+      fetchRegistrations();
+    } catch (err) {
+      alert(`Failed to update user active state: ${err.message}`);
+    } finally {
+      setUpdatingStatusId(null);
+    }
   };
+
+  const pendingCount = registrations.filter(s => !isStudentActive(s) && !isStudentVerified(s)).length;
+
+  // Filter students based on search query AND status dropdown selection
+  const filteredStudents = registrations.filter(student => {
+    const fullName = getStudentName(student).toLowerCase();
+    const email = (student.email || '').toLowerCase();
+    const term = searchTerm.toLowerCase();
+    const matchesSearch = fullName.includes(term) || email.includes(term);
+
+    const active = isStudentActive(student);
+    const verified = isStudentVerified(student);
+
+    let matchesStatus = true;
+    if (statusFilter === 'active') {
+      matchesStatus = active && verified;
+    } else if (statusFilter === 'pending') {
+      matchesStatus = !active && !verified;
+    } else if (statusFilter === 'inactive') {
+      matchesStatus = !active && verified;
+    }
+
+    return matchesSearch && matchesStatus;
+  });
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-400 gap-3">
       <Users className="h-10 w-10 text-sky-500 animate-spin" />
-      <span className="text-sm font-medium animate-pulse">Querying employee registry...</span>
+      <span className="text-sm font-medium animate-pulse">Querying registration databases...</span>
     </div>
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-slate-100">
       
-      {/* Title block banner layout overview section */}
-      <div className="flex flex-col gap-4 bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-800 shadow-xl sm:flex-row sm:items-center sm:justify-between">
+      {/* Top Banner Block */}
+      <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-800 shadow-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">Crew Personnel Directory</h1>
-          <p className="text-slate-400 text-xs mt-1">Manage active structural maintenance crew members and authorization sign-off privileges.</p>
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase">Student Intake Registry</h1>
+          <p className="text-slate-400 text-xs mt-1">Verify student certifications, track active training accounts, and manage admissions paperwork.</p>
         </div>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="w-full sm:w-auto bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-md cursor-pointer shrink-0"
-        >
-          <UserPlus className="h-4 w-4" /> Add Crew Member
-        </button>
-      </div>
-
-      {/* ⚡ THE ADAPTIVE LAYOUT CREW DIRECTORY RESPONSIVE GRID PLACEMENTS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-        {users?.map(user => (
-          <div key={user.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between gap-5 text-sm">
-            <div className="flex justify-between items-start gap-4">
-              <div className="truncate">
-                <h3 className="font-bold text-white text-base truncate">{user.first_name} {user.last_name}</h3>
-                <p className="text-xs text-slate-400 font-mono mt-1 flex items-center gap-1 truncate"><Mail className="h-3 w-3 text-slate-600" /> {user.email}</p>
-              </div>
-              <span className="text-[9px] uppercase font-black px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-400 tracking-wider shrink-0">{user.role}</span>
-            </div>
-            
-            <div className="pt-3 border-t border-slate-800/60 flex justify-between items-center text-xs">
-              <div>
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">{user.certificate_type || 'FAA'} ID</span>
-                <span className="font-mono text-slate-300 font-medium mt-0.5 block">{user.certificate_number || 'NON-LICENSED'}</span>
-              </div>
-              <div className="flex items-center gap-1 text-emerald-400 font-medium bg-emerald-500/5 px-2 py-0.5 border border-emerald-500/10 rounded-md shadow-inner text-[11px]"><CheckCircle className="h-3.5 w-3.5" /> PIN Active</div>
-            </div>
+        <div className="flex gap-2">
+          <div className="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center min-w-[100px]">
+            <span className="text-[10px] text-slate-500 font-bold uppercase block">Pending Review</span>
+            <span className="text-base font-mono font-bold text-amber-400">{pendingCount}</span>
           </div>
-        )) || <p className="text-sm text-slate-500 italic text-center col-span-full py-10">No active maintenance personnel recorded.</p>}
-      </div>
-
-      {/* =========================================================================
-          ⚡ ADAPTIVE ACCOUNT CREATION DRAWER SHEET MODAL OVERLAY LAYOUT
-          ========================================================================= */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-slate-900 border border-slate-800 w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-            <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-850">
-              <h3 className="font-bold text-white text-base flex items-center gap-2"><UserPlus className="h-4 w-4 text-sky-500" /> Provision Crew Account</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 p-1 rounded-lg hover:bg-slate-800"><X className="h-5 w-5" /></button>
-            </div>
-            
-            <form onSubmit={handleFormSubmit} className="p-5 space-y-3.5 overflow-y-auto flex-1 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="block font-bold text-slate-400 mb-0.5 uppercase tracking-wide">First Name *</label><input type="text" name="first_name" required onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500" /></div>
-                <div><label className="block font-bold text-slate-400 mb-0.5 uppercase tracking-wide">Last Name *</label><input type="text" name="last_name" required onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500" /></div>
-              </div>
-              <div><label className="block font-bold text-slate-400 mb-0.5 uppercase tracking-wide">Email Address *</label><input type="email" name="email" required onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500 font-mono" /></div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="block font-bold text-slate-400 mb-0.5 uppercase tracking-wide">Passphrase *</label><input type="password" name="password" required onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500 font-mono" /></div>
-                <div><label className="block font-bold text-slate-400 mb-0.5 uppercase tracking-wide">Clearance Role *</label><select name="role" required onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"><option value="mechanic">Mechanic</option><option value="inspector">Inspector</option><option value="manager">Manager</option></select></div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="block font-bold text-slate-400 mb-0.5 uppercase tracking-wide">License Type</label><input type="text" name="certificate_type" defaultValue="A&P" onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500" /></div>
-                <div><label className="block font-bold text-slate-400 mb-0.5 uppercase tracking-wide">License ID</label><input type="text" name="certificate_number" onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500 font-mono" /></div>
-              </div>
-              <div><label className="block font-bold text-slate-400 mb-0.5 uppercase tracking-wide">Electronic Sign-off PIN (4 Digits) *</label><input type="password" maxLength="4" name="signature_pin" required onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 focus:outline-none focus:border-sky-500 font-mono tracking-widest text-center text-sm text-sky-400 font-bold bg-slate-950" placeholder="0000" /></div>
-              
-              <div className="pt-4 flex gap-2 border-t border-slate-800">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl cursor-pointer">Cancel</button>
-                <button type="submit" className="w-1/2 bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-xl cursor-pointer shadow-md">Provision</button>
-              </div>
-            </form>
+          <div className="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center min-w-[100px]">
+            <span className="text-[10px] text-slate-500 font-bold uppercase block">Total Roster</span>
+            <span className="text-base font-mono font-bold text-sky-400">{registrations.length}</span>
           </div>
         </div>
-      )}
+      </div>
 
+      {/* Master Database Roster View Panel */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden text-xs">
+        <div className="p-4 bg-slate-950 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-3">
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider w-full md:w-auto">Master Database Roster</h2>
+          
+          {/* Controls: Search + Status Filter */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            
+            {/* Status Filter Dropdown */}
+            <div className="relative w-full sm:w-44">
+              <Filter className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500 font-medium appearance-none cursor-pointer text-xs"
+              >
+                <option value="all">All Statuses</option>
+                <option value="active">Active Profiles</option>
+                <option value="pending">Pending Review</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-600" />
+              <input 
+                type="text"
+                placeholder="Search name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 font-medium"
+              />
+            </div>
+
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-slate-800 text-slate-500 font-bold uppercase tracking-wider bg-slate-950/40">
+                <th className="p-4">Student Details</th>
+                <th className="p-4">Role</th>
+                <th className="p-4 text-center">Status Toggle</th>
+                <th className="p-4 text-right">Verification State</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/50">
+              {filteredStudents.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="p-8 text-center text-slate-500 italic">
+                    No student records matched the active search and status filters.
+                  </td>
+                </tr>
+              ) : (
+                filteredStudents.map(student => {
+                  const active = isStudentActive(student);
+                  const verified = isStudentVerified(student);
+
+                  return (
+                    <tr key={student.id} className="hover:bg-slate-850/40 transition-colors">
+                      <td className="p-4">
+                        <div className="font-bold text-white text-sm">{getStudentName(student)}</div>
+                        <div className="text-slate-400 font-mono mt-0.5 text-[11px]">{student.email}</div>
+                      </td>
+                      <td className="p-4 align-middle text-slate-300 font-medium capitalize">
+                        {student.role || <span className="text-slate-500 italic">Unassigned Track</span>}
+                      </td>
+                      <td className="p-4 text-center align-middle">
+                        <button
+                          onClick={() => handleToggleStatus(student.id, active)}
+                          disabled={updatingStatusId === student.id}
+                          className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                            active 
+                              ? 'bg-rose-950/30 border-rose-900/50 text-rose-400 hover:bg-rose-900/40' 
+                              : 'bg-emerald-950/30 border-emerald-900/50 text-emerald-400 hover:bg-emerald-900/40'
+                          }`}
+                        >
+                          <Power className="h-3 w-3" />
+                          {updatingStatusId === student.id ? 'Updating...' : active ? 'Deactivate' : 'Activate'}
+                        </button>
+                      </td>
+                      <td className="p-4 text-right align-middle">
+                        {active && verified ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/5 border border-emerald-500/10 px-2 py-0.5 rounded-md">
+                            <CheckCircle className="h-3 w-3" /> Active Profile
+                          </span>
+                        ) : !active && !verified ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-500/5 border border-amber-500/10 px-2 py-0.5 rounded-md">
+                            <Clock className="h-3 w-3" /> Pending Review
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-400 bg-red-500/5 border border-red-500/10 px-2 py-0.5 rounded-md">
+                            <XCircle className="h-3 w-3" /> Inactive
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

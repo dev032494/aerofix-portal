@@ -10,6 +10,7 @@ import {
   LogOut,
   User,
   BookOpen,
+  ShieldAlert, // Added explicit auditing icon for the dev dashboard
 } from "lucide-react";
 
 // Import your views
@@ -20,6 +21,7 @@ import LoginView from "./components/LoginView";
 import DeveloperLoginView from "./components/DeveloperLoginView"; // The new dev login
 import ProfileView from "./components/ProfileView"; 
 import LibraryView from "./components/LibraryView"; 
+import UserActivationDashboard from "./components/UserActivationDashboard"; // ⚡ ADDED: Admin verification module
 
 // --- PROTECTED ROUTE INTERCEPTOR ---
 // Guard wrapper that redirects unauthenticated users to the standard login page
@@ -37,11 +39,14 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
+  const isStudent = currentUser.role === "student";
+  const isDeveloper = currentUser.role === "developer"; // ⚡ Added strict operational verification rule
+
   useEffect(() => {
-    if (currentUser?.role === "student" && !["library", "profile"].includes(activeTab)) {
+    if (isStudent && !["library", "profile"].includes(activeTab)) {
       setActiveTab("library");
     }
-  }, [currentUser, activeTab]);
+  }, [isStudent, activeTab]);
 
   const handleLogoutAction = () => {
     localStorage.removeItem("aerofix_token");
@@ -50,8 +55,6 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
     setIsMobileMenuOpen(false);
     navigate("/login");
   };
-
-  const isStudent = currentUser.role === "student";
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans relative">
@@ -119,6 +122,16 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
             >
               <User className="h-5 w-5 shrink-0" /> My Profile Account
             </button>
+
+            {/* ⚡ SECURE MODULE LINK: Accessible strictly by the Developer role configuration */}
+            {isDeveloper && (
+              <button
+                onClick={() => { setActiveTab("activationLogs"); setIsMobileMenuOpen(false); }}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold w-full text-left transition-all cursor-pointer border border-amber-500/10 ${activeTab === "activationLogs" ? "bg-amber-600 text-white shadow-lg shadow-amber-600/20" : "text-amber-400/80 hover:bg-amber-950/20 hover:text-amber-300"}`}
+              >
+                <ShieldAlert className="h-5 w-5 shrink-0" /> Activation Logs
+              </button>
+            )}
           </nav>
         </div>
 
@@ -153,6 +166,8 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
           {activeTab === "library" && <LibraryView />} 
           {activeTab === "team" && !isStudent && <TeamRegistry />}
           {activeTab === "profile" && <ProfileView />}
+          {/* ⚡ SECURE MODULE CONTAINER: Protects view rendering against standard manual state modifications */}
+          {activeTab === "activationLogs" && isDeveloper && <UserActivationDashboard />}
         </div>
       </main>
     </div>
