@@ -12,34 +12,16 @@ module.exports = (sequelize) => {
   }
 
   Aircraft.init({
-    a_id: { 
-      type: DataTypes.UUID, 
-      defaultValue: DataTypes.UUIDV4, 
-      primaryKey: true, 
-      allowNull: false 
-    },
-    a_aircraft_type: { 
-      type: DataTypes.STRING(300), 
-      allowNull: false 
-    },
-    a_registration_number: { 
-      type: DataTypes.STRING(120), 
-      allowNull: false 
-    },
-    a_create_by: { 
-      type: DataTypes.STRING(300), 
-      allowNull: false 
-    },
-    a_create_at: { 
-      type: DataTypes.DATE, 
-      allowNull: true, 
-      defaultValue: DataTypes.NOW 
-    }
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    tail_number: { type: DataTypes.STRING(60), allowNull: false, unique: true },
+    serial_number: { type: DataTypes.STRING(60), allowNull: false },
+    mode_year: { type: DataTypes.INTEGER, allowNull: true },
+    model_variant: { type: DataTypes.STRING(60), allowNull: false },
+    base_ttaf: { type: DataTypes.DECIMAL(10, 2), allowNull: true }
   }, {
     sequelize,
     modelName: 'Aircraft',
-    tableName: 'aircrafts',
-    timestamps: false, // Disabled to accommodate the custom a_create_at field
+    tableName: 'aircraft',
     underscored: true
   });
 

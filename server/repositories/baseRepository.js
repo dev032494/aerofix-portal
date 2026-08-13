@@ -33,6 +33,10 @@ class BaseRepository {
     await record.destroy(options);
     return true;
   }
+
+  async findOne(options = {}) {
+    return await this.currentModel.findOne(options);
+  }
 }
 
 module.exports = BaseRepository;

@@ -31,8 +31,11 @@ export const authService = {
 
 export const aircraftService = {
   getAllAircraft: () => api.get('/aircraft'),
-  getDashboard: (id) => api.get(`/aircraft/${id}/dashboard`),
   create: (data) => api.post('/aircraft', data),
+  delete: (id) => api.delete(`/aircraft/${id}`),
+  update: (id, data) => api.put(`/aircraft/${id}`, data),
+  getById: (id) => api.get(`/aircraft/${id}`),
+  getByRegistration: (registrationNumber) => api.get(`/aircraft/registration/${registrationNumber}`),
 };
 
 export const workOrderService = {
@@ -55,6 +58,16 @@ export const userService = {
   updatePassword: (id, data) => api.put(`/users/${id}/password`, data),
   // ⚡ UPDATED: Toggle or update account active status directly
   updateStatus: (id, isActive) => api.patch(`/users/${id}/status`, { is_active: isActive }),
+};
+
+// ⚡ INSTRUCTOR CADRE MANAGEMENT SERVICES
+export const instructorService = {
+  getAllInstructors: () => api.get('/instructors'),
+  getInstructorById: (id) => api.get(`/instructors/${id}`),
+  createInstructor: (data) => api.post('/instructors', data),
+  updateInstructor: (id, data) => api.put(`/instructors/${id}`, data),
+  deleteInstructor: (id) => api.delete(`/instructors/${id}`),
+  updateStatus: (id, isActive) => api.patch(`/instructors/${id}/status`, { i_status: isActive }),
 };
 
 // ⚡ Document Management & Table of Contents Search Index Subsystem

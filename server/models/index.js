@@ -35,7 +35,8 @@ const modelFactories = [
   require('./taskCardStep'),
   require('./documents'),
   require('./revision'),
-  require('./activityLogs') // 👈 ADDED: ActivityLog model registration
+  require('./activityLogs'), // 👈 ADDED: ActivityLog model registration
+  require('./Instructor') // 👈 ADDED: Instructor model registration
 ];
 
 // Initialize each model instance and store it inside the db map context

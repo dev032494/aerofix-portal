@@ -11,11 +11,12 @@ import {
   User,
   BookOpen,
   ShieldAlert,
-  Activity, // ⚡ ADDED: Icon for System Activity Logs
+  Activity,
+  GraduationCap, // ⚡ ADDED: Icon for Instructor Management
 } from "lucide-react";
 
 // Import your views
-import AircraftDashboard from "./components/AircraftDashboard";
+import AircraftDashboard from "./components/AircraftManager";
 import WorkOrderView from "./components/WorkOrderView";
 import TeamRegistry from "./components/TeamRegistry";
 import LoginView from "./components/LoginView"; 
@@ -23,7 +24,8 @@ import DeveloperLoginView from "./components/DeveloperLoginView";
 import ProfileView from "./components/ProfileView"; 
 import LibraryView from "./components/LibraryView"; 
 import UserActivationDashboard from "./components/UserActivationDashboard"; 
-import ActivityLogDashboard from "./components/ActivityLogDashboard"; // ⚡ ADDED: Developer Activity Log Dashboard View
+import ActivityLogDashboard from "./components/ActivityLogDashboard"; 
+import InstructorView from "./components/InstructorView"; // ⚡ ADDED: Instructor Management View
 
 // --- PROTECTED ROUTE INTERCEPTOR ---
 // Guard wrapper that redirects unauthenticated users to the standard login page
@@ -64,7 +66,7 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
       <header className="lg:hidden absolute top-0 left-0 right-0 h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 z-40">
         <div className="flex items-center gap-2.5">
           <Hammer className="h-5 w-5 text-sky-500" />
-          <span className="font-black text-lg tracking-wider text-white">AEROFIX</span>
+          <span className="font-black text-lg tracking-wider text-white">AERONEXUS</span>
         </div>
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -80,7 +82,7 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
           <div className="p-6 flex items-center justify-between border-b border-slate-800 h-16 lg:h-auto">
             <div className="flex items-center gap-3">
               <Hammer className="h-6 w-6 text-sky-500" />
-              <span className="font-black text-xl tracking-wider text-white">AEROFIX</span>
+              <span className="font-black text-xl tracking-wider text-white">AERONEXUS</span>
             </div>
             <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden text-slate-500 hover:text-slate-300 p-1 cursor-pointer">
               <X className="h-5 w-5" />
@@ -108,6 +110,13 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
                 >
                   <Users className="h-5 w-5 shrink-0" /> Team Registry
                 </button>
+                {/* ⚡ ADDED: Instructors Tab */}
+                <button
+                  onClick={() => { setActiveTab("instructor"); setIsMobileMenuOpen(false); }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold w-full text-left transition-all cursor-pointer ${activeTab === "instructor" ? "bg-sky-600 text-white shadow-lg shadow-sky-600/10" : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"}`}
+                >
+                  <GraduationCap className="h-5 w-5 shrink-0" /> Instructors
+                </button>
               </>
             )}
 
@@ -125,7 +134,7 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
               <User className="h-5 w-5 shrink-0" /> My Profile Account
             </button>
 
-            {/* ⚡ SECURE DEVELOPER MODULE LINKS: Accessible strictly by the Developer role configuration */}
+            {/* ⚡ SECURE DEVELOPER MODULE LINKS */}
             {isDeveloper && (
               <>
                 <button
@@ -178,6 +187,9 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
           {activeTab === "team" && !isStudent && <TeamRegistry />}
           {activeTab === "profile" && <ProfileView />}
           
+          {/* ⚡ ADDED: Instructor View Routing */}
+          {activeTab === "instructor" && !isStudent && <InstructorView />}
+
           {/* ⚡ SECURE DEVELOPER MODULE CONTAINERS */}
           {activeTab === "activationLogs" && isDeveloper && <UserActivationDashboard />}
           {activeTab === "activityLogs" && isDeveloper && <ActivityLogDashboard />}
@@ -246,7 +258,7 @@ export default function App() {
           } 
         />
 
-        {/* Fallback Catch-all: Send requests directly to standard login or system workspace */}
+        {/* Fallback Catch-all */}
         <Route 
           path="*" 
           element={<Navigate to={currentUser ? "/dashboard" : "/login"} replace />} 

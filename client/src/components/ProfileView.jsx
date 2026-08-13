@@ -15,8 +15,8 @@ export default function ProfileView() {
     first_name: '',
     last_name: '',
     email: '',
-    certificate_type: '',
-    certificate_number: ''
+    student_id: '',
+    section_year: ''
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -35,8 +35,8 @@ export default function ProfileView() {
         first_name: activeUser.first_name || '',
         last_name: activeUser.last_name || '',
         email: activeUser.email || '',
-        certificate_type: activeUser.certificate_type || '',
-        certificate_number: activeUser.certificate_number || ''
+        student_id: activeUser.student_id || '',
+        section_year: activeUser.section_year || ''
       });
     }
     setLoading(false);
@@ -105,11 +105,14 @@ export default function ProfileView() {
           {user.first_name?.[0]}{user.last_name?.[0]}
         </div>
         <div className="text-center sm:text-left space-y-1 flex-1 min-w-0">
-          <h1 className="text-2xl font-black text-white tracking-tight truncate">{user.first_name} {user.last_name}</h1>
+          <h1 className="text-2xl font-black text-white tracking-tight truncate">{user.first_name} {user.middle_name?.[0] || ''} {user.last_name}</h1>
           <p className="text-xs text-slate-400 font-mono tracking-wide truncate">{user.email}</p>
           <div className="flex gap-2 justify-center sm:justify-start pt-1.5 flex-wrap">
             <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 rounded-md">Role: {user.role}</span>
+            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 rounded-md">Student ID: {user.student_id}</span>
+            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 rounded-md">Section/Year: {user.section_year}</span>
           </div>
+
         </div>
       </div>
 
