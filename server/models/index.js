@@ -36,7 +36,8 @@ const modelFactories = [
   require('./documents'),
   require('./revision'),
   require('./activityLogs'), // 👈 ADDED: ActivityLog model registration
-  require('./Instructor') // 👈 ADDED: Instructor model registration
+  require('./Instructor'), // 👈 ADDED: Instructor model registration
+  require('./WorkOrderList') // 👈 ADDED: WorkOrderList model registration
 ];
 
 // Initialize each model instance and store it inside the db map context

@@ -96,4 +96,12 @@ export const activityLogService = {
   logActivity: (data) => api.post('/activity-logs', data)
 };
 
+
+export const workOrderListService = {
+  getAll: () => api.get('/work-order-list'),
+  create: (data) => api.post('/work-order-list', data),
+  update: (id, data) => api.put(`/work-order-list/${id}`, data),
+  delete: (id) => api.delete(`/work-order-list/${id}`),
+};
+
 export default api;
