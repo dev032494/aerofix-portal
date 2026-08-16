@@ -1,3 +1,4 @@
+'use strict';
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
@@ -9,6 +10,21 @@ module.exports = (sequelize) => {
       }
       if (models.TaskCardStep) {
         this.hasMany(models.TaskCardStep, { foreignKey: 'signed_by_user_id', as: 'signedSteps' });
+      }
+
+      // WORK ORDERS ASSOCIATIONS
+      if (models.WorkOrder) {
+        this.hasMany(models.WorkOrder, { foreignKey: 'wo_instructor', as: 'instructedWorkOrders' });
+        this.hasMany(models.WorkOrder, { foreignKey: 'wo_approve_by', as: 'approvedWorkOrders' });
+      }
+
+      // FIX: Use sourceKey: 'student_id' so it links properly with WorkOrderPersonnel's targetKey
+      if (models.WorkOrderPersonnel) {
+        this.hasMany(models.WorkOrderPersonnel, { 
+          foreignKey: 'wop_user_id', 
+          sourceKey: 'student_id', 
+          as: 'workOrderAssignments' 
+        });
       }
     }
   }
@@ -35,7 +51,7 @@ module.exports = (sequelize) => {
   });
 
   User.prototype.validPassword = function (password) {
-    return this.password_hash === password; // Substitute with bcrypt.compareSync if hashing
+    return this.password_hash === password;
   };
 
   return User;

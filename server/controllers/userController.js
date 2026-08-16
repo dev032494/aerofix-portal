@@ -394,10 +394,19 @@ const updateAccountPassword = async (req, res, next) => {
   }
 };
 
+const getUserStudent = async (req, res, next) => {
+  const users = await userRepository.findAllStudentRole('Student');
+  res.status(200).json({
+    status: "success",
+    data: { users },
+  });
+}
+
 module.exports = {
   getAllUsers,
   createNewUserProfile,
   updateProfileData,
   updateUserActiveStatus,
   updateAccountPassword,
+  getUserStudent
 };

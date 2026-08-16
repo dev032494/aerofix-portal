@@ -1,15 +1,8 @@
-const { Model, DataTypes } = require('sequelize');
+'use strict';
+const { Model } = require('sequelize');
 
-module.exports = (sequelize) => {
-  class Aircraft extends Model {
-    static associate(models) {
-      if (models.Engine) this.hasMany(models.Engine, { foreignKey: 'aircraft_id', as: 'engines' });
-      if (models.LogbookEntry) this.hasMany(models.LogbookEntry, { foreignKey: 'aircraft_id', as: 'logbookEntries' });
-      if (models.RecurringInspection) this.hasMany(models.RecurringInspection, { foreignKey: 'aircraft_id', as: 'inspections' });
-      if (models.AdCompliance) this.hasMany(models.AdCompliance, { foreignKey: 'aircraft_id', as: 'compliances' });
-      if (models.WorkOrder) this.hasMany(models.WorkOrder, { foreignKey: 'aircraft_id', as: 'workOrders' });
-    }
-  }
+module.exports = (sequelize, DataTypes) => {
+  class Aircraft extends Model {}
 
   Aircraft.init({
     a_id: { 

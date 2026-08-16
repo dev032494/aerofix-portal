@@ -13,4 +13,6 @@ router.put('/:id/password', userCtrl.updateAccountPassword);
 // 🛡️ Account Activation & Status Management
 router.patch('/:id/status', userCtrl.updateUserActiveStatus);
 
+router.get('/students', userCtrl.getUserStudent);
+
 module.exports = router;

@@ -39,16 +39,10 @@ export const aircraftService = {
 };
 
 export const workOrderService = {
-  getAllWorkOrders: () => api.get('/work-orders'), // 🔥 Fetches the complete master list array
-  getProgress: (id) => api.get(`/work-orders/${id}/progress`),
-  create: (data) => api.post('/work-orders', data),
-  addEngine: (data) => api.post('/aircraft/engines', data),
-  addLogbookEntry: (data) => api.post('/aircraft/logbook-entries', data),
-  addInspection: (data) => api.post('/aircraft/inspections', data),
-  addCompliance: (data) => api.post('/aircraft/ad-compliance', data),
-  addTaskCard: (data) => api.post('/work-orders/task-cards', data),
-  addPart: (data) => api.post('/work-orders/parts', data),
-  addStep: (data) => api.post('/work-orders/steps', data),
+  getAllWorkOrders: () => api.get('/work-orders'),
+  createWorkOrder: (data) => api.post('/work-orders', data),
+  getInstructors: () => api.get('/instructors'),
+  viewWorkOrderDetails: (id) => api.get(`/work-orders/view-details/${id}`)
 };
 
 export const userService = {
@@ -58,6 +52,7 @@ export const userService = {
   updatePassword: (id, data) => api.put(`/users/${id}/password`, data),
   // ⚡ UPDATED: Toggle or update account active status directly
   updateStatus: (id, isActive) => api.patch(`/users/${id}/status`, { is_active: isActive }),
+  getAllStudentRole: () => api.get('/users/students')
 };
 
 // ⚡ INSTRUCTOR CADRE MANAGEMENT SERVICES
@@ -96,12 +91,13 @@ export const activityLogService = {
   logActivity: (data) => api.post('/activity-logs', data)
 };
 
-
 export const workOrderListService = {
   getAll: () => api.get('/work-order-list'),
   create: (data) => api.post('/work-order-list', data),
   update: (id, data) => api.put(`/work-order-list/${id}`, data),
   delete: (id) => api.delete(`/work-order-list/${id}`),
+
 };
+
 
 export default api;

@@ -33,10 +33,18 @@ class UserRepository extends BaseRepository {
    */
   async findAllSafe() {
     return await this.model.findAll({
-      attributes: { 
+      attributes: {
         exclude: ['password_hash'] // Updated: signature_pin_hash was removed from the new schema
       }
     });
+  }
+
+  async findAllStudentRole(role) {
+    return await this.model.findAll({
+      where: {
+        role: role
+      }
+    })
   }
 }
 

@@ -25,19 +25,16 @@ const modelFactories = [
   require('./user'),
   require('./userActivationLog'), // 👈 ADDED: UserActivationLog model registration
   require('./aircraft'),
-  require('./engine'),
-  require('./logbookEntry'),
-  require('./recurringInspection'),
-  require('./adCompliance'),
-  require('./workOrder'),
-  require('./taskCard'),
-  require('./taskCardPart'),
-  require('./taskCardStep'),
   require('./documents'),
   require('./revision'),
   require('./activityLogs'), // 👈 ADDED: ActivityLog model registration
   require('./Instructor'), // 👈 ADDED: Instructor model registration
-  require('./WorkOrderList') // 👈 ADDED: WorkOrderList model registration
+  require('./workOrderList'), // 👈 ADDED: WorkOrderList model registration
+  require('./workOrder'),
+  require('./workOrderPersonnel'),
+  require('./workOrderActionTaken'),
+  require('./workOrderPartsReplacement'),
+  require('./workOrderItem')
 ];
 
 // Initialize each model instance and store it inside the db map context

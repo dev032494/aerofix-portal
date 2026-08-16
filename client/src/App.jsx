@@ -14,11 +14,13 @@ import {
   ShieldAlert,
   Activity,
   GraduationCap,
+  Wrench // Added Wrench icon for Work Orders
 } from "lucide-react";
 
 // Import your views
 import AircraftDashboard from "./components/AircraftManager";
 import WorkOrderList from "./components/WorkOrderListView";
+import WorkOrderDashboard from "./components/WorkOrderDashboard"; // Imported new Work Order component
 import TeamRegistry from "./components/TeamRegistry";
 import LoginView from "./components/LoginView"; 
 import DeveloperLoginView from "./components/DeveloperLoginView"; 
@@ -115,6 +117,11 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
               <>
                 <NavLink to="aircraft" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
                   <Plane className="h-5 w-5 shrink-0" /> Aircraft Fleet
+                </NavLink>
+
+                {/* Added Work Orders NavLink here */}
+                <NavLink to="work-orders" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
+                  <Wrench className="h-5 w-5 shrink-0" /> Work Orders
                 </NavLink>
                 
                 <NavLink to="work-order-list" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
@@ -252,6 +259,10 @@ export default function App() {
           
           {/* Protected routes against Students */}
           <Route path="aircraft" element={!isStudent ? <AircraftDashboard /> : <Navigate to="library" />} />
+          
+          {/* Added Work Orders Route here */}
+          <Route path="work-orders" element={!isStudent ? <WorkOrderDashboard /> : <Navigate to="library" />} />
+          
           <Route path="work-order-list" element={!isStudent ? <WorkOrderList /> : <Navigate to="library" />} />
           <Route path="team" element={!isStudent ? <TeamRegistry /> : <Navigate to="library" />} />
           <Route path="instructor" element={!isStudent ? <InstructorView /> : <Navigate to="library" />} />
