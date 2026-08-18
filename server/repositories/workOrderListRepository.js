@@ -1,5 +1,5 @@
 const db = require('../models');
-const BaseRepository = require('./BaseRepository');
+const BaseRepository = require('./baseRepository');
 
 
 class WorkOrderRepository extends BaseRepository {
