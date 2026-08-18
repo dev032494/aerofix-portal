@@ -13,12 +13,6 @@ module.exports = {
       wopr_work_order_id: {
         type: Sequelize.UUID,
         allowNull: true,
-        references: {
-          model: 'work_order', // Target table
-          key: 'wo_id'         // Target key
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
       },
       wopr_quantity: {
         type: Sequelize.INTEGER,

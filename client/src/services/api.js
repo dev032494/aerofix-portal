@@ -42,7 +42,11 @@ export const workOrderService = {
   getAllWorkOrders: () => api.get('/work-orders'),
   createWorkOrder: (data) => api.post('/work-orders', data),
   getInstructors: () => api.get('/instructors'),
-  viewWorkOrderDetails: (id) => api.get(`/work-orders/view-details/${id}`)
+  viewWorkOrderDetails: (id) => api.get(`/work-orders/view-details/${id}`),
+  studentTask: (id) => api.get(`/work-orders/student/${id}`),
+  startTask: (id, data) => api.put(`/work-orders/start-task/${id}`, data),
+  submitReport: (id, data) => api.put(`/work-orders/report/${id}`, data),
+  viewReport: (id) => api.get(`/work-orders/view-report/${id}`)
 };
 
 export const userService = {

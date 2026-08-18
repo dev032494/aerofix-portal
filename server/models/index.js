@@ -34,7 +34,8 @@ const modelFactories = [
   require('./workOrderPersonnel'),
   require('./workOrderActionTaken'),
   require('./workOrderPartsReplacement'),
-  require('./workOrderItem')
+  require('./workOrderItem'),
+  require('./workOrderReturnSlip')
 ];
 
 // Initialize each model instance and store it inside the db map context

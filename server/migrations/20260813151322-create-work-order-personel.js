@@ -24,12 +24,12 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false
       },
-      wop_created_at: {
+      created_at: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW
       },
-      wop_updated_at: {
+      updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW

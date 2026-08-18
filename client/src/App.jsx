@@ -14,13 +14,14 @@ import {
   ShieldAlert,
   Activity,
   GraduationCap,
-  Wrench // Added Wrench icon for Work Orders
+  Wrench,
+  CheckCircle2 // Added icon for Student Tasks
 } from "lucide-react";
 
 // Import your views
 import AircraftDashboard from "./components/AircraftManager";
 import WorkOrderList from "./components/WorkOrderListView";
-import WorkOrderDashboard from "./components/WorkOrderDashboard"; // Imported new Work Order component
+import WorkOrderDashboard from "./components/WorkOrderDashboard"; 
 import TeamRegistry from "./components/TeamRegistry";
 import LoginView from "./components/LoginView"; 
 import DeveloperLoginView from "./components/DeveloperLoginView"; 
@@ -29,6 +30,7 @@ import LibraryView from "./components/LibraryView";
 import UserActivationDashboard from "./components/UserActivationDashboard"; 
 import ActivityLogDashboard from "./components/ActivityLogDashboard"; 
 import InstructorView from "./components/InstructorView";
+import StudentTaskDashboard from "./components/StudentTaskDashboard"; // Imported new Student Task component
 
 // --- PROTECTED ROUTE INTERCEPTOR ---
 function ProtectedRoute({ children, currentUser }) {
@@ -119,7 +121,6 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
                   <Plane className="h-5 w-5 shrink-0" /> Aircraft Fleet
                 </NavLink>
 
-                {/* Added Work Orders NavLink here */}
                 <NavLink to="work-orders" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
                   <Wrench className="h-5 w-5 shrink-0" /> Work Orders
                 </NavLink>
@@ -136,6 +137,13 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
                   <GraduationCap className="h-5 w-5 shrink-0" /> Instructors
                 </NavLink>
               </>
+            )}
+
+            {/* ⚡ NEW: Exclusive NavLink for Students */}
+            {isStudent && (
+              <NavLink to="tasks" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
+                <CheckCircle2 className="h-5 w-5 shrink-0" /> My Tasks
+              </NavLink>
             )}
 
             <NavLink to="library" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
@@ -245,7 +253,7 @@ export default function App() {
           } 
         />
 
-        {/* ⚡ UPDATED: Nested routes for URL-based navigation */}
+        {/* ⚡ Nested routes for URL-based navigation */}
         <Route 
           path="/dashboard" 
           element={
@@ -259,14 +267,14 @@ export default function App() {
           
           {/* Protected routes against Students */}
           <Route path="aircraft" element={!isStudent ? <AircraftDashboard /> : <Navigate to="library" />} />
-          
-          {/* Added Work Orders Route here */}
           <Route path="work-orders" element={!isStudent ? <WorkOrderDashboard /> : <Navigate to="library" />} />
-          
           <Route path="work-order-list" element={!isStudent ? <WorkOrderList /> : <Navigate to="library" />} />
           <Route path="team" element={!isStudent ? <TeamRegistry /> : <Navigate to="library" />} />
           <Route path="instructor" element={!isStudent ? <InstructorView /> : <Navigate to="library" />} />
           
+          {/* ⚡ NEW: Protected route for Students only */}
+          <Route path="tasks" element={isStudent ? <StudentTaskDashboard /> : <Navigate to="library" />} />
+
           {/* Available to all valid users */}
           <Route path="library" element={<LibraryView />} />
           <Route path="profile" element={<ProfileView />} />

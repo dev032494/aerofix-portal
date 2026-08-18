@@ -4,16 +4,20 @@
         "client"
     ],
     "name": "aeronexus",
-    "version": "1.1.1",
+    "version": "1.10.30",
     "scripts": {
         "dev:server": "dotenv -e .env -- npm run dev -w server",
         "dev:client": "dotenv -e .env -- npm run dev -w client",
+        "server": "dotenv -e .env -- npm start -w server",
+        "client": "dotenv -e .env -- npm start -w server",
         "reset": "dotenv -e .env -- npm run db:reset -w server",
         "db:init": "dotenv -e .env -- npm run db:init -w server",
+        "db:status": "dotenv -e .env -- npm run db:status -w server",
+        "db:migrate": "dotenv -e .env -- npm run db:migrate -w server",
         "railway:start": "npm run dev:init && npm run dev:server",
         "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
         "dev:init": "dotenv -e .env -- npm run db:init -w server && dotenv -e .env -- npm run dev:client",
-        "start": "dotenv -e .env -- npm run start -w server"
+        "start": "concurrently \"npm run dev:server\" \"npm run dev:client\""
     },
     "repository": {
         "type": "git",
@@ -33,7 +37,8 @@
         "dotnet": "^1.1.4",
         "multer": "^2.2.0",
         "nodemailer": "^9.0.3",
-        "pdfjs-dist": "^6.1.200"
+        "pdfjs-dist": "^6.1.200",
+        "umzug": "^3.8.3"
     },
     "devDependencies": {
         "concurrently": "^10.0.4"

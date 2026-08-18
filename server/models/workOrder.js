@@ -6,19 +6,19 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // 1. Check and Associate Personnel
       if (models.WorkOrderPersonnel) {
-        WorkOrder.hasMany(models.WorkOrderPersonnel, { 
-          foreignKey: 'wop_work_order_id', 
-          as: 'personnel' 
+        WorkOrder.hasMany(models.WorkOrderPersonnel, {
+          foreignKey: 'wop_work_order_id',
+          as: 'personnel'
         });
       } else {
         console.warn("⚠️ WorkOrderPersonnel model not found during association.");
       }
-      
+
       // 2. Check and Associate Items
       if (models.WorkOrderItem) {
-        WorkOrder.hasMany(models.WorkOrderItem, { 
-          foreignKey: 'woi_work_order_id', 
-          as: 'items' 
+        WorkOrder.hasMany(models.WorkOrderItem, {
+          foreignKey: 'woi_work_order_id',
+          as: 'items'
         });
       } else {
         console.warn("⚠️ WorkOrderItem model not found during association.");
@@ -28,26 +28,34 @@ module.exports = (sequelize, DataTypes) => {
       if (models.WorkOrderPartsReplacement) {
         WorkOrder.hasMany(models.WorkOrderPartsReplacement, {
           foreignKey: 'wopr_work_order_id',
-          as: 'partsReplacements'
+          as: 'partsReplacement' // Updated to match viewReport alias
         });
       }
 
-      // 4. Check and Associate Return Service
+      // 4. Check and Associate Action Taken
+      if (models.WorkOrderActionTaken) {
+        WorkOrder.hasOne(models.WorkOrderActionTaken, {
+          foreignKey: 'woat_work_order_id',
+          as: 'actionTaken'
+        });
+      }
+
+      // 5. Check and Associate Return Service / Return Slip
       if (models.WorkOrderReturnService) {
         WorkOrder.hasOne(models.WorkOrderReturnService, {
           foreignKey: 'wors_work_order_id',
-          as: 'returnService'
+          as: 'returnSlip' // Updated to match viewReport alias
         });
       }
 
-      // 5. Associate the WorkOrder directly to the User model for Instructors/Approvers
+      // 6. Associate the WorkOrder directly to the User model for Instructors/Approvers
       if (models.User) {
         WorkOrder.belongsTo(models.User, {
           foreignKey: 'wo_instructor',
           targetKey: 'id',
           as: 'instructor'
         });
-        
+
         WorkOrder.belongsTo(models.User, {
           foreignKey: 'wo_approve_by',
           targetKey: 'id',
@@ -103,7 +111,7 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'WorkOrder',
     tableName: 'work_order',
     timestamps: true,
-    underscored: false, // Set to false since custom field names (wo_created_at) are explicitly written out
+    underscored: false,
     createdAt: 'wo_created_at',
     updatedAt: 'wo_updated_at'
   });
