@@ -18,7 +18,9 @@ export default function LoginView({ onLoginSuccess }) {
     last_name: '',
     email: '',
     user_name: '',
-    password: ''
+    password: '',
+    student_id: '',
+    section_year: ''
   });
 
   // State to hold the 6-digit OTP code entry strings
@@ -135,7 +137,9 @@ export default function LoginView({ onLoginSuccess }) {
       last_name: '',
       email: '',
       user_name: '',
-      password: ''
+      password: '',
+      student_id: '',
+      section_year: ''
     });
     setViewMode('login');
   };
@@ -206,7 +210,9 @@ export default function LoginView({ onLoginSuccess }) {
         user_name: formData.user_name,
         password: formData.password,
         otp: codeString, // Embedded validation parameter context validation
-        role: 'student'
+        role: 'student',
+        student_id: formData.student_id,
+        section_year: formData.section_year
       });
 
       // Show success interface modal and schedule auto-redirect loop sequence
@@ -367,6 +373,16 @@ export default function LoginView({ onLoginSuccess }) {
                 {/* REGISTRATION FIELDS INTERCEPT BLOCK */}
                 {viewMode === 'register' && (
                   <div className="space-y-3.5 animate-fadeIn">
+
+                    <div className="space-y-1">
+                      <label className="block font-bold text-slate-400 uppercase tracking-wide">Student ID</label>
+                      <input type="text" name="student_id" value={formData.student_id} onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white focus:outline-none focus:border-sky-500" placeholder="2023-00001" />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block font-bold text-slate-400 uppercase tracking-wide">Section/Year</label>
+                      <input type="text" name="section_year" value={formData.section_year} onChange={handleInputChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white focus:outline-none focus:border-sky-500" placeholder="2023-2024" />
+                    </div>
 
                     <div className="grid grid-cols-3 gap-2">
                       <div className="space-y-1">

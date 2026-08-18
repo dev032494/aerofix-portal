@@ -1,27 +1,38 @@
-const { Model, DataTypes } = require('sequelize');
+'use strict';
+const { Model } = require('sequelize');
 
-module.exports = (sequelize) => {
-  class Aircraft extends Model {
-    static associate(models) {
-      if (models.Engine) this.hasMany(models.Engine, { foreignKey: 'aircraft_id', as: 'engines' });
-      if (models.LogbookEntry) this.hasMany(models.LogbookEntry, { foreignKey: 'aircraft_id', as: 'logbookEntries' });
-      if (models.RecurringInspection) this.hasMany(models.RecurringInspection, { foreignKey: 'aircraft_id', as: 'inspections' });
-      if (models.AdCompliance) this.hasMany(models.AdCompliance, { foreignKey: 'aircraft_id', as: 'compliances' });
-      if (models.WorkOrder) this.hasMany(models.WorkOrder, { foreignKey: 'aircraft_id', as: 'workOrders' });
-    }
-  }
+module.exports = (sequelize, DataTypes) => {
+  class Aircraft extends Model {}
 
   Aircraft.init({
-    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    tail_number: { type: DataTypes.STRING(60), allowNull: false, unique: true },
-    serial_number: { type: DataTypes.STRING(60), allowNull: false },
-    mode_year: { type: DataTypes.INTEGER, allowNull: true },
-    model_variant: { type: DataTypes.STRING(60), allowNull: false },
-    base_ttaf: { type: DataTypes.DECIMAL(10, 2), allowNull: true }
+    a_id: { 
+      type: DataTypes.UUID, 
+      defaultValue: DataTypes.UUIDV4, 
+      primaryKey: true, 
+      allowNull: false 
+    },
+    a_aircraft_type: { 
+      type: DataTypes.STRING(300), 
+      allowNull: false 
+    },
+    a_registration_number: { 
+      type: DataTypes.STRING(120), 
+      allowNull: false 
+    },
+    a_create_by: { 
+      type: DataTypes.STRING(300), 
+      allowNull: false 
+    },
+    a_create_at: { 
+      type: DataTypes.DATE, 
+      allowNull: true, 
+      defaultValue: DataTypes.NOW 
+    }
   }, {
     sequelize,
     modelName: 'Aircraft',
-    tableName: 'aircraft',
+    tableName: 'aircrafts',
+    timestamps: false, // Disabled to accommodate the custom a_create_at field
     underscored: true
   });
 

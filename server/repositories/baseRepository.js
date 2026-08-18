@@ -17,8 +17,18 @@ class BaseRepository {
     return await this.currentModel.findByPk(id, options);
   }
 
+  // Added findByPk to match Sequelize's native method naming
+  async findByPk(id, options = {}) {
+    return await this.currentModel.findByPk(id, options);
+  }
+
   async create(data, options = {}) {
     return await this.currentModel.create(data, options);
+  }
+
+  // --- NEW: Bulk Create Method ---
+  async bulkCreate(dataArray, options = {}) {
+    return await this.currentModel.bulkCreate(dataArray, options);
   }
 
   async update(id, data, options = {}) {
@@ -32,6 +42,10 @@ class BaseRepository {
     if (!record) return false;
     await record.destroy(options);
     return true;
+  }
+
+  async findOne(options = {}) {
+    return await this.currentModel.findOne(options);
   }
 }
 

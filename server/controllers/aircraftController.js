@@ -1,64 +1,65 @@
-const aircraftRepository = require('../repositories/aircraftRepository');
+const AircraftRepository = require('../repositories/AircraftRepository');
 
-/**
- * Retrieves a lightweight listing summary of all registered airframes
- */
-const getAllAircraft = async (req, res, next) => {
-  // #swagger.tags = ['Aircraft Fleet Management']
-  try {
-    const aircraft = await aircraftRepository.findAllSummary();
-    res.status(200).json({
-      status: 'success',
-      data: { aircraft }
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
-/**
- * Retrieves the full detail payload (subsystems, inspections, AD logs) for a single aircraft
- */
-const getAircraftDashboard = async (req, res, next) => {
-  // #swagger.tags = ['Aircraft Fleet Management']
+exports.create = async (req, res) => {
   try {
-    const { id } = req.params;
-    const profile = await aircraftRepository.findProfileWithSubsystems(id);
-    
-    if (!profile) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'No airframe asset found matching that identifier pointer.'
-      });
+    const result = await AircraftRepository.create(req.body);
+
+    if (!result.success) {
+      return res.status(400).json({ error: result.message });
     }
 
-    res.status(200).json({
-      status: 'success',
-      data: { profile }
-    });
+    return res.status(201).json(result.data);
   } catch (error) {
-    next(error);
+    return res.status(500).json({ error: error.message || 'An unexpected error occurred.' });
   }
 };
 
-/**
- * Creates a brand new aircraft asset record root node
- */
-const createAircraft = async (req, res, next) => {
-  // #swagger.tags = ['Aircraft Fleet Management']
+exports.getAll = async (req, res) => {
   try {
-    const aircraft = await aircraftRepository.create(req.body);
-    res.status(201).json({
-      status: 'success',
-      data: { aircraft }
-    });
+    const aircrafts = await AircraftRepository.findAll();
+    res.status(200).json(aircrafts);
   } catch (error) {
-    next(error);
+    console.error(`Error fetching aircraft: ${error.message}`);
+    res.status(500).json({ error: error.message });
   }
-};
+}
 
-module.exports = {
-  getAllAircraft,
-  getAircraftDashboard,
-  createAircraft
-};
+exports.getById = async (req, res) => {
+  try {
+    const aircraft = await AircraftRepository.findById(req.params.id);
+    if (!aircraft) {
+      return res.status(404).json({ message: 'Aircraft not found' });
+    }
+    res.status(200).json(aircraft);
+  } catch (error) {
+    console.error(`Error fetching aircraft: ${error.message}`);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+exports.update = async (req, res) => {
+  try {
+    const aircraft = await AircraftRepository.update(req.params.id, req.body);
+    if (!aircraft) {
+      return res.status(404).json({ message: 'Aircraft not found' });
+    }
+    res.status(200).json(aircraft);
+  } catch (error) {
+    console.error(`Error updating aircraft: ${error.message}`);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+exports.delete = async (req, res) => {
+  try {
+    const deleted = await AircraftRepository.delete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ message: 'Aircraft not found' });
+    }
+    res.status(204).send(); // 204 No Content for successful deletion
+  } catch (error) {
+    console.error(`Error deleting aircraft: ${error.message}`);
+    res.status(500).json({ error: error.message });
+  }
+}

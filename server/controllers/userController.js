@@ -51,6 +51,8 @@ const createNewUserProfile = async (req, res, next) => {
 
   try {
     const {
+      student_id,
+      section_year,
       first_name,
       middle_name,
       last_name,
@@ -84,6 +86,8 @@ const createNewUserProfile = async (req, res, next) => {
 
     // 3. Reconstruct user payload
     const userPayload = {
+      student_id,
+      section_year,
       first_name,
       middle_name,
       last_name,
@@ -125,6 +129,8 @@ const createNewUserProfile = async (req, res, next) => {
     // 5. Sanitize response layout
     const sanitizedUser = {
       id: user.id,
+      student_id: user.student_id,
+      section_year: user.section_year,
       first_name: user.first_name,
       middle_name: user.middle_name,
       last_name: user.last_name,
@@ -388,10 +394,19 @@ const updateAccountPassword = async (req, res, next) => {
   }
 };
 
+const getUserStudent = async (req, res, next) => {
+  const users = await userRepository.findAllStudentRole('Student');
+  res.status(200).json({
+    status: "success",
+    data: { users },
+  });
+}
+
 module.exports = {
   getAllUsers,
   createNewUserProfile,
   updateProfileData,
   updateUserActiveStatus,
   updateAccountPassword,
+  getUserStudent
 };

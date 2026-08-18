@@ -1,3 +1,4 @@
+'use strict';
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
@@ -10,14 +11,31 @@ module.exports = (sequelize) => {
       if (models.TaskCardStep) {
         this.hasMany(models.TaskCardStep, { foreignKey: 'signed_by_user_id', as: 'signedSteps' });
       }
+
+      // WORK ORDERS ASSOCIATIONS
+      if (models.WorkOrder) {
+        this.hasMany(models.WorkOrder, { foreignKey: 'wo_instructor', as: 'instructedWorkOrders' });
+        this.hasMany(models.WorkOrder, { foreignKey: 'wo_approve_by', as: 'approvedWorkOrders' });
+      }
+
+      // FIX: Use sourceKey: 'student_id' so it links properly with WorkOrderPersonnel's targetKey
+      if (models.WorkOrderPersonnel) {
+        this.hasMany(models.WorkOrderPersonnel, { 
+          foreignKey: 'wop_user_id', 
+          sourceKey: 'student_id', 
+          as: 'workOrderAssignments' 
+        });
+      }
     }
   }
 
   User.init({
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    student_id: { type: DataTypes.STRING(120), allowNull: true, unique: true },
     first_name: { type: DataTypes.STRING(120), allowNull: false },
     middle_name: { type: DataTypes.STRING(120), allowNull: false },
     last_name: { type: DataTypes.STRING(120), allowNull: false },
+    section_year: { type: DataTypes.STRING(120), allowNull: true },
     email: { type: DataTypes.STRING(120), allowNull: false, unique: true },
     user_name: { type: DataTypes.STRING(120), allowNull: false, unique: true },
     password_hash: { type: DataTypes.TEXT, allowNull: false },
@@ -33,7 +51,7 @@ module.exports = (sequelize) => {
   });
 
   User.prototype.validPassword = function (password) {
-    return this.password_hash === password; // Substitute with bcrypt.compareSync if hashing
+    return this.password_hash === password;
   };
 
   return User;

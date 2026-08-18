@@ -10,6 +10,11 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true
       },
+      student_id: {
+        type: Sequelize.STRING(120),
+        allowNull: true,
+        unique: true
+      },
       first_name: {
         type: Sequelize.STRING(120),
         allowNull: false
@@ -21,6 +26,10 @@ module.exports = {
       last_name: {
         type: Sequelize.STRING(120),
         allowNull: false
+      },
+      section_year: {
+        type: Sequelize.STRING(120),
+        allowNull: true
       },
       email: {
         type: Sequelize.STRING(120),

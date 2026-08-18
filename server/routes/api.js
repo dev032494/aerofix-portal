@@ -9,7 +9,8 @@ const workOrderRoutes = require('./workOrderRoutes');
 const documentRoutes = require('./documentRoutes'); // ⚡ ADDED: Import new document sub-router
 const userActivationLogRoutes = require('./userActivationLogRoutes'); // ⚡ ADDED: Import new user activation log sub-router
 const activityLogRoutes = require('./activityLogRoutes'); // ⚡ ADDED: Import new activity log sub-router
-
+const instructorRoutes = require('./instructorRoutes'); // ⚡ ADDED: Import new instructor sub-router
+const workOrderListRoutes = require('./workOrderListRoutes'); // ⚡ ADDED: Import new work order list sub-router
 
 // =========================================================================
 // GATEWAY CORE ROUTING ROUTE ROUTE PIPELINES
@@ -34,5 +35,11 @@ router.use('/documents', documentRoutes);
 router.use('/activation-logs', userActivationLogRoutes);
 
 router.use('/activity-logs', activityLogRoutes); // ⚡ ADDED: Activity Log Sub-System
+
+// ⚡ ADDED: Instructor Management Sub-System -> Maps to /api/v1/instructors
+router.use('/instructors', instructorRoutes);
+
+// ⚡ ADDED: Work Order List Management Sub-System -> Maps to /api/v1/work-order-list
+router.use('/work-order-list', workOrderListRoutes);
 
 module.exports = { apiRouter: router };
