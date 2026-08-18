@@ -24,12 +24,12 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false // Assuming this references your 'work_order_list' table
       },
-      woi_created_at: {
+      created_at: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW
       },
-      woi_updated_at: {
+      updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW

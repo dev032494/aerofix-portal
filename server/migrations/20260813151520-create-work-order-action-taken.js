@@ -4,14 +4,10 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('work_order_action_taken', {
-      woat_work_order_item_id: {
+      woat_work_order_id: {
         type: Sequelize.UUID,
         primaryKey: true,
         allowNull: false,
-        references: {
-          model: 'work_order_items', // Target table
-          key: 'woi_id'              // Target key
-        },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },

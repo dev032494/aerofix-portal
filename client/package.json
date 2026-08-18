@@ -7,8 +7,9 @@
     "dev": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "prestart": "npm install --view"
+    "preview": "vite preview --view",
+    "prestart": "npm install",
+    "start": "npm run prestart && npm run preview"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.0",

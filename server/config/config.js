@@ -29,10 +29,16 @@ module.exports = {
     dialect: 'mysql',
     logging: false,
     pool: {
-      max: 5,        // Maximum number of connection instances in pool
-      min: 0,        // Minimum number of connection instances in pool
+      max: 5,       // Maximum number of connection instances in pool
+      min: 0,       // Minimum number of connection instances in pool
       acquire: 30000, // Maximum time (ms) that pool will try to get connection before throwing error
       idle: 10000    // Maximum time (ms) that a connection can be idle before being released
+    },
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false // Set to true if you have specific SSL certificates configured
+      }
     }
   }
 };

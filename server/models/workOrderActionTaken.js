@@ -4,15 +4,16 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class WorkOrderActionTaken extends Model {
     static associate(models) {
-      WorkOrderActionTaken.belongsTo(models.WorkOrderItem, {
-        foreignKey: 'woat_work_order_item_id',
-        as: 'workOrderItem'
+      WorkOrderActionTaken.belongsTo(models.WorkOrder, {
+        foreignKey: 'woat_work_order_id',
+        targetKey: 'wo_work_order_number',
+        as: 'workOrder'
       });
     }
   }
 
   WorkOrderActionTaken.init({
-    woat_work_order_item_id: {
+    woat_work_order_id: {
       type: DataTypes.UUID,
       primaryKey: true,
       allowNull: false

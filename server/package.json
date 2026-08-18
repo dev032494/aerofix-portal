@@ -9,7 +9,8 @@
     "swagger": "node swagger.js",
     "db:init": "node ./util/db-init.js",
     "db:reset": "node ./util/db-reset.js",
-    "db:migrate": "sequelize db:migrate",
+    "db:status": "node ./util/db-status.js",
+    "db:migrate": "node ./util/db-migrate.js",
     "db:seed": "sequelize db:seed:all",
     "mongod:init": "node ./util/mongodb-init.js"
   },
@@ -31,7 +32,8 @@
     "nodemon": "^3.1.14",
     "pdfjs-dist": "^6.1.200",
     "sequelize": "^6.37.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "umzug": "^2.3.0"
   },
   "devDependencies": {
     "sequelize-cli": "^6.6.5",
