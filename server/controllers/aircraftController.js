@@ -1,4 +1,4 @@
-const AircraftRepository = require('../repositories/AircraftRepository');
+const AircraftRepository = require('../repositories/aircraftRepository');
 
 
 exports.create = async (req, res) => {
