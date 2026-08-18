@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const AircraftController = require('../controllers/AircraftController');
+const AircraftController = require('../controllers/aircraftController');
 
 router.post('/', AircraftController.create);
 router.get('/', AircraftController.getAll);
