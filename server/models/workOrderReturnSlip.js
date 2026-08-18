@@ -4,10 +4,10 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class WorkOrderReturnService extends Model {
     static associate(models) {
-      // Define association with WorkOrder model
+      // Define association with WorkOrder model linking via wo_work_order_number
       WorkOrderReturnService.belongsTo(models.WorkOrder, {
         foreignKey: 'wors_work_order_id',
-        targetKey :'wo_work_order_number',
+        targetKey: 'wo_work_order_number',
         as: 'returnSlip',
       });
     }
@@ -36,13 +36,13 @@ module.exports = (sequelize, DataTypes) => {
       wors_created_at: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.NOW
+        defaultValue: DataTypes.NOW,
       },
       wors_updated_at: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.NOW
-      }
+        defaultValue: DataTypes.NOW,
+      },
     },
     {
       sequelize,
@@ -50,7 +50,7 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'work_order_return_service',
       timestamps: true,
       createdAt: 'wors_created_at',
-      updatedAt: 'wors_updated_at'
+      updatedAt: 'wors_updated_at',
     }
   );
 

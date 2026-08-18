@@ -28,6 +28,7 @@ module.exports = (sequelize, DataTypes) => {
       if (models.WorkOrderPartsReplacement) {
         WorkOrder.hasMany(models.WorkOrderPartsReplacement, {
           foreignKey: 'wopr_work_order_id',
+          sourceKey: 'wo_work_order_number',
           as: 'partsReplacement' // Updated to match viewReport alias
         });
       }
@@ -36,6 +37,7 @@ module.exports = (sequelize, DataTypes) => {
       if (models.WorkOrderActionTaken) {
         WorkOrder.hasOne(models.WorkOrderActionTaken, {
           foreignKey: 'woat_work_order_id',
+          sourceKey: 'wo_work_order_number',
           as: 'actionTaken'
         });
       }
@@ -44,7 +46,8 @@ module.exports = (sequelize, DataTypes) => {
       if (models.WorkOrderReturnService) {
         WorkOrder.hasOne(models.WorkOrderReturnService, {
           foreignKey: 'wors_work_order_id',
-          as: 'returnSlip' // Updated to match viewReport alias
+          sourceKey: 'wo_work_order_number',
+          as: 'returnSlip'
         });
       }
 

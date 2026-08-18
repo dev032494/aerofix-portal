@@ -309,21 +309,24 @@ class WorkOrderRepository extends BaseRepository {
           as: 'actionTaken',
           foreignKey: 'woat_work_order_id',
           targetKey: 'wo_work_order_number',
-          attributes: ['woat_description']
+          attributes: ['woat_description'],
+
         },
         {
           model: db.WorkOrderPartsReplacement,
           as: 'partsReplacement',
           foreignKey: 'wopr_work_order_id',
           targetKey: 'wo_work_order_number',
-          attributes: ['wopr_quantity', 'wopr_nomenclature', 'wopr_part_number']
+          attributes: ['wopr_quantity', 'wopr_nomenclature', 'wopr_part_number'],
+
         },
         {
           model: db.WorkOrderReturnService,
           as: 'returnSlip',
           foreignKey: 'wors_work_order_id',
           targetKey: 'wo_work_order_number',
-          attributes: ['wors_aircraft_discrepancy', 'wors_corrective_action']
+          attributes: ['wors_aircraft_discrepancy', 'wors_corrective_action'],
+
         }
       ]
     });
