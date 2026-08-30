@@ -271,7 +271,7 @@ class WorkOrderRepository extends BaseRepository {
         {
           model: db.User,
           as: 'instructor',
-          attributes: ['first_name', 'middle_name', 'last_name']
+          attributes: ['first_name', 'middle_name', 'last_name', 'student_id']
         },
         {
           model: db.User,

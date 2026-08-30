@@ -4,7 +4,7 @@
         "client"
     ],
     "name": "aeronexus",
-    "version": "1.10.32",
+    "version": "1.11.35",
     "scripts": {
         "dev:server": "dotenv -e .env -- npm run dev -w server",
         "dev:client": "dotenv -e .env -- npm run dev -w client",
