@@ -15,7 +15,8 @@ import {
   Activity,
   GraduationCap,
   Wrench,
-  CheckCircle2 // Added icon for Student Tasks
+  CheckCircle2,
+  Calendar // Added icon for Maintenance Planning
 } from "lucide-react";
 
 // Import your views
@@ -30,7 +31,8 @@ import LibraryView from "./components/LibraryView";
 import UserActivationDashboard from "./components/UserActivationDashboard"; 
 import ActivityLogDashboard from "./components/ActivityLogDashboard"; 
 import InstructorView from "./components/InstructorView";
-import StudentTaskDashboard from "./components/StudentTaskDashboard"; // Imported new Student Task component
+import StudentTaskDashboard from "./components/StudentTaskDashboard"; 
+import MaintenanceSchedulePlanning from "./components/MaintenanceSchedulePlanning"; // Added new Maintenance component
 
 // --- PROTECTED ROUTE INTERCEPTOR ---
 function ProtectedRoute({ children, currentUser }) {
@@ -129,6 +131,11 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
                   <ClipboardList className="h-5 w-5 shrink-0" /> Work Order List
                 </NavLink>
 
+                {/* ⚡ NEW: NavLink for Maintenance Schedule Planning */}
+                <NavLink to="maintenance-planning" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
+                  <Calendar className="h-5 w-5 shrink-0" /> Maintenance Planning
+                </NavLink>
+
                 <NavLink to="team" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
                   <Users className="h-5 w-5 shrink-0" /> Team Registry
                 </NavLink>
@@ -139,7 +146,7 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
               </>
             )}
 
-            {/* ⚡ NEW: Exclusive NavLink for Students */}
+            {/* ⚡ Exclusive NavLink for Students */}
             {isStudent && (
               <NavLink to="tasks" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
                 <CheckCircle2 className="h-5 w-5 shrink-0" /> My Tasks
@@ -269,10 +276,14 @@ export default function App() {
           <Route path="aircraft" element={!isStudent ? <AircraftDashboard /> : <Navigate to="library" />} />
           <Route path="work-orders" element={!isStudent ? <WorkOrderDashboard /> : <Navigate to="library" />} />
           <Route path="work-order-list" element={!isStudent ? <WorkOrderList /> : <Navigate to="library" />} />
+          
+          {/* ⚡ NEW: Protected route for Maintenance Planning */}
+          <Route path="maintenance-planning" element={!isStudent ? <MaintenanceSchedulePlanning /> : <Navigate to="library" />} />
+          
           <Route path="team" element={!isStudent ? <TeamRegistry /> : <Navigate to="library" />} />
           <Route path="instructor" element={!isStudent ? <InstructorView /> : <Navigate to="library" />} />
           
-          {/* ⚡ NEW: Protected route for Students only */}
+          {/* ⚡ Protected route for Students only */}
           <Route path="tasks" element={isStudent ? <StudentTaskDashboard /> : <Navigate to="library" />} />
 
           {/* Available to all valid users */}

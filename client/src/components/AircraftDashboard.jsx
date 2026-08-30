@@ -115,175 +115,181 @@ export default function AircraftDashboard() {
     </div>
   );
 
-  // =========================================================================
-  // CORE LAYOUT SWITCH CONTROLLER ENGINE
-  // =========================================================================
   return (
-    <div className="space-y-6">
-      
-      {/* 🧭 CONTEXT LAYER 1: FLEET REGISTER GRID (Rendered when selectedAircraftId is null) */}
-      {!selectedAircraftId ? (
-        <div className="space-y-6 animate-fadeIn">
-          <div className="flex flex-col gap-4 bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-800 shadow-xl sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Fleet Asset Register</h1>
-              <p className="text-slate-400 text-xs sm:text-sm mt-1">Select an active operational tail number configuration to inspect maintenance profiles.</p>
-            </div>
-            <button 
-              onClick={() => { setFormData({}); setActiveModal('aircraft'); }}
-              className="w-full sm:w-auto bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-md cursor-pointer shrink-0"
-            >
-              <Plus className="h-4 w-4" /> Add Aircraft
-            </button>
-          </div>
+    <div className="w-full h-full flex flex-col">
+      <div className="w-full bg-slate-950 border border-slate-850 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col flex-1 max-h-[calc(100vh-2rem)]">
+        
+        {/* Scrollable Container */}
+        <div className="p-3 sm:p-5 md:p-6 bg-slate-950 w-full flex flex-col flex-1 overflow-y-auto box-border custom-scrollbar space-y-6">
 
-          {aircraftList.length === 0 ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center max-w-xl mx-auto space-y-4">
-              <Plane className="h-8 w-8 text-slate-600 mx-auto animate-pulse" />
-              <h3 className="text-lg font-bold text-white">No Assets Registered</h3>
-              <p className="text-xs text-slate-400">Initialize a master airframe index file row to begin tracking parameters operations.</p>
+          {/* 🧭 CONTEXT LAYER 1: FLEET REGISTER GRID (Rendered when selectedAircraftId is null) */}
+          {!selectedAircraftId ? (
+            <div className="space-y-6 animate-fadeIn flex flex-col flex-1">
+              <div className="flex flex-col gap-4 bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-800 shadow-xl sm:flex-row sm:items-center sm:justify-between shrink-0">
+                <div className="min-w-0">
+                  <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight truncate">Fleet Asset Register</h1>
+                  <p className="text-slate-400 text-xs sm:text-sm mt-1 truncate">Select an active operational tail number configuration to inspect maintenance profiles.</p>
+                </div>
+                <button 
+                  onClick={() => { setFormData({}); setActiveModal('aircraft'); }}
+                  className="w-full sm:w-auto bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-md cursor-pointer shrink-0"
+                >
+                  <Plus className="h-4 w-4" /> Add Aircraft
+                </button>
+              </div>
+
+              {aircraftList.length === 0 ? (
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center max-w-xl mx-auto space-y-4 my-auto">
+                  <Plane className="h-8 w-8 text-slate-600 mx-auto animate-pulse" />
+                  <h3 className="text-lg font-bold text-white">No Assets Registered</h3>
+                  <p className="text-xs text-slate-400">Initialize a master airframe index file row to begin tracking parameters operations.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                  {aircraftList.map((ac) => (
+                    <div 
+                      key={ac.id} 
+                      onClick={() => handleSelectAircraft(ac.id)}
+                      className="bg-slate-900 border border-slate-800 hover:border-sky-500/40 p-5 rounded-2xl shadow-xl space-y-4 cursor-pointer transition-all hover:-translate-y-1 group active:scale-98"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="min-w-0">
+                          <h3 className="text-xl font-black text-white group-hover:text-sky-400 transition-colors tracking-tight truncate">{ac.tail_number}</h3>
+                          <p className="text-xs text-slate-400 font-medium mt-0.5 truncate">{ac.model_variant}</p>
+                        </div>
+                        <span className="text-[10px] uppercase font-bold bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-slate-400 font-mono shrink-0">S/N: {ac.serial_number}</span>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
+                        <div className="flex items-center gap-1.5"><Gauge className="h-4 w-4 text-sky-500" /> <span>{ac.base_ttaf || '0.0'} h</span></div>
+                        <div className="flex items-center gap-1.5"><Activity className="h-4 w-4 text-amber-500" /> <span>{ac.engines?.length || 0} Engines</span></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : !data ? (
+            /* Unpacked Data Error State Guard */
+            <div className="text-center p-12 space-y-4 bg-slate-900 rounded-2xl border border-slate-800 max-w-md mx-auto my-auto">
+              <p className="text-sm text-slate-400">Unable to resolve nested children array indices properties for this reference pointer.</p>
+              <button onClick={handleBackToFleetList} className="text-xs bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 cursor-pointer">Return to register index</button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {aircraftList.map((ac) => (
-                <div 
-                  key={ac.id} 
-                  onClick={() => handleSelectAircraft(ac.id)}
-                  className="bg-slate-900 border border-slate-800 hover:border-sky-500/40 p-5 rounded-2xl shadow-xl space-y-4 cursor-pointer transition-all hover:-translate-y-1 group active:scale-98"
+            
+            /* 🧭 CONTEXT LAYER 2: DETAILED AIRFRAME TRACKING METRICS WORKSPACE */
+            <div className="space-y-6 animate-fadeIn flex flex-col flex-1">
+              <div className="flex items-center">
+                <button 
+                  onClick={handleBackToFleetList} 
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 transition-all bg-slate-900 border border-slate-800 hover:border-slate-700 px-3 py-1.5 rounded-lg cursor-pointer shadow-sm active:scale-95"
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-xl font-black text-white group-hover:text-sky-400 transition-colors tracking-tight">{ac.tail_number}</h3>
-                      <p className="text-xs text-slate-400 font-medium mt-0.5">{ac.model_variant}</p>
-                    </div>
-                    <span className="text-[10px] uppercase font-bold bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-slate-400 font-mono">S/N: {ac.serial_number}</span>
-                  </div>
+                  <ArrowLeft className="h-3.5 w-3.5" /> Fleet List Overview
+                </button>
+              </div>
 
-                  <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
-                    <div className="flex items-center gap-1.5"><Gauge className="h-4 w-4 text-sky-500" /> <span>{ac.base_ttaf || '0.0'} h</span></div>
-                    <div className="flex items-center gap-1.5"><Activity className="h-4 w-4 text-amber-500" /> <span>{ac.engines?.length || 0} Engines</span></div>
+              {/* ⚡ HEAD ACTIONS HEADER CARD */}
+              <div className="flex flex-col gap-5 bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-800 shadow-xl lg:flex-row lg:items-center lg:justify-between shrink-0">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight truncate">{data.tail_number}</h1>
+                    <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-md text-xs font-semibold shrink-0">Active</span>
+                  </div>
+                  <p className="text-slate-400 text-xs sm:text-sm mt-1 truncate">{data.model_variant} | S/N: {data.serial_number}</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:justify-end shrink-0">
+                  <button onClick={() => { setFormData({}); setActiveModal('aircraft'); }} className="bg-slate-950 hover:bg-slate-900 text-slate-400 hover:text-slate-200 text-xs font-bold px-3 py-2.5 rounded-xl border border-slate-800 flex items-center justify-center gap-1.5 transition-colors cursor-pointer order-last sm:order-first col-span-2 sm:col-span-1">
+                    <Plus className="h-4 w-4 text-sky-500" /> Add Aircraft
+                  </button>
+                  <button onClick={() => setActiveModal('engine')} className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                    <Plus className="h-4 w-4" /> Engine
+                  </button>
+                  <button onClick={() => setActiveModal('logbook')} className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-3 py-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                    <FileText className="h-4 w-4" /> Log Entry
+                  </button>
+                  <button onClick={() => setActiveModal('inspection')} className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-3 py-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                    <Calendar className="h-4 w-4" /> Interval
+                  </button>
+                  <button onClick={() => setActiveModal('compliance')} className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-3 py-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                    <ShieldAlert className="h-4 w-4" /> AD Check
+                  </button>
+                </div>
+              </div>
+
+              {/* ⚡ CARD SUMMARY WIDGETS GRID */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 shrink-0">
+                <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between">
+                  <div><p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Airframe Hours</p><h3 className="text-2xl font-black text-white mt-0.5">{data.base_ttaf || '0.0'} h</h3></div>
+                  <div className="p-3 bg-sky-500/10 text-sky-500 rounded-xl"><Gauge className="h-5 w-5" /></div>
+                </div>
+                <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between">
+                  <div><p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Mounted Engines</p><h3 className="text-2xl font-black text-white mt-0.5">{data.engines?.length || 0} U</h3></div>
+                  <div className="p-3 bg-amber-500/10 text-amber-500 rounded-xl"><Activity className="h-5 w-5" /></div>
+                </div>
+                <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between sm:col-span-2 lg:col-span-1">
+                  <div><p className="text-slate-400 text-xs font-bold uppercase tracking-wider">AD Compliances</p><h3 className="text-2xl font-black text-white mt-0.5">{data.compliances?.length || 0} Records</h3></div>
+                  <div className="p-3 bg-indigo-500/10 text-indigo-500 rounded-xl"><ShieldAlert className="h-5 w-5" /></div>
+                </div>
+              </div>
+
+              {/* ⚡ DATA SUB-TABLES SEGMENT */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-md flex flex-col">
+                  <h2 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2.5 shrink-0"><Activity className="h-4 w-4 text-amber-500" /> Propulsion Plant</h2>
+                  <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1">
+                    {data.engines && data.engines.length > 0 ? (
+                      data.engines.map(eng => (
+                        <div 
+                          key={eng.id} 
+                          onClick={() => setInspectItem({ type: 'engine', details: eng })}
+                          className="p-3.5 bg-slate-950 hover:bg-slate-900/60 rounded-xl border border-slate-850 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-sm cursor-pointer transition-all hover:border-slate-700 active:scale-99 group"
+                        >
+                          <div className="min-w-0">
+                            <p className="font-bold text-slate-200 group-hover:text-sky-400 transition-colors flex items-center gap-1.5 truncate">
+                              {eng.make_model} <Info className="h-3.5 w-3.5 text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                            </p>
+                            <p className="text-xs text-slate-500 font-mono truncate">S/N: {eng.serial_number}</p>
+                          </div>
+                          <div className="sm:text-right text-xs text-slate-400 font-mono shrink-0">Inst: {eng.installed_date || 'N/A'}</div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-slate-500 italic text-center py-4">No engine blocks bound.</p>
+                    )}
                   </div>
                 </div>
-              ))}
+
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-md flex flex-col">
+                  <h2 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2.5 shrink-0"><Calendar className="h-4 w-4 text-sky-400" /> Maintenance Schedule</h2>
+                  <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1">
+                    {data.inspections && data.inspections.length > 0 ? (
+                      data.inspections.map(insp => (
+                        <div 
+                          key={insp.id} 
+                          onClick={() => setInspectItem({ type: 'inspection', details: insp })}
+                          className="p-3.5 bg-slate-950 hover:bg-slate-900/60 rounded-xl border border-slate-850 flex justify-between items-center text-sm cursor-pointer transition-all hover:border-slate-700 active:scale-99 group"
+                        >
+                          <div className="min-w-0 pr-2">
+                            <p className="font-bold text-slate-200 group-hover:text-sky-400 transition-colors flex items-center gap-1.5 truncate">
+                              {insp.inspection_type} <Info className="h-3.5 w-3.5 text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                            </p>
+                            <p className="text-[11px] text-rose-400 mt-0.5 truncate">Due: {insp.next_due_date || 'N/A'}</p>
+                          </div>
+                          <span className="text-xs font-mono bg-slate-900 px-2 py-1 rounded border border-slate-800 text-slate-300 shrink-0">Due: {insp.next_due_tech}h</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-slate-500 italic text-center py-4">No tracking intervals recorded.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
+
         </div>
-      ) : !data ? (
-        /* Unpacked Data Error State Guard */
-        <div className="text-center p-12 space-y-4 bg-slate-900 rounded-2xl border border-slate-800 max-w-md mx-auto">
-          <p className="text-sm text-slate-400">Unable to resolve nested children array indices properties for this reference pointer.</p>
-          <button onClick={handleBackToFleetList} className="text-xs bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 cursor-pointer">Return to register index</button>
-        </div>
-      ) : (
-        
-        /* 🧭 CONTEXT LAYER 2: DETAILED AIRFRAME TRACKING METRICS WORKSPACE */
-        <div className="space-y-6 animate-fadeIn">
-          <button 
-            onClick={handleBackToFleetList} 
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 transition-all bg-slate-900 border border-slate-800 hover:border-slate-700 px-3 py-1.5 rounded-lg cursor-pointer shadow-sm active:scale-95"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" /> Fleet List Overview
-          </button>
-
-          {/* ⚡ HEAD ACTIONS HEADER CARD */}
-          <div className="flex flex-col gap-5 bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-800 shadow-xl lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">{data.tail_number}</h1>
-                <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-md text-xs font-semibold">Active</span>
-              </div>
-              <p className="text-slate-400 text-xs sm:text-sm mt-1">{data.model_variant} | S/N: {data.serial_number}</p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:justify-end">
-              <button onClick={() => { setFormData({}); setActiveModal('aircraft'); }} className="bg-slate-950 hover:bg-slate-900 text-slate-400 hover:text-slate-200 text-xs font-bold px-3 py-2.5 rounded-xl border border-slate-800 flex items-center justify-center gap-1.5 transition-colors cursor-pointer order-last sm:order-first col-span-2 sm:col-span-1">
-                <Plus className="h-4 w-4 text-sky-500" /> Add Aircraft
-              </button>
-              <button onClick={() => setActiveModal('engine')} className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
-                <Plus className="h-4 w-4" /> Engine
-              </button>
-              <button onClick={() => setActiveModal('logbook')} className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-3 py-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
-                <FileText className="h-4 w-4" /> Log Entry
-              </button>
-              <button onClick={() => setActiveModal('inspection')} className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-3 py-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
-                <Calendar className="h-4 w-4" /> Interval
-              </button>
-              <button onClick={() => setActiveModal('compliance')} className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-3 py-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
-                <ShieldAlert className="h-4 w-4" /> AD Check
-              </button>
-            </div>
-          </div>
-
-          {/* ⚡ CARD SUMMARY WIDGETS GRID */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between">
-              <div><p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Airframe Hours</p><h3 className="text-2xl font-black text-white mt-0.5">{data.base_ttaf || '0.0'} h</h3></div>
-              <div className="p-3 bg-sky-500/10 text-sky-500 rounded-xl"><Gauge className="h-5 w-5" /></div>
-            </div>
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between">
-              <div><p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Mounted Engines</p><h3 className="text-2xl font-black text-white mt-0.5">{data.engines?.length || 0} U</h3></div>
-              <div className="p-3 bg-amber-500/10 text-amber-500 rounded-xl"><Activity className="h-5 w-5" /></div>
-            </div>
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between sm:col-span-2 lg:col-span-1">
-              <div><p className="text-slate-400 text-xs font-bold uppercase tracking-wider">AD Compliances</p><h3 className="text-2xl font-black text-white mt-0.5">{data.compliances?.length || 0} Records</h3></div>
-              <div className="p-3 bg-indigo-500/10 text-indigo-500 rounded-xl"><ShieldAlert className="h-5 w-5" /></div>
-            </div>
-          </div>
-
-          {/* ⚡ DATA SUB-TABLES SEGMENT */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-md">
-              <h2 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2.5"><Activity className="h-4 w-4 text-amber-500" /> Propulsion Plant</h2>
-              <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1">
-                {data.engines && data.engines.length > 0 ? (
-                  data.engines.map(eng => (
-                    <div 
-                      key={eng.id} 
-                      onClick={() => setInspectItem({ type: 'engine', details: eng })}
-                      className="p-3.5 bg-slate-950 hover:bg-slate-900/60 rounded-xl border border-slate-850 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-sm cursor-pointer transition-all hover:border-slate-700 active:scale-99 group"
-                    >
-                      <div>
-                        <p className="font-bold text-slate-200 group-hover:text-sky-400 transition-colors flex items-center gap-1.5">
-                          {eng.make_model} <Info className="h-3.5 w-3.5 text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </p>
-                        <p className="text-xs text-slate-500 font-mono">S/N: {eng.serial_number}</p>
-                      </div>
-                      <div className="sm:text-right text-xs text-slate-400 font-mono">Inst: {eng.installed_date || 'N/A'}</div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-slate-500 italic text-center py-4">No engine blocks bound.</p>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-md">
-              <h2 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2.5"><Calendar className="h-4 w-4 text-sky-400" /> Maintenance Schedule</h2>
-              <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1">
-                {data.inspections && data.inspections.length > 0 ? (
-                  data.inspections.map(insp => (
-                    <div 
-                      key={insp.id} 
-                      onClick={() => setInspectItem({ type: 'inspection', details: insp })}
-                      className="p-3.5 bg-slate-950 hover:bg-slate-900/60 rounded-xl border border-slate-850 flex justify-between items-center text-sm cursor-pointer transition-all hover:border-slate-700 active:scale-99 group"
-                    >
-                      <div>
-                        <p className="font-bold text-slate-200 truncate max-w-[140px] sm:max-w-xs group-hover:text-sky-400 transition-colors flex items-center gap-1.5">
-                          {insp.inspection_type} <Info className="h-3.5 w-3.5 text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </p>
-                        <p className="text-[11px] text-rose-400 mt-0.5">Due: {insp.next_due_date || 'N/A'}</p>
-                      </div>
-                      <span className="text-xs font-mono bg-slate-900 px-2 py-1 rounded border border-slate-800 text-slate-300 shrink-0">Due: {insp.next_due_tech}h</span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-slate-500 italic text-center py-4">No tracking intervals recorded.</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
 
       {/* =========================================================================
           ⚡ HOISTED MODALS: SHARED POPUPS WINDOW (Accessible by both page views)
@@ -332,7 +338,7 @@ export default function AircraftDashboard() {
           <div className="bg-slate-900 border border-slate-800 w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
             <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-850">
               <h3 className="font-bold text-white text-base capitalize">Add {activeModal === 'aircraft' ? 'Airframe' : activeModal} Record</h3>
-              <button onClick={() => setActiveModal(null)} className="text-slate-400 hover:text-white p-1 rounded-lg"><X className="h-5 w-5" /></button>
+              <button onClick={() => setActiveModal(null)} className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer"><X className="h-5 w-5" /></button>
             </div>
             
             <form onSubmit={handleModalSubmit} className="p-5 space-y-4 overflow-y-auto flex-1 text-sm">

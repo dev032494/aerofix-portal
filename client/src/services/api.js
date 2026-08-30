@@ -103,5 +103,27 @@ export const workOrderListService = {
 
 };
 
+export const taskService = {
+  createTaskDetail: (data) => api.post('/task/task-details', data),
+  getTaskDetailList: () => api.get('/task/task-details'),
+  getTaskDetail: (id) => api.get(`/task/task-details/${id}`),
+  createTaskItem: (data) => api.post('/task/task-items', data),
+  getTaskItem: (id) => api.get(`/task/task-items/${id}`),
+};
+
+export const manualService = {
+  createManualDetail: (data) => api.post('/manual/manual-details', data),
+  getManualList: () => api.get('/manual/manual-details'),
+  getManualDetail: (id) => api.get(`/manual/manual-details/${id}`),
+  createManualItem: (data) => api.post('/manual/manual-items', data),
+  getManualItem: (id) => api.get(`/manual/manual-items/${id}`),
+};
+
+export const maintenanceSchedulePlanningService = {
+  createMaintenanceSchedule: (data) => api.post('/maintenance-schedule/maintenance-schedule', data),
+  getMaintenanceScheduleList: () => api.get('/maintenance-schedule/maintenance-schedule'),
+  getMaintenanceSchedule: (id) => api.get(`/maintenance-schedule/maintenance-schedule/${id}`),
+};
+
 
 export default api;

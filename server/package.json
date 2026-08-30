@@ -12,7 +12,11 @@
     "db:status": "node ./util/db-status.js",
     "db:migrate": "node ./util/db-migrate.js",
     "db:seed": "sequelize db:seed:all",
-    "mongod:init": "node ./util/mongodb-init.js"
+    "mongod:init": "node ./util/mongodb-init.js",
+    "migrate:generate": "npx sequelize-cli migration:generate --name",
+    "migrate:run": "npx sequelize-cli db:migrate",
+    "migrate:undo": "npx sequelize-cli db:migrate:undo",
+    "migrate:undo:all": "npx sequelize-cli db:migrate:undo:all"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

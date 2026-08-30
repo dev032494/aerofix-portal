@@ -85,130 +85,137 @@ export default function StudentApprovalRegistry() {
   );
 
   return (
-    <div className="space-y-6 text-slate-100">
-      
-      {/* Top Banner Block */}
-      <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-800 shadow-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase">Student Intake Registry</h1>
-          <p className="text-slate-400 text-xs mt-1">Verify student certifications, track active training accounts, and manage admissions paperwork.</p>
-        </div>
-        <div className="flex gap-2">
-          <div className="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center min-w-[100px]">
-            <span className="text-[10px] text-slate-500 font-bold uppercase block">Pending Review</span>
-            <span className="text-base font-mono font-bold text-amber-400">{pendingCount}</span>
+    <div className="w-full h-full flex flex-col">
+      <div className="w-full bg-slate-950 border border-slate-850 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col flex-1 max-h-[calc(100vh-2rem)]">
+        
+        {/* Top Banner Block */}
+        <div className="px-4 py-4 sm:px-6 sm:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 bg-slate-900/95 shrink-0">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase truncate">Student Intake Registry</h1>
+            <p className="text-slate-400 text-xs mt-1 truncate">Verify student certifications, track active training accounts, and manage admissions paperwork.</p>
           </div>
-          <div className="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center min-w-[100px]">
-            <span className="text-[10px] text-slate-500 font-bold uppercase block">Total Roster</span>
-            <span className="text-base font-mono font-bold text-sky-400">{registrations.length}</span>
+          <div className="flex gap-2 shrink-0">
+            <div className="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center min-w-[100px]">
+              <span className="text-[10px] text-slate-500 font-bold uppercase block">Pending Review</span>
+              <span className="text-base font-mono font-bold text-amber-400">{pendingCount}</span>
+            </div>
+            <div className="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center min-w-[100px]">
+              <span className="text-[10px] text-slate-500 font-bold uppercase block">Total Roster</span>
+              <span className="text-base font-mono font-bold text-sky-400">{registrations.length}</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Master Database Roster View Panel */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden text-xs">
-        <div className="p-4 bg-slate-950 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-3">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider w-full md:w-auto">Master Database Roster</h2>
-          
-          {/* Controls: Search + Status Filter */}
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-            
-            {/* Status Filter Dropdown */}
-            <div className="relative w-full sm:w-44">
-              <Filter className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500 font-medium appearance-none cursor-pointer text-xs"
-              >
-                <option value="all">All Statuses</option>
-                <option value="active">Active Profiles</option>
-                <option value="pending">Pending Review</option>
-                <option value="inactive">Inactive</option>
-              </select>
+        {/* Scrollable Content Area */}
+        <div className="p-3 sm:p-5 md:p-6 bg-slate-950 w-full flex flex-col flex-1 overflow-y-auto box-border custom-scrollbar space-y-6">
+
+          {/* Master Database Roster View Panel */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden text-xs flex flex-col">
+            <div className="p-4 bg-slate-950 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-3">
+              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider w-full md:w-auto">Master Database Roster</h2>
+              
+              {/* Controls: Search + Status Filter */}
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                
+                {/* Status Filter Dropdown */}
+                <div className="relative w-full sm:w-44">
+                  <Filter className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500 font-medium appearance-none cursor-pointer text-xs"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="active">Active Profiles</option>
+                    <option value="pending">Pending Review</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+
+                {/* Search Input */}
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-600" />
+                  <input 
+                    type="text"
+                    placeholder="Search student name or email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 font-medium"
+                  />
+                </div>
+
+              </div>
             </div>
 
-            {/* Search Input */}
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-600" />
-              <input 
-                type="text"
-                placeholder="Search student name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 font-medium"
-              />
-            </div>
-
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-800 text-slate-500 font-bold uppercase tracking-wider bg-slate-950/40">
-                <th className="p-4">Student Details</th>
-                <th className="p-4">Role</th>
-                <th className="p-4 text-center">Status Toggle</th>
-                <th className="p-4 text-right">Verification State</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/50">
-              {filteredStudents.length === 0 ? (
-                <tr>
-                  <td colSpan="4" className="p-8 text-center text-slate-500 italic">
-                    No student records matched the active search and status filters.
-                  </td>
-                </tr>
-              ) : (
-                filteredStudents.map(student => {
-                  const active = isStudentActive(student);
-                  const verified = isStudentVerified(student);
-
-                  return (
-                    <tr key={student.id} className="hover:bg-slate-850/40 transition-colors">
-                      <td className="p-4">
-                        <div className="font-bold text-white text-sm">{getStudentName(student)}</div>
-                        <div className="text-slate-400 font-mono mt-0.5 text-[11px]">{student.email}</div>
-                      </td>
-                      <td className="p-4 align-middle text-slate-300 font-medium capitalize">
-                        {student.role || 'student'}
-                      </td>
-                      <td className="p-4 text-center align-middle">
-                        <button
-                          onClick={() => handleToggleStatus(student.id, active)}
-                          disabled={updatingStatusId === student.id}
-                          className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer inline-flex items-center gap-1.5 ${
-                            active 
-                              ? 'bg-rose-950/30 border-rose-900/50 text-rose-400 hover:bg-rose-900/40' 
-                              : 'bg-emerald-950/30 border-emerald-900/50 text-emerald-400 hover:bg-emerald-900/40'
-                          }`}
-                        >
-                          <Power className="h-3 w-3" />
-                          {updatingStatusId === student.id ? 'Updating...' : active ? 'Deactivate' : 'Activate'}
-                        </button>
-                      </td>
-                      <td className="p-4 text-right align-middle">
-                        {active && verified ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/5 border border-emerald-500/10 px-2 py-0.5 rounded-md">
-                            <CheckCircle className="h-3 w-3" /> Active Profile
-                          </span>
-                        ) : !active && !verified ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-500/5 border border-amber-500/10 px-2 py-0.5 rounded-md">
-                            <Clock className="h-3 w-3" /> Pending Review
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-400 bg-red-500/5 border border-red-500/10 px-2 py-0.5 rounded-md">
-                            <XCircle className="h-3 w-3" /> Inactive
-                          </span>
-                        )}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800 text-slate-500 font-bold uppercase tracking-wider bg-slate-950/40">
+                    <th className="p-4">Student Details</th>
+                    <th className="p-4">Role</th>
+                    <th className="p-4 text-center">Status Toggle</th>
+                    <th className="p-4 text-right">Verification State</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/50">
+                  {filteredStudents.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="p-8 text-center text-slate-500 italic">
+                        No student records matched the active search and status filters.
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                  ) : (
+                    filteredStudents.map(student => {
+                      const active = isStudentActive(student);
+                      const verified = isStudentVerified(student);
+
+                      return (
+                        <tr key={student.id} className="hover:bg-slate-850/40 transition-colors">
+                          <td className="p-4">
+                            <div className="font-bold text-white text-sm">{getStudentName(student)}</div>
+                            <div className="text-slate-400 font-mono mt-0.5 text-[11px]">{student.email}</div>
+                          </td>
+                          <td className="p-4 align-middle text-slate-300 font-medium capitalize">
+                            {student.role || 'student'}
+                          </td>
+                          <td className="p-4 text-center align-middle">
+                            <button
+                              onClick={() => handleToggleStatus(student.id, active)}
+                              disabled={updatingStatusId === student.id}
+                              className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                                active 
+                                  ? 'bg-rose-950/30 border-rose-900/50 text-rose-400 hover:bg-rose-900/40' 
+                                  : 'bg-emerald-950/30 border-emerald-900/50 text-emerald-400 hover:bg-emerald-900/40'
+                              }`}
+                            >
+                              <Power className="h-3 w-3" />
+                              {updatingStatusId === student.id ? 'Updating...' : active ? 'Deactivate' : 'Activate'}
+                            </button>
+                          </td>
+                          <td className="p-4 text-right align-middle">
+                            {active && verified ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/5 border border-emerald-500/10 px-2 py-0.5 rounded-md">
+                                <CheckCircle className="h-3 w-3" /> Active Profile
+                              </span>
+                            ) : !active && !verified ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-500/5 border border-amber-500/10 px-2 py-0.5 rounded-md">
+                                <Clock className="h-3 w-3" /> Pending Review
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-400 bg-red-500/5 border border-red-500/10 px-2 py-0.5 rounded-md">
+                                <XCircle className="h-3 w-3" /> Inactive
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

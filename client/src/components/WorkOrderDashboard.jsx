@@ -287,84 +287,96 @@ const WorkOrderDashboard = () => {
   };
 
   return (
-    <div className="h-full flex flex-col p-6 bg-slate-950 text-slate-200">
-      {/* Header Section */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <ClipboardList className="h-6 w-6 text-sky-500" />
-            Work Orders
-          </h1>
-          <p className="text-slate-400 text-sm mt-1">Manage and track maintenance work orders.</p>
+    <div className="w-full h-full flex flex-col">
+      <div className="w-full bg-slate-950 border border-slate-850 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col flex-1 max-h-[calc(100vh-2rem)]">
+        
+        {/* Header Section */}
+        <div className="px-4 py-4 sm:px-6 sm:py-5 flex justify-between items-center border-b border-slate-800 bg-slate-900/95 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 bg-sky-500/10 rounded-lg shrink-0">
+              <ClipboardList className="h-6 w-6 text-sky-400" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold text-white truncate">Work Orders</h1>
+              <p className="text-slate-400 text-sm mt-1 truncate">Manage and track maintenance work orders.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-semibold transition-colors shadow-lg shadow-sky-600/20 cursor-pointer shrink-0"
+          >
+            <Plus className="h-5 w-5" /> New Work Order
+          </button>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-semibold transition-colors shadow-lg shadow-sky-600/20"
-        >
-          <Plus className="h-5 w-5" /> New Work Order
-        </button>
-      </div>
 
-      {/* Table Section */}
-      <div className="flex-1 overflow-auto bg-slate-900 border border-slate-800 rounded-xl shadow-xl">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-950/50 border-b border-slate-800 text-slate-400 text-sm font-semibold uppercase tracking-wider">
-              <th className="p-4 pl-6">Work Order No.</th>
-              <th className="p-4">Date / Time</th>
-              <th className="p-4">Created By</th>
-              <th className="p-4">Status</th>
-              <th className="p-4 text-right pr-6">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800/60">
-            {isLoadingData ? (
-              <tr><td colSpan="5" className="p-8 text-center text-slate-500">Loading work orders...</td></tr>
-            ) : (!Array.isArray(workOrders) || workOrders.length === 0) ? (
-              <tr><td colSpan="5" className="p-8 text-center text-slate-500">No work orders found.</td></tr>
-            ) : (
-              workOrders.map((wo) => (
-                <tr key={wo.wo_id} className="hover:bg-slate-800/30 transition-colors">
-                  <td className="p-4 pl-6 font-mono text-sky-400 font-medium">{wo.wo_work_order_number}</td>
-                  <td className="p-4 text-slate-300 flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-slate-500" />
-                    {formatDate(wo.wo_date)}
-                  </td>
-                  
-                  <td className="p-4 text-slate-300">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-slate-500" />
-                      {wo.instructor 
-                        ? `${wo.instructor.first_name} ${wo.instructor.middle_name || ''} ${wo.instructor.last_name}`.replace(/\s+/g, ' ')
-                        : `ID: ${wo.wo_instructor}`
-                      }
-                    </div>
-                  </td>
+        {/* Scrollable Content Area */}
+        <div className="p-3 sm:p-5 md:p-6 bg-slate-950 w-full flex flex-col flex-1 overflow-y-auto box-border custom-scrollbar space-y-4">
 
-                  <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 w-max
-                      ${wo.wo_status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                        wo.wo_status === 'ongoing' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                          'bg-slate-800 text-slate-400 border border-slate-700'}`}
-                    >
-                      <Activity className="h-3 w-3" />
-                      {wo.wo_status || 'Active'}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right pr-6">
-                    <button 
-                      onClick={() => handleViewDetails(wo)} 
-                      className="p-2 bg-slate-800 hover:bg-sky-600/20 text-slate-400 hover:text-sky-400 rounded-lg transition-colors border border-slate-700 hover:border-sky-500/50"
-                      title="View Details"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+          {/* Table Section */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl flex-1 overflow-hidden flex flex-col shadow-sm">
+            <div className="overflow-x-auto flex-1">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-950/50 border-b border-slate-800 text-slate-400 text-sm font-semibold uppercase tracking-wider sticky top-0 z-10">
+                    <th className="p-4 pl-6">Work Order No.</th>
+                    <th className="p-4">Date / Time</th>
+                    <th className="p-4">Created By</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4 text-right pr-6">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {isLoadingData ? (
+                    <tr><td colSpan="5" className="p-8 text-center text-slate-500">Loading work orders...</td></tr>
+                  ) : (!Array.isArray(workOrders) || workOrders.length === 0) ? (
+                    <tr><td colSpan="5" className="p-8 text-center text-slate-500">No work orders found.</td></tr>
+                  ) : (
+                    workOrders.map((wo) => (
+                      <tr key={wo.wo_id} className="hover:bg-slate-800/30 transition-colors">
+                        <td className="p-4 pl-6 font-mono text-sky-400 font-medium">{wo.wo_work_order_number}</td>
+                        <td className="p-4 text-slate-300 flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-slate-500" />
+                          {formatDate(wo.wo_date)}
+                        </td>
+                        
+                        <td className="p-4 text-slate-300">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-slate-500" />
+                            {wo.instructor 
+                              ? `${wo.instructor.first_name} ${wo.instructor.middle_name || ''} ${wo.instructor.last_name}`.replace(/\s+/g, ' ')
+                              : `ID: ${wo.wo_instructor}`
+                            }
+                          </div>
+                        </td>
+
+                        <td className="p-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 w-max
+                            ${wo.wo_status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                              wo.wo_status === 'ongoing' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                                'bg-slate-800 text-slate-400 border border-slate-700'}`}
+                          >
+                            <Activity className="h-3 w-3" />
+                            {wo.wo_status || 'Active'}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right pr-6">
+                          <button 
+                            onClick={() => handleViewDetails(wo)} 
+                            className="p-2 bg-slate-800 hover:bg-sky-600/20 text-slate-400 hover:text-sky-400 rounded-lg transition-colors border border-slate-700 hover:border-sky-500/50 cursor-pointer"
+                            title="View Details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       {/* ---------------- VIEW DETAILS MODAL ---------------- */}
@@ -379,7 +391,7 @@ const WorkOrderDashboard = () => {
                 </h2>
                 <p className="text-sky-400 font-mono text-sm mt-1">{selectedWorkOrder.wo_work_order_number}</p>
               </div>
-              <button onClick={closeViewModal} className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors">
+              <button onClick={closeViewModal} className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer">
                 <X className="h-6 w-6" />
               </button>
             </div>
@@ -456,7 +468,7 @@ const WorkOrderDashboard = () => {
             </div>
             
             <div className="p-6 border-t border-slate-800 bg-slate-900/50 flex justify-end">
-               <button onClick={closeViewModal} className="px-5 py-2.5 rounded-lg text-white font-semibold bg-slate-800 hover:bg-slate-700 transition-colors">
+               <button onClick={closeViewModal} className="px-5 py-2.5 rounded-lg text-white font-semibold bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer">
                   Close
                </button>
             </div>
@@ -471,7 +483,7 @@ const WorkOrderDashboard = () => {
 
             <div className="flex justify-between items-center p-6 border-b border-slate-800 bg-slate-900/50">
               <h2 className="text-xl font-bold text-white">Create Work Order</h2>
-              <button onClick={closeModal} className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors">
+              <button onClick={closeModal} className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer">
                 <X className="h-6 w-6" />
               </button>
             </div>
@@ -504,7 +516,7 @@ const WorkOrderDashboard = () => {
                           <div className="flex justify-between items-center">
                             <span className="text-xs font-semibold text-slate-400">Personnel Row #{index + 1}</span>
                             {personnel.length > 1 && (
-                              <button type="button" onClick={() => removePersonnelRow(index)} className="text-rose-400 hover:text-rose-300 p-1 rounded transition-colors">
+                              <button type="button" onClick={() => removePersonnelRow(index)} className="text-rose-400 hover:text-rose-300 p-1 rounded transition-colors cursor-pointer">
                                 <X className="h-4 w-4" />
                               </button>
                             )}
@@ -522,7 +534,7 @@ const WorkOrderDashboard = () => {
                         </div>
                       );
                     })}
-                    <button type="button" onClick={addPersonnelRow} className="text-sm font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1 py-2">
+                    <button type="button" onClick={addPersonnelRow} className="text-sm font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1 py-2 cursor-pointer">
                       <Plus className="h-4 w-4" /> Add Another User
                     </button>
                   </div>
@@ -547,7 +559,7 @@ const WorkOrderDashboard = () => {
                           <div className="flex justify-between items-center">
                             <span className="text-xs font-semibold text-slate-400">Item Row #{index + 1}</span>
                             {items.length > 1 && (
-                              <button type="button" onClick={() => removeItemRow(index)} className="text-rose-400 hover:text-rose-300 p-1 rounded transition-colors">
+                              <button type="button" onClick={() => removeItemRow(index)} className="text-rose-400 hover:text-rose-300 p-1 rounded transition-colors cursor-pointer">
                                 <X className="h-4 w-4" />
                               </button>
                             )}
@@ -565,17 +577,17 @@ const WorkOrderDashboard = () => {
                         </div>
                       );
                     })}
-                    <button type="button" onClick={addItemRow} className="text-sm font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1 py-2">
+                    <button type="button" onClick={addItemRow} className="text-sm font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1 py-2 cursor-pointer">
                       <Plus className="h-4 w-4" /> Add Another Item
                     </button>
                   </div>
                 </div>
 
                 <div className="pt-6 border-t border-slate-800 flex gap-3 justify-end">
-                  <button type="button" onClick={closeModal} className="px-5 py-2.5 rounded-lg text-slate-300 font-semibold hover:bg-slate-800 transition-colors">
+                  <button type="button" onClick={closeModal} className="px-5 py-2.5 rounded-lg text-slate-300 font-semibold hover:bg-slate-800 transition-colors cursor-pointer">
                     Cancel
                   </button>
-                  <button type="submit" disabled={loading} className="px-6 py-2.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold disabled:opacity-50 transition-colors shadow-lg shadow-sky-600/20">
+                  <button type="submit" disabled={loading} className="px-6 py-2.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold disabled:opacity-50 transition-colors shadow-lg shadow-sky-600/20 cursor-pointer">
                     {loading ? 'Processing...' : 'Submit Work Order'}
                   </button>
                 </div>

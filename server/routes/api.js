@@ -11,7 +11,9 @@ const userActivationLogRoutes = require('./userActivationLogRoutes'); // ⚡ ADD
 const activityLogRoutes = require('./activityLogRoutes'); // ⚡ ADDED: Import new activity log sub-router
 const instructorRoutes = require('./instructorRoutes'); // ⚡ ADDED: Import new instructor sub-router
 const workOrderListRoutes = require('./workOrderListRoutes'); // ⚡ ADDED: Import new work order list sub-router
-
+const taskRoutes = require('./taskRoutes'); // ⚡ ADDED: Import new task sub-router
+const manualRoutes = require('./manualRoutes'); // ⚡ ADDED: Import new manual sub-router
+const maintenanceSchedulePlanningRoutes = require('./maintenanceSchedulePlanningRoutes'); // ⚡ ADDED: Import new maintenance schedule sub-router
 // =========================================================================
 // GATEWAY CORE ROUTING ROUTE ROUTE PIPELINES
 // =========================================================================
@@ -41,5 +43,14 @@ router.use('/instructors', instructorRoutes);
 
 // ⚡ ADDED: Work Order List Management Sub-System -> Maps to /api/v1/work-order-list
 router.use('/work-order-list', workOrderListRoutes);
+
+// ⚡ ADDED: Task Management Sub-System -> Maps to /api/v1/task
+router.use('/task', taskRoutes);
+
+// ⚡ ADDED: Manual Management Sub-System -> Maps to /api/v1/manual
+router.use('/manual', manualRoutes);
+
+// ⚡ ADDED: Maintenance Schedule Management Sub-System -> Maps to /api/v1/maintenance-schedule
+router.use('/maintenance-schedule', maintenanceSchedulePlanningRoutes);
 
 module.exports = { apiRouter: router };
