@@ -1,15 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { authService } from '../services/api';
-import { ShieldAlert, Compass, LogIn, Mail, Key, User, ShieldCheck, Lock, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, Compass, LogIn, Mail, Key, User, ShieldCheck, Lock, CheckCircle2, FileText, Check } from 'lucide-react';
 import logoImg from '../assets/logo.png'; // Referencing the verbatim filename for your asset
 
 export default function LoginView({ onLoginSuccess }) {
-  // Navigation State switching between 'login', 'register', and 'otp' modes
+  // Navigation State switching between 'login', 'register', 'privacy', and 'otp' modes
   const [viewMode, setViewMode] = useState('login');
 
   // Operating Hours State Intercepts
   const [isSchoolHours, setIsSchoolHours] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Privacy Policy Acceptance State
+  const [hasAgreedToPrivacy, setHasAgreedToPrivacy] = useState(false);
 
   // Combined Form States matching the backend user schema criteria
   const [formData, setFormData] = useState({
@@ -72,7 +75,7 @@ export default function LoginView({ onLoginSuccess }) {
       const isOpen = isWeekday && isDuringHours;
 
       // console.log(`Day: ${day}, Hour: ${hours} - School hours status: ${isOpen}`);
-      setIsSchoolHours(true);
+      setIsSchoolHours(isOpen);
     };
 
     checkGateStatus();
@@ -130,6 +133,7 @@ export default function LoginView({ onLoginSuccess }) {
   // Helper routine to switch back to login cleanly
   const redirectToLogin = () => {
     setIsSuccess(false);
+    setHasAgreedToPrivacy(false);
     setOtpCode(['', '', '', '', '', '']);
     setFormData({
       first_name: '',
@@ -148,6 +152,13 @@ export default function LoginView({ onLoginSuccess }) {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (!isSchoolHours) return; // Hard gate protection
+
+    // Intercept register action to force Privacy Policy agreement view first
+    if (viewMode === 'register' && !hasAgreedToPrivacy) {
+      setViewMode('privacy');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -328,6 +339,7 @@ export default function LoginView({ onLoginSuccess }) {
               {!isSchoolHours && 'Electronic gateway locked down outside official core operations hours.'}
               {isSchoolHours && viewMode === 'login' && 'Secure electronic portal sign-in platform for academy personnel and students.'}
               {isSchoolHours && viewMode === 'register' && 'Account provisioning layout for verified academy student registration.'}
+              {isSchoolHours && viewMode === 'privacy' && 'Review and accept the student data privacy policy terms to continue registration.'}
               {isSchoolHours && viewMode === 'otp' && `Verification security key sent to ${formData.email}. Complete authorization to finalize profile creation.`}
             </p>
           </div>
@@ -367,7 +379,62 @@ export default function LoginView({ onLoginSuccess }) {
         ) : (
           /* --- STANDARD SECURITY GATE INTERFACES --- */
           <>
-            {viewMode !== 'otp' ? (
+            {viewMode === 'privacy' ? (
+              /* --- STUDENT DATA PRIVACY POLICY AGREEMENT VIEW --- */
+              <div className="space-y-4 text-xs animate-fadeIn">
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3 max-h-48 overflow-y-auto custom-scrollbar text-slate-300">
+                  <h4 className="font-bold text-white uppercase tracking-wider flex items-center gap-1.5 text-xs">
+                    <FileText className="h-4 w-4 text-emerald-400" /> Student Data Privacy Policy
+                  </h4>
+                  <p className="text-[11px] leading-relaxed text-slate-400">
+                    <strong>1. Collection of Student Information:</strong> The National Aviation Academy of the Philippines (NAAP) collects personal details (such as full name, student ID, section/year, and institutional email) and maintenance task telemetry strictly for academic tracking, workshop safety, and portal authentication.
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-slate-400">
+                    <strong>2. Use and Security of Records:</strong> Your data is used exclusively for managing educational workflows, lab assignments, and compliance reporting under civil aviation standards. We apply administrative and technical safeguards to prevent unauthorized access.
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-slate-400">
+                    <strong>3. Data Sharing Restrictions:</strong> Your information will not be sold or distributed to third-party entities, except when mandated by regulatory aviation bodies or legal frameworks.
+                  </p>
+                </div>
+
+                <div className="flex items-start gap-2 pt-1">
+                  <input
+                    type="checkbox"
+                    id="privacyAgreement"
+                    checked={hasAgreedToPrivacy}
+                    onChange={(e) => setHasAgreedToPrivacy(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-slate-950 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                  />
+                  <label htmlFor="privacyAgreement" className="text-[11px] text-slate-300 leading-tight cursor-pointer select-none">
+                    I acknowledge that I have read and agree to the Student Data Privacy Policy, consenting to the collection and secure processing of my academic and profile data.
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={redirectToLogin}
+                    className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl transition-all cursor-pointer text-xs"
+                  >
+                    Decline & Return
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!hasAgreedToPrivacy || loading}
+                    onClick={() => {
+                      if (hasAgreedToPrivacy) {
+                        // Proceed with submitting registration & sending OTP
+                        handleFormSubmit({ preventDefault: () => {} });
+                      }
+                    }}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-bold py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-1.5 cursor-pointer text-xs disabled:cursor-not-allowed"
+                  >
+                    <Check className="h-4 w-4" />
+                    <span>Agree & Continue</span>
+                  </button>
+                </div>
+              </div>
+            ) : viewMode !== 'otp' ? (
               <form onSubmit={handleFormSubmit} className="space-y-3.5 text-xs">
 
                 {/* REGISTRATION FIELDS INTERCEPT BLOCK */}
@@ -439,8 +506,8 @@ export default function LoginView({ onLoginSuccess }) {
                     </>
                   ) : (
                     <>
-                      <Mail className="h-4 w-4" />
-                      <span>Send Verification Code</span>
+                      <FileText className="h-4 w-4" />
+                      <span>Review Privacy Policy</span>
                     </>
                   )}
                 </button>
@@ -501,10 +568,11 @@ export default function LoginView({ onLoginSuccess }) {
                 type="button"
                 onClick={() => {
                   setError(null);
+                  setHasAgreedToPrivacy(false);
                   setOtpCode(['', '', '', '', '', '']); // Clean code arrays
 
                   // Handle routing transitions cleanly
-                  if (viewMode === 'otp') {
+                  if (viewMode === 'otp' || viewMode === 'privacy') {
                     setViewMode('register');
                   } else {
                     setViewMode(viewMode === 'login' ? 'register' : 'login');
@@ -512,6 +580,7 @@ export default function LoginView({ onLoginSuccess }) {
                 }}
                 className="text-xs text-slate-400 hover:text-emerald-400 font-medium transition-colors cursor-pointer underline"
               >
+                {viewMode === 'privacy' && "Back to Registration Form"}
                 {viewMode === 'otp' && "Modify account details / Return to form"}
                 {viewMode === 'login' && "Don't have an institutional profile? Register here"}
                 {viewMode === 'register' && "Already provisioned with campus access? Return to Login"}
