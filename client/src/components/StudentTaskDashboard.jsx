@@ -22,7 +22,9 @@ import {
   ClipboardCheck,
   Eye,
   Printer,
-  Download
+  Download,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 
 const StudentTaskDashboard = () => {
@@ -50,6 +52,7 @@ const StudentTaskDashboard = () => {
   // --- PRINT PREVIEW MODAL STATE ---
   const [isPrintPreviewOpen, setIsPrintPreviewOpen] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1); // Added mobile manual zoom control state
 
   // --- VIEW REPORT DETAILS ---
   const [returnSlip, setreturnSlip] = useState(null);
@@ -1070,6 +1073,7 @@ const StudentTaskDashboard = () => {
                     type="button"
                     onClick={() => {
                       setIsViewReportModalOpen(false);
+                      setZoomLevel(0.45); // Reset mobile zoom default
                       setIsPrintPreviewOpen(true);
                     }}
                     className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-sky-600/90 hover:bg-sky-500 text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm shadow-sky-900/50"
@@ -1089,10 +1093,10 @@ const StudentTaskDashboard = () => {
           </div>
         )}
 
-        {/* --- PRINT & PDF PREVIEW MODAL --- */}
+        {/* --- PRINT & PDF PREVIEW MODAL (MOBILE-FRIENDLY PAN & ZOOM CONTAINER) --- */}
         {isPrintPreviewOpen && selectedCompletedTask && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/95 backdrop-blur-sm overflow-hidden w-full h-full">
-            <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-xl sm:rounded-2xl w-full max-w-5xl h-[95vh] sm:h-[90vh] flex flex-col">
+            <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-xl sm:rounded-2xl w-full max-w-5xl h-[98vh] sm:h-[90vh] flex flex-col">
 
               {/* MODAL HEADER */}
               <div className="flex justify-between items-center p-3 sm:p-5 border-b border-slate-800 bg-slate-900/90 rounded-t-xl sm:rounded-t-2xl z-10 shrink-0">
@@ -1100,11 +1104,30 @@ const StudentTaskDashboard = () => {
                   <Printer className="h-5 w-5 sm:h-6 sm:w-6 text-sky-400 shrink-0" />
                   <div className="truncate">
                     <h2 className="text-base sm:text-lg font-bold text-white truncate">PDF Preview</h2>
-                    <p className="text-[9px] sm:text-xs text-slate-400 hidden sm:block truncate">Review single-page auto-fit scaling before downloading</p>
+                    <p className="text-[9px] sm:text-xs text-slate-400 hidden sm:block truncate">Pinch or use zoom controls to inspect document prior to downloading</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                  {/* Zoom Controls for Mobile Users */}
+                  <div className="flex items-center bg-slate-950 border border-slate-800 rounded-lg p-0.5 sm:p-1 gap-1">
+                    <button
+                      onClick={() => setZoomLevel(prev => Math.max(0.3, prev - 0.15))}
+                      className="p-1 hover:bg-slate-800 text-slate-300 rounded transition-colors"
+                      title="Zoom Out"
+                    >
+                      <Minimize2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </button>
+                    <span className="text-[10px] font-mono text-sky-400 px-1">{Math.round(zoomLevel * 100)}%</span>
+                    <button
+                      onClick={() => setZoomLevel(prev => Math.min(1.5, prev + 0.15))}
+                      className="p-1 hover:bg-slate-800 text-slate-300 rounded transition-colors"
+                      title="Zoom In"
+                    >
+                      <Maximize2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </button>
+                  </div>
+
                   <button
                     onClick={handleDownloadPdf}
                     disabled={isGeneratingPdf}
@@ -1113,6 +1136,7 @@ const StudentTaskDashboard = () => {
                     {isGeneratingPdf ? <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" /> : <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                     <span className="hidden xs:inline">{isGeneratingPdf ? 'Wait...' : 'Download'}</span>
                   </button>
+
                   <button
                     onClick={() => setIsPrintPreviewOpen(false)}
                     className="text-slate-400 hover:text-white p-1.5 sm:p-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer bg-slate-800/50 sm:bg-transparent"
@@ -1122,21 +1146,19 @@ const StudentTaskDashboard = () => {
                 </div>
               </div>
 
-              {/* MODAL BODY: SCALED DOCUMENT PREVIEW (SCROLLABLE CONTAINER) */}
-              <div className="flex-1 overflow-auto bg-slate-950/80 flex flex-col items-center justify-start p-2 sm:p-6 lg:p-8 custom-scrollbar">
-                {/* 
-                  Wrapper for scaling.
-                  On very small screens, scale down more to fit width.
-                  On larger screens, use 0.75 or similar.
-                */}
-                <div className="scale-[0.45] xs:scale-[0.55] sm:scale-[0.7] md:scale-[0.8] lg:scale-100 origin-top shadow-2xl rounded-sm bg-white shrink-0 mt-4 sm:mt-0 transition-transform duration-300">
+              {/* MODAL BODY: SCROLLABLE & PANNABLE CONTAINER WITH TOUCH SUPPORT */}
+              <div className="flex-1 overflow-auto bg-slate-950/90 flex flex-col items-center justify-start p-4 sm:p-8 custom-scrollbar relative">
+                <div 
+                  className="origin-top shadow-2xl rounded-sm bg-white shrink-0 transition-transform duration-150 my-auto"
+                  style={{ transform: `scale(${zoomLevel})` }}
+                >
                   <PrintableDocumentContent task={selectedCompletedTask} slip={returnSlip} />
                 </div>
               </div>
 
               {/* MODAL FOOTER */}
               <div className="p-3 sm:p-4 border-t border-slate-800 bg-slate-900/90 flex justify-between items-center rounded-b-xl sm:rounded-b-2xl shrink-0">
-                <span className="text-[9px] sm:text-xs text-slate-400 font-medium truncate pr-2">Layout: Single-Page A4 Auto-Fit</span>
+                <span className="text-[9px] sm:text-xs text-slate-400 font-medium truncate pr-2">Use zoom buttons to view document details clearly on phone</span>
                 <button
                   onClick={() => setIsPrintPreviewOpen(false)}
                   className="px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] sm:text-sm font-semibold transition-colors cursor-pointer border border-slate-700 sm:border-transparent shrink-0"
@@ -1181,10 +1203,8 @@ const StudentTaskDashboard = () => {
                 -ms-overflow-style: none;
                 scrollbar-width: none;
             }
-            /* Extra small screen breakpoint helper */
             @media (min-width: 400px) {
                 .xs\\:inline { display: inline; }
-                .xs\\:scale-\\[0\\.55\\] { transform: scale(0.55); }
             }
           `}
       </style>
