@@ -265,7 +265,6 @@ const StudentTaskDashboard = () => {
       const canvasHeight = canvas.height || 842;
       const calculatedHeight = (canvasHeight * pdfWidth) / canvasWidth;
 
-      // Force auto-fit constraint onto a single A4 page height block if it overflows slightly
       const finalHeight = calculatedHeight > pdfHeight ? pdfHeight : calculatedHeight;
 
       pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, finalHeight);
@@ -336,7 +335,7 @@ const StudentTaskDashboard = () => {
 
     return (
       <div className="printable-document text-black font-sans bg-white text-[10px]" ref={pdfRef}>
-        <div className="a4-page border-[3px] border-black p-4 relative flex flex-col justify-between box-border bg-white text-black h-[297mm] w-[210mm]">
+        <div className="a4-page border-[3px] border-black p-4 relative flex flex-col justify-between box-border bg-white text-black h-[297mm] w-[210mm] max-w-full lg:max-w-none">
           <div className="absolute inset-0 flex items-center justify-center opacity-[0.05] pointer-events-none z-0">
             <img src="/aeronexus-watermark.png" alt="Aeronexus Watermark" className="w-1/2 object-contain" />
           </div>
@@ -345,7 +344,7 @@ const StudentTaskDashboard = () => {
 
             {/* SECTION 1: WORK ORDER */}
             <div className="space-y-1.5 print:hidden">
-              <div className="flex justify-between items-start">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
                 <div className="flex flex-col">
                   <h1 className="text-2xl font-black tracking-tighter text-blue-900 leading-none">
                     NAAP
@@ -355,7 +354,7 @@ const StudentTaskDashboard = () => {
                   </p>
                 </div>
 
-                <div className="w-48">
+                <div className="w-full sm:w-48">
                   <table className="w-full border-collapse border-2 border-black text-[10px] font-bold">
                     <tbody>
                       <tr>
@@ -371,38 +370,44 @@ const StudentTaskDashboard = () => {
                 </div>
               </div>
 
-              <table className="w-full border-collapse border-2 border-black text-[9px] font-bold uppercase">
-                <tbody>
-                  <tr>
-                    <td className="border border-black p-0.5 w-[18%] bg-slate-100">Registration</td>
-                    <td className="border border-black p-0.5 w-[15%]">RP-C8874</td>
-                    <td className="border border-black p-0.5 w-[15%] bg-slate-100">Classification</td>
-                    <td className="border border-black p-0.5 w-[10%]">Routine</td>
-                    <td className="border border-black p-0.5 w-[15%] text-center bg-slate-100" rowSpan={2}>Approved By</td>
-                    <td className="border border-black p-0.5 w-[17%]" rowSpan={2}></td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black p-0.5 bg-slate-100">Aircraft</td>
-                    <td className="border border-black p-0.5">CESSNA 150</td>
-                    <td className="border border-black p-0.5"></td>
-                    <td className="border border-black p-0.5">Nonroutine</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <div className="border-2 border-black h-48 p-1 overflow-hidden">
-                <span className="font-bold uppercase block text-[9px] mb-0.5">Work Order:</span>
-                <p className="font-medium normal-case text-[9px] leading-tight line-clamp-2">{workOrderItemsText}</p>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border-2 border-black text-[9px] font-bold uppercase min-w-[500px]">
+                  <tbody>
+                    <tr>
+                      <td className="border border-black p-0.5 w-[18%] bg-slate-100">Registration</td>
+                      <td className="border border-black p-0.5 w-[15%]">RP-C8874</td>
+                      <td className="border border-black p-0.5 w-[15%] bg-slate-100">Classification</td>
+                      <td className="border border-black p-0.5 w-[10%]">Routine</td>
+                      <td className="border border-black p-0.5 w-[15%] text-center bg-slate-100" rowSpan={2}>Approved By</td>
+                      <td className="border border-black p-0.5 w-[17%]" rowSpan={2}></td>
+                    </tr>
+                    <tr>
+                      <td className="border border-black p-0.5 bg-slate-100">Aircraft</td>
+                      <td className="border border-black p-0.5">CESSNA 150</td>
+                      <td className="border border-black p-0.5"></td>
+                      <td className="border border-black p-0.5">Nonroutine</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
 
-              <div className="border-2 border-black h-48 p-1 overflow-hidden">
-                <span className="font-bold uppercase block text-[9px] mb-0.5">Action Taken:</span>
-                <p className="font-medium normal-case text-[9px] leading-tight line-clamp-2">{actionTakenText}</p>
+              <div className="border-2 border-black h-32 sm:h-48 p-1 overflow-hidden flex flex-col">
+                <span className="font-bold uppercase block text-[9px] mb-0.5 shrink-0">Work Order:</span>
+                <div className="flex-1 overflow-y-auto">
+                    <p className="font-medium normal-case text-[9px] leading-tight">{workOrderItemsText}</p>
+                </div>
               </div>
 
-              <div className="flex gap-2">
-                <div className="w-[55%]">
-                  <table className="w-full border-collapse border-2 border-black text-center text-[9px] font-bold uppercase">
+              <div className="border-2 border-black h-32 sm:h-48 p-1 overflow-hidden flex flex-col">
+                <span className="font-bold uppercase block text-[9px] mb-0.5 shrink-0">Action Taken:</span>
+                <div className="flex-1 overflow-y-auto">
+                    <p className="font-medium normal-case text-[9px] leading-tight">{actionTakenText}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="w-full sm:w-[55%] overflow-x-auto">
+                  <table className="w-full border-collapse border-2 border-black text-center text-[9px] font-bold uppercase min-w-[300px]">
                     <thead>
                       <tr>
                         <th colSpan={3} className="bg-slate-700 text-white p-0.5 border border-black text-[9px]">
@@ -419,15 +424,15 @@ const StudentTaskDashboard = () => {
                       {tableRows.map((p, i) => (
                         <tr key={i}>
                           <td className="border border-black h-4 font-normal">{p?.wopr_quantity || p?.quantity || ''}</td>
-                          <td className="border border-black h-4 font-normal text-left px-1 truncate">{p?.wopr_nomenclature || p?.nomenclature || ''}</td>
-                          <td className="border border-black h-4 font-mono font-normal">{p?.wopr_part_number || p?.partNumber || ''}</td>
+                          <td className="border border-black h-4 font-normal text-left px-1 truncate max-w-[100px] sm:max-w-none">{p?.wopr_nomenclature || p?.nomenclature || ''}</td>
+                          <td className="border border-black h-4 font-mono font-normal truncate max-w-[80px] sm:max-w-none">{p?.wopr_part_number || p?.partNumber || ''}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
 
-                <div className="w-[45%] flex flex-col justify-between text-[9px] font-bold uppercase">
+                <div className="w-full sm:w-[45%] flex flex-col justify-between text-[9px] font-bold uppercase mt-2 sm:mt-0">
                   <div>
                     <span className="block mb-0.5">STUDENT</span>
                     <div className="ml-1 space-y-0 font-normal text-[8px]">
@@ -435,12 +440,12 @@ const StudentTaskDashboard = () => {
                       <div>2. __________________</div>
                     </div>
                   </div>
-                  <div className="text-[7px] leading-tight">I HEREBY CERTIFY THAT THE WORK PERFORMED
+                  <div className="text-[7px] leading-tight mt-2 sm:mt-0">I HEREBY CERTIFY THAT THE WORK PERFORMED
                     LISTED ABOVE HAS CONSENT UNDER IPC/AMM
                     SECTION:</div>
-                  <div className="flex items-end">
-                    <span className="mr-1 text-[8px]">INSTRUCTOR</span>
-                    <div className="flex-grow border-b border-black text-center text-[8px]">{instructorName} -  License No: {instructorLicenseNo}</div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-end mt-2 sm:mt-0">
+                    <span className="mr-1 text-[8px] mb-1 sm:mb-0">INSTRUCTOR</span>
+                    <div className="w-full sm:flex-grow border-b border-black text-center sm:text-left text-[8px] truncate">{instructorName} -  License No: {instructorLicenseNo}</div>
                   </div>
                 </div>
               </div>
@@ -450,7 +455,7 @@ const StudentTaskDashboard = () => {
 
             {/* SECTION 2: RETURN TO SERVICE SLIP */}
             <div className="print:hidden">
-              <div className="flex justify-between items-center pb-0.5">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-0.5 gap-2 sm:gap-0">
                 <div className="flex flex-col">
                   <h1 className="text-2xl font-black tracking-tighter text-blue-900 leading-none">
                     NAAP
@@ -460,62 +465,63 @@ const StudentTaskDashboard = () => {
                   </p>
                 </div>
               </div>
-              <div className="flex justify-between items-center pb-0.5">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-0.5 gap-2 sm:gap-0 mt-2 sm:mt-0">
 
-                {/* Updated to 50% width */}
-                <div className="border border-black w-1/2 py-0.5 text-center font-bold text-[10px] bg-slate-50">
+                <div className="border border-black w-full sm:w-1/2 py-0.5 text-center font-bold text-[10px] bg-slate-50">
                   RETURN TO SERVICE SLIP
                 </div>
 
-                <div className="font-bold text-[10px]">
+                <div className="font-bold text-[10px] w-full sm:w-auto text-left sm:text-right">
                   AIRCRAFT REGISTRY: RP-C8874
                 </div>
               </div>
 
-              <table className="w-full border-collapse border-2 border-black text-[9px]">
-                <thead>
-                  <tr>
-                    <th className="border border-black p-1 w-1/2 text-center font-bold uppercase bg-slate-50">AIRCRAFT DISCREPANCY</th>
-                    <th className="border border-black p-1 w-1/2 text-center font-bold uppercase bg-slate-50">CORRECTIVE ACTION</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="border border-black p-1.5 align-top">
-                      <div className="h-64 overflow-hidden font-medium line-clamp-3">
-                        {discrepancyText}
-                      </div>
-                    </td>
-                    <td className="border border-black p-1.5 align-top">
-                      <div className="h-64 overflow-hidden font-medium line-clamp-3">
-                        {correctiveActionText}
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black p-1 font-bold text-[8px] uppercase">
-                      STUDENT'S NAME: <span className="font-normal">{studentName}</span>
-                    </td>
-                    <td className="border border-black p-1 font-bold text-[8px] uppercase">
-                      INSTRUCTOR'S NAME: <span className="font-normal">{instructorName} LICENSE NO: {instructorLicenseNo}</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border-2 border-black text-[9px] min-w-[500px]">
+                  <thead>
+                    <tr>
+                      <th className="border border-black p-1 w-1/2 text-center font-bold uppercase bg-slate-50">AIRCRAFT DISCREPANCY</th>
+                      <th className="border border-black p-1 w-1/2 text-center font-bold uppercase bg-slate-50">CORRECTIVE ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border border-black p-1.5 align-top">
+                        <div className="h-48 sm:h-64 overflow-y-auto font-medium">
+                          {discrepancyText}
+                        </div>
+                      </td>
+                      <td className="border border-black p-1.5 align-top">
+                        <div className="h-48 sm:h-64 overflow-y-auto font-medium">
+                          {correctiveActionText}
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="flex flex-col sm:table-row">
+                      <td className="border border-black p-1 font-bold text-[8px] uppercase w-full sm:w-1/2 block sm:table-cell">
+                        STUDENT'S NAME: <span className="font-normal block sm:inline mt-0.5 sm:mt-0 truncate">{studentName}</span>
+                      </td>
+                      <td className="border border-black p-1 font-bold text-[8px] uppercase w-full sm:w-1/2 block sm:table-cell mt-1 sm:mt-0">
+                        INSTRUCTOR'S NAME: <span className="font-normal block sm:inline mt-0.5 sm:mt-0 truncate">{instructorName} LICENSE NO: {instructorLicenseNo}</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
-              <div className="border-2 border-black">
-                <div className="bg-black text-white text-center font-bold py-0.5 text-[12px] uppercase tracking-wider">
+              <div className="border-2 border-black mt-2 sm:mt-0">
+                <div className="bg-black text-white text-center font-bold py-0.5 text-[10px] sm:text-[12px] uppercase tracking-wider">
                   AIRWORTHINESS RELEASE
                 </div>
-                <div className="p-1.5 text-center text-[8px] font-bold leading-tight uppercase border-b border-black">
+                <div className="p-1.5 text-center text-[7px] sm:text-[8px] font-bold leading-tight uppercase border-b border-black">
                   "THE AIRCRAFT IDENTIFIED WAS REPAIRED AND INSPECTED IN ACCORDANCE WITH THE CURRENT MAINTENANCE RULES OF THE
                   CIVL AVIATION AUTHORITY OF THE PHILIPPINES (CAAP) WAS DETERMINED TO BE AIRWORTHY AND IS APROVED FOR RETURN TO
                   SERVICE"
                 </div>
-                <div className="flex text-9px] font-bold uppercase divide-x divide-black">
-                  <div className="w-1/3 p-1">INSTRUCTOR: <span className="font-normal">{instructorName}</span></div>
-                  <div className="w-1/3 p-1">LICENSE NO: <span className="font-normal">{instructorLicenseNo}</span></div>
-                  <div className="w-1/3 p-1">SIGNATURE:</div>
+                <div className="flex flex-col sm:flex-row text-[8px] sm:text-[9px] font-bold uppercase divide-y sm:divide-y-0 sm:divide-x divide-black">
+                  <div className="w-full sm:w-1/3 p-1 flex items-center justify-between sm:justify-start"><span>INSTRUCTOR:</span> <span className="font-normal truncate ml-1">{instructorName}</span></div>
+                  <div className="w-full sm:w-1/3 p-1 flex items-center justify-between sm:justify-start"><span>LICENSE NO:</span> <span className="font-normal truncate ml-1">{instructorLicenseNo}</span></div>
+                  <div className="w-full sm:w-1/3 p-1">SIGNATURE:</div>
                 </div>
               </div>
             </div>
@@ -527,7 +533,7 @@ const StudentTaskDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 p-6 sm:p-8 flex flex-col gap-8 relative print:p-0 print:bg-white print:text-black">
+    <div className="min-h-screen bg-slate-950 text-slate-200 p-4 sm:p-6 lg:p-8 flex flex-col gap-6 sm:gap-8 relative print:p-0 print:bg-white print:text-black overflow-x-hidden">
 
       {/* GLOBAL PRINT CSS RULES */}
       <style>
@@ -558,65 +564,76 @@ const StudentTaskDashboard = () => {
               box-sizing: border-box !important;
               margin: 0 !important;
             }
+            /* Reset mobile styles for print */
+            .printable-document table { min-width: auto !important; }
+            .printable-document .overflow-x-auto { overflow: visible !important; }
+            .printable-document tr { display: table-row !important; }
+            .printable-document td { display: table-cell !important; width: auto !important; }
+            .printable-document .flex-col { flex-direction: row !important; }
+            .printable-document .sm\\:w-1\\/3 { width: 33.333333% !important; }
+             .printable-document .sm\\:w-1\\/2 { width: 50% !important; }
+            .printable-document .sm\\:table-cell { display: table-cell !important; }
+            .printable-document .sm\\:table-row { display: table-row !important; }
+            .printable-document .sm\\:inline { display: inline !important; }
           }
         `}
       </style>
 
       {/* DASHBOARD BODY */}
-      <div className="print:hidden flex flex-col gap-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6">
+      <div className="print:hidden flex flex-col gap-6 sm:gap-8 max-w-7xl mx-auto w-full">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-4 sm:pb-6">
           <div>
-            <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
-              <BookOpen className="h-8 w-8 text-sky-500" /> My Assigned Tasks
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-2 sm:gap-3">
+              <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-sky-500 shrink-0" /> <span className="truncate">My Assigned Tasks</span>
             </h1>
-            <p className="text-slate-400 text-sm mt-1">Track your maintenance work orders, assignments, and deadlines.</p>
+            <p className="text-slate-400 text-xs sm:text-sm mt-1">Track your maintenance work orders, assignments, and deadlines.</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-md">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl sm:rounded-2xl flex items-center justify-between shadow-md">
             <div>
-              <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Total Work Orders</p>
-              <p className="text-2xl font-bold text-white mt-1">{tasks.length}</p>
+              <p className="text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider">Total Work Orders</p>
+              <p className="text-xl sm:text-2xl font-bold text-white mt-1">{tasks.length}</p>
             </div>
-            <div className="p-3 bg-slate-800/80 rounded-xl text-sky-400"><BookOpen className="h-6 w-6" /></div>
+            <div className="p-2 sm:p-3 bg-slate-800/80 rounded-lg sm:rounded-xl text-sky-400"><BookOpen className="h-5 w-5 sm:h-6 sm:w-6" /></div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-md">
+          <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl sm:rounded-2xl flex items-center justify-between shadow-md">
             <div>
-              <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Pending / Ongoing</p>
-              <p className="text-2xl font-bold text-amber-400 mt-1">{pendingCount}</p>
+              <p className="text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider">Pending / Ongoing</p>
+              <p className="text-xl sm:text-2xl font-bold text-amber-400 mt-1">{pendingCount}</p>
             </div>
-            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400"><Clock className="h-6 w-6" /></div>
+            <div className="p-2 sm:p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg sm:rounded-xl text-amber-400"><Clock className="h-5 w-5 sm:h-6 sm:w-6" /></div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-md">
+          <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl sm:rounded-2xl flex items-center justify-between shadow-md sm:col-span-2 lg:col-span-1">
             <div>
-              <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Completed</p>
-              <p className="text-2xl font-bold text-emerald-400 mt-1">{completedCount}</p>
+              <p className="text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider">Completed</p>
+              <p className="text-xl sm:text-2xl font-bold text-emerald-400 mt-1">{completedCount}</p>
             </div>
-            <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400"><CheckCircle2 className="h-6 w-6" /></div>
+            <div className="p-2 sm:p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg sm:rounded-xl text-emerald-400"><CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6" /></div>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
+        <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 sm:gap-4 bg-slate-900/50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-800">
+          <div className="relative w-full md:w-80 lg:w-96">
+            <Search className="absolute left-3 top-2.5 sm:top-3 h-4 w-4 text-slate-500" />
             <input
               type="text"
-              placeholder="Search by WO number or instructor..."
+              placeholder="Search by WO number..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+              className="w-full bg-slate-950 border border-slate-700 rounded-lg sm:rounded-xl pl-9 pr-3 sm:pr-4 py-2 text-xs sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-1.5 sm:gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 hide-scrollbar">
             {['all', 'active', 'complete'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setFilter(tab)}
-                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${filter === tab
+                className={`flex-1 md:flex-none px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap min-w-[70px] ${filter === tab
                   ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20'
                   : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
                   }`}
@@ -627,159 +644,169 @@ const StudentTaskDashboard = () => {
           </div>
         </div>
 
-        <div className="flex-1">
+        <div className="flex-1 min-h-[300px]">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-500">
-              <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
-              <p className="text-sm">Loading your assigned work orders...</p>
+            <div className="flex flex-col items-center justify-center py-12 sm:py-20 gap-3 text-slate-500 h-full">
+              <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-sky-500" />
+              <p className="text-xs sm:text-sm">Loading your assigned work orders...</p>
             </div>
           ) : filteredTasks.length === 0 ? (
-            <div className="text-center py-20 bg-slate-900/30 border border-dashed border-slate-800 rounded-2xl">
-              <AlertCircle className="mx-auto h-10 w-10 text-slate-600 mb-2" />
-              <p className="text-slate-400 font-medium">No work orders found matching your criteria.</p>
+            <div className="text-center py-12 sm:py-20 bg-slate-900/30 border border-dashed border-slate-800 rounded-xl sm:rounded-2xl h-full flex flex-col items-center justify-center px-4">
+              <AlertCircle className="h-8 w-8 sm:h-10 sm:w-10 text-slate-600 mb-2" />
+              <p className="text-slate-400 text-sm font-medium">No work orders found matching your criteria.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredTasks.map((task) => {
-                const instructorName = task.instructor
-                  ? `${task.instructor.first_name} ${task.instructor.middle_name || ''} ${task.instructor.last_name}`.replace(/\s+/g, ' ')
-                  : `ID: ${task.wo_instructor}`;
+            <div className="overflow-x-auto rounded-xl sm:rounded-2xl border border-slate-800 bg-slate-900 shadow-xl">
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="bg-slate-950/50 border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px] sm:text-xs">
+                  <tr>
+                    <th className="p-3 sm:p-4 font-semibold">WO Number</th>
+                    <th className="p-3 sm:p-4 font-semibold">Date</th>
+                    <th className="p-3 sm:p-4 font-semibold">Instructor</th>
+                    <th className="p-3 sm:p-4 font-semibold">Status</th>
+                    <th className="p-3 sm:p-4 font-semibold w-1/3">Items</th>
+                    <th className="p-3 sm:p-4 font-semibold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 text-xs sm:text-sm">
+                  {filteredTasks.map((task) => {
+                    const instructorName = task.instructor
+                      ? `${task.instructor.first_name} ${task.instructor.middle_name || ''} ${task.instructor.last_name}`.replace(/\s+/g, ' ')
+                      : `ID: ${task.wo_instructor}`;
 
-                let buttonText = 'Start';
-                let ButtonIcon = Play;
-                let buttonStyles = 'bg-slate-800 text-slate-400 border-slate-700 hover:text-sky-400 hover:border-sky-500/30';
+                    let buttonText = 'Start';
+                    let ButtonIcon = Play;
+                    let buttonStyles = 'bg-slate-800 text-slate-400 border-slate-700 hover:text-sky-400 hover:border-sky-500/30';
 
-                if (task.wo_status === 'ongoing') {
-                  buttonText = 'Report';
-                  ButtonIcon = FileText;
-                  buttonStyles = 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20';
-                } else if (task.wo_status === 'complete') {
-                  buttonText = 'View Report';
-                  ButtonIcon = Eye;
-                  buttonStyles = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20';
-                }
+                    if (task.wo_status === 'ongoing') {
+                      buttonText = 'Report';
+                      ButtonIcon = FileText;
+                      buttonStyles = 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20';
+                    } else if (task.wo_status === 'complete') {
+                      buttonText = 'View Report';
+                      ButtonIcon = Eye;
+                      buttonStyles = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20';
+                    }
 
-                return (
-                  <div
-                    key={task.wo_id}
-                    className={`bg-slate-900 border rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 shadow-xl ${task.wo_status === 'complete' ? 'border-emerald-500/30 opacity-75' : 'border-slate-800 hover:border-slate-700'
-                      }`}
-                  >
-                    <div>
-                      <div className="flex justify-between items-start gap-2 mb-3">
-                        <span className="px-2.5 py-1 bg-slate-800 text-sky-400 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5">
-                          <User className="h-3 w-3" />
-                          Instructor: {instructorName}
-                        </span>
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${task.wo_status === 'active' ? 'bg-slate-700 text-slate-300 border border-slate-600' :
-                          task.wo_status === 'ongoing' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                            task.wo_status === 'complete' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                              'bg-slate-800 text-slate-400'
-                          }`}>
-                          {task.wo_status || 'Active'}
-                        </span>
-                      </div>
-
-                      <h3 className={`font-bold text-lg flex items-center gap-2 text-white mb-2 ${task.wo_status === 'complete' ? 'line-through text-slate-400' : ''}`}>
-                        <Wrench className="h-4 w-4 text-slate-500" />
-                        {task.wo_work_order_number}
-                      </h3>
-
-                      <div className="text-slate-400 text-xs mb-4 bg-slate-950/40 p-3 rounded-xl border border-slate-800/60">
-                        <p className="font-semibold text-sky-400 mb-1.5 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-                          <BookOpen className="h-3 w-3" /> Work Order List Items:
-                        </p>
-                        <ul className="list-disc pl-4 space-y-1">
-                          {task.items && task.items.length > 0 ? (
-                            task.items.map((item, idx) => (
-                              <li key={idx} className="text-slate-300">
-                                {item.workOrderListDetails ? item.workOrderListDetails.wol_description : `Work Order List ID: ${item.woi_work_order_list_id}`}
-                              </li>
-                            ))
-                          ) : (
-                            <li className="italic text-slate-500">No work order list items attached.</li>
-                          )}
-                        </ul>
-                      </div>
-                    </div>
-
-                    <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-                        <Calendar className="h-3.5 w-3.5 text-slate-500" />
-                        <span>{formatDate(task.wo_date)}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleActionClick(task)}
-                          disabled={isLoadingReportDetails}
-                          className={`px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${buttonStyles}`}
-                        >
-                          {isLoadingReportDetails && task.wo_status === 'complete' ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <ButtonIcon className="h-3.5 w-3.5" />
-                          )}
-                          {buttonText}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    return (
+                      <tr 
+                        key={task.wo_id} 
+                        className={`hover:bg-slate-800/40 transition-colors ${task.wo_status === 'complete' ? 'opacity-75' : ''}`}
+                      >
+                        <td className="p-3 sm:p-4">
+                          <div className={`font-bold flex items-center gap-1.5 text-white ${task.wo_status === 'complete' ? 'line-through text-slate-400' : ''}`} title={task.wo_work_order_number}>
+                            <Wrench className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                            <span className="truncate max-w-[120px] sm:max-w-xs">{task.wo_work_order_number}</span>
+                          </div>
+                        </td>
+                        <td className="p-3 sm:p-4 text-slate-400">
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                            {formatDate(task.wo_date)}
+                          </div>
+                        </td>
+                        <td className="p-3 sm:p-4 text-slate-300">
+                          <div className="flex items-center gap-1.5">
+                            <User className="h-3.5 w-3.5 text-sky-500 shrink-0" />
+                            <span className="truncate max-w-[120px] sm:max-w-[200px]">{instructorName}</span>
+                          </div>
+                        </td>
+                        <td className="p-3 sm:p-4">
+                          <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block ${task.wo_status === 'active' ? 'bg-slate-800 text-slate-300 border border-slate-700' :
+                            task.wo_status === 'ongoing' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                              task.wo_status === 'complete' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                                'bg-slate-800 text-slate-400'
+                            }`}>
+                            {task.wo_status || 'Active'}
+                          </span>
+                        </td>
+                        <td className="p-3 sm:p-4">
+                          <div className="max-h-16 overflow-y-auto custom-scrollbar pr-2 min-w-[180px] sm:min-w-[250px]">
+                            <ul className="list-disc pl-4 space-y-0.5 text-[11px] sm:text-xs">
+                              {task.items && task.items.length > 0 ? (
+                                task.items.map((item, idx) => (
+                                  <li key={idx} className="text-slate-400 whitespace-normal break-words">
+                                    {item.workOrderListDetails ? item.workOrderListDetails.wol_description : `ID: ${item.woi_work_order_list_id}`}
+                                  </li>
+                                ))
+                              ) : (
+                                <li className="italic text-slate-600">No items attached.</li>
+                              )}
+                            </ul>
+                          </div>
+                        </td>
+                        <td className="p-3 sm:p-4 text-right">
+                          <button
+                            onClick={() => handleActionClick(task)}
+                            disabled={isLoadingReportDetails}
+                            className={`inline-flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border text-[10px] sm:text-xs font-bold items-center justify-center gap-1.5 transition-colors cursor-pointer ${buttonStyles}`}
+                          >
+                            {isLoadingReportDetails && task.wo_status === 'complete' ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <ButtonIcon className="h-3.5 w-3.5" />
+                            )}
+                            {buttonText}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
 
         {/* --- REPORT TASK MODAL --- */}
         {isReportModalOpen && selectedTaskToReport && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl w-full max-w-3xl my-8 animate-in fade-in zoom-in-95 duration-200">
-              <div className="flex justify-between items-center p-6 border-b border-slate-800 bg-slate-900/50 sticky top-0 rounded-t-2xl z-10">
-                <div>
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-amber-500" />
-                    Submit Task Report
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/90 backdrop-blur-sm overflow-y-auto w-full h-full">
+            <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-xl sm:rounded-2xl w-full max-w-3xl my-4 sm:my-8 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[95vh] sm:max-h-[90vh]">
+              <div className="flex justify-between items-center p-4 sm:p-6 border-b border-slate-800 bg-slate-900/90 sticky top-0 rounded-t-xl sm:rounded-t-2xl z-20 backdrop-blur-md">
+                <div className="pr-2">
+                  <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                    <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0" />
+                    <span className="truncate">Submit Task Report</span>
                   </h2>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Work Order: <span className="text-slate-200 font-mono">{selectedTaskToReport.wo_work_order_number}</span>
+                  <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 truncate">
+                    WO: <span className="text-slate-200 font-mono">{selectedTaskToReport.wo_work_order_number}</span>
                   </p>
                 </div>
                 <button
                   onClick={() => setIsReportModalOpen(false)}
-                  className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="text-slate-400 hover:text-white p-1.5 sm:p-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </div>
 
-              <form onSubmit={handleReportSubmit} className="p-6 space-y-6">
-                <div className="bg-slate-950/40 p-5 rounded-2xl border border-slate-800 space-y-4">
-                  <h3 className="text-sm font-extrabold text-sky-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-3">
-                    <Wrench className="h-4 w-4" /> Task Execution & Parts
+              <form onSubmit={handleReportSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto custom-scrollbar flex-1">
+                <div className="bg-slate-950/60 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-800/80 space-y-3 sm:space-y-4">
+                  <h3 className="text-xs sm:text-sm font-extrabold text-sky-400 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 border-b border-slate-800/80 pb-2 sm:pb-3">
+                    <Wrench className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Task Execution
                   </h3>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                      Assigned Work Order List Items
+                    <label className="block text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">
+                      Assigned List Items
                     </label>
-                    <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1">
+                    <div className="bg-slate-900/80 p-2.5 sm:p-3 rounded-lg sm:rounded-xl border border-slate-700/50 text-[10px] sm:text-xs text-slate-300 max-h-32 overflow-y-auto custom-scrollbar">
                       {selectedTaskToReport.items && selectedTaskToReport.items.length > 0 ? (
-                        <ul className="list-disc pl-4 space-y-1">
+                        <ul className="list-disc pl-4 space-y-1 pr-2">
                           {selectedTaskToReport.items.map((item, idx) => (
-                            <li key={idx}>
-                              {item.workOrderListDetails ? item.workOrderListDetails.wol_description : `Item ID: ${item.woi_work_order_list_id}`}
+                            <li key={idx} className="break-words">
+                              {item.workOrderListDetails ? item.workOrderListDetails.wol_description : `ID: ${item.woi_work_order_list_id}`}
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p className="italic text-slate-500">No items specified for this work order.</p>
+                        <p className="italic text-slate-500">No items specified.</p>
                       )}
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">
                       Action Taken
                     </label>
                     <textarea
@@ -788,74 +815,74 @@ const StudentTaskDashboard = () => {
                       rows="3"
                       value={reportForm.actionTaken}
                       onChange={handleReportInputChange}
-                      placeholder="Describe the overall action taken to address the work order items..."
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 resize-none transition-all"
+                      placeholder="Describe the overall action taken..."
+                      className="w-full bg-slate-900/80 border border-slate-700/50 rounded-lg sm:rounded-xl p-2.5 sm:p-3 text-[11px] sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 resize-y min-h-[80px] transition-all placeholder:text-slate-600"
                     />
                   </div>
 
-                  <div className="space-y-3 pt-2">
-                    <div className="flex justify-between items-center">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  <div className="space-y-2 sm:space-y-3 pt-2">
+                    <div className="flex flex-wrap justify-between items-center gap-2">
+                      <label className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">
                         Parts for Replacement
                       </label>
                       <button
                         type="button"
                         onClick={addPartRow}
-                        className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-sky-600/20"
+                        className="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-sky-600/90 hover:bg-sky-500 text-white text-[10px] sm:text-xs font-bold rounded-md sm:rounded-lg transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-sm shadow-sky-900"
                       >
-                        <Plus className="h-3.5 w-3.5" /> Add Part
+                        <Plus className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Add Part
                       </button>
                     </div>
 
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead>
-                          <tr className="border-b border-slate-800 text-slate-400 uppercase font-semibold">
-                            <th className="pb-2 px-2 w-24">Quantity</th>
-                            <th className="pb-2 px-2">Nomenclature</th>
-                            <th className="pb-2 px-2">Part Number</th>
-                            <th className="pb-2 px-2 w-12 text-center">Action</th>
+                    <div className="overflow-x-auto rounded-lg border border-slate-700/50 bg-slate-900/80">
+                      <table className="w-full text-left text-[10px] sm:text-xs min-w-[300px]">
+                        <thead className="bg-slate-800/50">
+                          <tr className="border-b border-slate-700/50 text-slate-400 uppercase font-semibold">
+                            <th className="p-2 w-16 sm:w-24">Qty</th>
+                            <th className="p-2">Nomenclature</th>
+                            <th className="p-2 w-24 sm:w-32">Part No.</th>
+                            <th className="p-2 w-10 sm:w-12 text-center"></th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/60">
+                        <tbody className="divide-y divide-slate-700/50">
                           {reportForm.parts.map((part, index) => (
                             <tr key={index}>
-                              <td className="py-2 px-2">
+                              <td className="p-1 sm:p-2">
                                 <input
                                   type="number"
                                   min="1"
                                   value={part.quantity}
                                   onChange={(e) => handlePartChange(index, 'quantity', e.target.value)}
-                                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                  className="w-full bg-slate-950 border border-slate-600 rounded-md sm:rounded-lg p-1.5 sm:p-2 text-white text-[10px] sm:text-xs focus:outline-none focus:ring-1 focus:ring-sky-500"
                                 />
                               </td>
-                              <td className="py-2 px-2">
+                              <td className="p-1 sm:p-2">
                                 <input
                                   type="text"
-                                  placeholder="e.g. Engine Oil Filter"
+                                  placeholder="e.g. Oil Filter"
                                   value={part.nomenclature}
                                   onChange={(e) => handlePartChange(index, 'nomenclature', e.target.value)}
-                                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                  className="w-full bg-slate-950 border border-slate-600 rounded-md sm:rounded-lg p-1.5 sm:p-2 text-white text-[10px] sm:text-xs focus:outline-none focus:ring-1 focus:ring-sky-500 placeholder:text-slate-600"
                                 />
                               </td>
-                              <td className="py-2 px-2">
+                              <td className="p-1 sm:p-2">
                                 <input
                                   type="text"
-                                  placeholder="e.g. P/N-12345"
+                                  placeholder="e.g. P/N-123"
                                   value={part.partNumber}
                                   onChange={(e) => handlePartChange(index, 'partNumber', e.target.value)}
-                                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                  className="w-full bg-slate-950 border border-slate-600 rounded-md sm:rounded-lg p-1.5 sm:p-2 text-white text-[10px] sm:text-xs focus:outline-none focus:ring-1 focus:ring-sky-500 placeholder:text-slate-600"
                                 />
                               </td>
-                              <td className="py-2 px-2 text-center">
+                              <td className="p-1 sm:p-2 text-center">
                                 {reportForm.parts.length > 1 && (
                                   <button
                                     type="button"
                                     onClick={() => removePartRow(index)}
-                                    className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                                    className="p-1 sm:p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-md sm:rounded-lg transition-colors cursor-pointer"
                                     title="Remove row"
                                   >
-                                    <Trash2 className="h-4 w-4" />
+                                    <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                                   </button>
                                 )}
                               </td>
@@ -867,13 +894,13 @@ const StudentTaskDashboard = () => {
                   </div>
                 </div>
 
-                <div className="bg-slate-950/40 p-5 rounded-2xl border border-slate-800 space-y-4">
-                  <h3 className="text-sm font-extrabold text-amber-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-3">
-                    <ClipboardCheck className="h-4 w-4" /> Maintenance Return Slip
+                <div className="bg-slate-950/60 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-800/80 space-y-3 sm:space-y-4">
+                  <h3 className="text-xs sm:text-sm font-extrabold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 border-b border-slate-800/80 pb-2 sm:pb-3">
+                    <ClipboardCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Return Slip
                   </h3>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">
                       Aircraft Discrepancy
                     </label>
                     <textarea
@@ -882,13 +909,13 @@ const StudentTaskDashboard = () => {
                       rows="3"
                       value={reportForm.discrepancy}
                       onChange={handleReportInputChange}
-                      placeholder="Describe the defect, damage, or discrepancy found..."
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 resize-none transition-all"
+                      placeholder="Describe the defect..."
+                      className="w-full bg-slate-900/80 border border-slate-700/50 rounded-lg sm:rounded-xl p-2.5 sm:p-3 text-[11px] sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 resize-y min-h-[80px] transition-all placeholder:text-slate-600"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">
                       Corrective Action Details
                     </label>
                     <textarea
@@ -897,70 +924,71 @@ const StudentTaskDashboard = () => {
                       rows="3"
                       value={reportForm.correctiveAction}
                       onChange={handleReportInputChange}
-                      placeholder="Detail the steps taken to resolve the discrepancy..."
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 resize-none transition-all"
+                      placeholder="Detail the steps taken..."
+                      className="w-full bg-slate-900/80 border border-slate-700/50 rounded-lg sm:rounded-xl p-2.5 sm:p-3 text-[11px] sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 resize-y min-h-[80px] transition-all placeholder:text-slate-600"
                     />
                   </div>
                 </div>
+              </form>
 
-                <div className="pt-4 border-t border-slate-800 flex justify-end gap-3 sticky bottom-0 bg-slate-900 py-2">
+              <div className="p-4 sm:p-6 border-t border-slate-800 bg-slate-900/90 rounded-b-xl sm:rounded-b-2xl sticky bottom-0 z-20 backdrop-blur-md flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => setIsReportModalOpen(false)}
-                    className="px-5 py-2.5 rounded-xl text-slate-300 font-semibold hover:bg-slate-800 transition-colors cursor-pointer"
+                    className="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm text-slate-300 font-semibold hover:bg-slate-800 transition-colors cursor-pointer border border-slate-700 sm:border-transparent"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
+                    onClick={handleReportSubmit}
                     disabled={isSubmittingReport}
-                    className="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold disabled:opacity-50 transition-all shadow-lg shadow-amber-600/20 cursor-pointer flex items-center gap-2"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-amber-600/90 hover:bg-amber-500 text-white text-xs sm:text-sm font-bold disabled:opacity-50 transition-all shadow-md shadow-amber-900/30 cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2"
                   >
-                    {isSubmittingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                    {isSubmittingReport ? <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" /> : <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                     Submit & Complete
                   </button>
                 </div>
-              </form>
             </div>
           </div>
         )}
 
         {/* --- VIEW REPORT SUMMARY MODAL --- */}
         {isViewReportModalOpen && selectedCompletedTask && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl w-full max-w-3xl my-8 animate-in fade-in zoom-in-95 duration-200">
-              <div className="flex justify-between items-center p-6 border-b border-slate-800 bg-slate-900/50 sticky top-0 rounded-t-2xl z-10">
-                <div>
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                    Work Order Summary Report
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/90 backdrop-blur-sm overflow-y-auto w-full h-full">
+            <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-xl sm:rounded-2xl w-full max-w-3xl my-4 sm:my-8 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[95vh] sm:max-h-[90vh]">
+              <div className="flex justify-between items-center p-4 sm:p-6 border-b border-slate-800 bg-slate-900/90 sticky top-0 rounded-t-xl sm:rounded-t-2xl z-20 backdrop-blur-md">
+                <div className="pr-2">
+                  <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400 shrink-0" />
+                    <span className="truncate">Work Order Summary</span>
                   </h2>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Work Order: <span className="text-slate-200 font-mono">{selectedCompletedTask.wo_work_order_number}</span>
+                  <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 truncate">
+                    WO: <span className="text-slate-200 font-mono">{selectedCompletedTask.wo_work_order_number}</span>
                   </p>
                 </div>
                 <button
                   onClick={() => setIsViewReportModalOpen(false)}
-                  className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="text-slate-400 hover:text-white p-1.5 sm:p-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </div>
 
-              <div className="p-6 space-y-6">
-                <div className="bg-slate-950/40 p-5 rounded-2xl border border-slate-800 space-y-4">
-                  <h3 className="text-sm font-extrabold text-sky-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-3">
-                    <Wrench className="h-4 w-4" /> Task Execution Details
+              <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto custom-scrollbar flex-1">
+                <div className="bg-slate-950/60 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-800/80 space-y-3 sm:space-y-4">
+                  <h3 className="text-xs sm:text-sm font-extrabold text-sky-400 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 border-b border-slate-800/80 pb-2 sm:pb-3">
+                    <Wrench className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Execution Details
                   </h3>
 
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Assigned Work Order List Items</p>
-                    <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 text-xs text-slate-300">
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">Assigned List Items</p>
+                    <div className="bg-slate-900/80 p-2.5 sm:p-3 rounded-lg sm:rounded-xl border border-slate-700/50 text-[10px] sm:text-xs text-slate-300 max-h-32 overflow-y-auto custom-scrollbar">
                       {selectedCompletedTask.items && selectedCompletedTask.items.length > 0 ? (
-                        <ul className="list-disc pl-4 space-y-1">
+                        <ul className="list-disc pl-4 space-y-1 pr-2">
                           {selectedCompletedTask.items.map((item, idx) => (
-                            <li key={idx}>
-                              {item.workOrderListDetails ? item.workOrderListDetails.wol_description : `Item ID: ${item.woi_work_order_list_id}`}
+                            <li key={idx} className="break-words">
+                              {item.workOrderListDetails ? item.workOrderListDetails.wol_description : `ID: ${item.woi_work_order_list_id}`}
                             </li>
                           ))}
                         </ul>
@@ -971,38 +999,38 @@ const StudentTaskDashboard = () => {
                   </div>
 
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Action Taken</p>
-                    <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 text-sm text-slate-200">
-                      {selectedCompletedTask.actionTaken?.woat_description || selectedCompletedTask.action_taken || "No action taken details recorded."}
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">Action Taken</p>
+                    <div className="bg-slate-900/80 p-2.5 sm:p-3 rounded-lg sm:rounded-xl border border-slate-700/50 text-[11px] sm:text-sm text-slate-200 whitespace-pre-wrap break-words max-h-40 overflow-y-auto custom-scrollbar">
+                      {selectedCompletedTask.actionTaken?.woat_description || selectedCompletedTask.action_taken || <span className="italic text-slate-500 text-xs">No action details.</span>}
                     </div>
                   </div>
 
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Parts Replaced</p>
-                    <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
-                      <table className="w-full text-left text-xs">
-                        <thead>
-                          <tr className="border-b border-slate-800 text-slate-400 uppercase font-semibold bg-slate-950/50">
-                            <th className="py-2 px-3 w-20">Qty</th>
-                            <th className="py-2 px-3">Nomenclature</th>
-                            <th className="py-2 px-3">Part Number</th>
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">Parts Replaced</p>
+                    <div className="bg-slate-900/80 rounded-lg sm:rounded-xl border border-slate-700/50 overflow-x-auto">
+                      <table className="w-full text-left text-[10px] sm:text-xs min-w-[300px]">
+                        <thead className="bg-slate-800/50">
+                          <tr className="border-b border-slate-700/50 text-slate-400 uppercase font-semibold">
+                            <th className="py-2 px-2 sm:px-3 w-16 sm:w-20">Qty</th>
+                            <th className="py-2 px-2 sm:px-3">Nomenclature</th>
+                            <th className="py-2 px-2 sm:px-3 w-24 sm:w-32">Part No.</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/60">
+                        <tbody className="divide-y divide-slate-700/50">
                           {selectedCompletedTask.partsReplacement && selectedCompletedTask.partsReplacement.length > 0 ? (
                             selectedCompletedTask.partsReplacement.map((p, i) => (
-                              <tr key={i}>
-                                <td className="py-2 px-3 text-slate-300">{p.wopr_quantity}</td>
-                                <td className="py-2 px-3 text-slate-300">{p.wopr_nomenclature}</td>
-                                <td className="py-2 px-3 text-slate-300 font-mono">{p.wopr_part_number}</td>
+                              <tr key={i} className="hover:bg-slate-800/30 transition-colors">
+                                <td className="py-2 px-2 sm:px-3 text-slate-300">{p.wopr_quantity}</td>
+                                <td className="py-2 px-2 sm:px-3 text-slate-300 break-words">{p.wopr_nomenclature}</td>
+                                <td className="py-2 px-2 sm:px-3 text-slate-300 font-mono break-all">{p.wopr_part_number}</td>
                               </tr>
                             ))
                           ) : selectedCompletedTask.parts && selectedCompletedTask.parts.length > 0 ? (
                             selectedCompletedTask.parts.map((p, i) => (
-                              <tr key={i}>
-                                <td className="py-2 px-3 text-slate-300">{p.quantity}</td>
-                                <td className="py-2 px-3 text-slate-300">{p.nomenclature}</td>
-                                <td className="py-2 px-3 text-slate-300 font-mono">{p.partNumber}</td>
+                              <tr key={i} className="hover:bg-slate-800/30 transition-colors">
+                                <td className="py-2 px-2 sm:px-3 text-slate-300">{p.quantity}</td>
+                                <td className="py-2 px-2 sm:px-3 text-slate-300 break-words">{p.nomenclature}</td>
+                                <td className="py-2 px-2 sm:px-3 text-slate-300 font-mono break-all">{p.partNumber}</td>
                               </tr>
                             ))
                           ) : (
@@ -1016,106 +1044,104 @@ const StudentTaskDashboard = () => {
                   </div>
                 </div>
 
-                <div className="bg-slate-950/40 p-5 rounded-2xl border border-slate-800 space-y-4">
-                  <h3 className="text-sm font-extrabold text-amber-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-3">
-                    <ClipboardCheck className="h-4 w-4" /> Maintenance Return Slip Summary
+                <div className="bg-slate-950/60 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-800/80 space-y-3 sm:space-y-4">
+                  <h3 className="text-xs sm:text-sm font-extrabold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 border-b border-slate-800/80 pb-2 sm:pb-3">
+                    <ClipboardCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Return Slip Summary
                   </h3>
 
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Aircraft Discrepancy</p>
-                    <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 text-sm text-slate-200">
-                      {returnSlip?.wors_aircraft_discrepancy || selectedCompletedTask.returnSlip?.wors_aircraft_discrepancy || selectedCompletedTask.returnService?.wors_aircraft_discrepancy || selectedCompletedTask.discrepancy || "No discrepancy details recorded."}
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">Aircraft Discrepancy</p>
+                    <div className="bg-slate-900/80 p-2.5 sm:p-3 rounded-lg sm:rounded-xl border border-slate-700/50 text-[11px] sm:text-sm text-slate-200 whitespace-pre-wrap break-words max-h-32 overflow-y-auto custom-scrollbar">
+                      {returnSlip?.wors_aircraft_discrepancy || selectedCompletedTask.returnSlip?.wors_aircraft_discrepancy || selectedCompletedTask.returnService?.wors_aircraft_discrepancy || selectedCompletedTask.discrepancy || <span className="italic text-slate-500 text-xs">No discrepancy recorded.</span>}
                     </div>
                   </div>
 
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Corrective Action Details</p>
-                    <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 text-sm text-slate-200">
-                      {returnSlip?.wors_corrective_action || selectedCompletedTask.returnSlip?.wors_corrective_action || selectedCompletedTask.returnService?.wors_corrective_action || selectedCompletedTask.corrective_action || "No corrective action details recorded."}
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">Corrective Action Details</p>
+                    <div className="bg-slate-900/80 p-2.5 sm:p-3 rounded-lg sm:rounded-xl border border-slate-700/50 text-[11px] sm:text-sm text-slate-200 whitespace-pre-wrap break-words max-h-32 overflow-y-auto custom-scrollbar">
+                      {returnSlip?.wors_corrective_action || selectedCompletedTask.returnSlip?.wors_corrective_action || selectedCompletedTask.returnService?.wors_corrective_action || selectedCompletedTask.corrective_action || <span className="italic text-slate-500 text-xs">No corrective action recorded.</span>}
                     </div>
                   </div>
                 </div>
-
-                <div className="pt-4 border-t border-slate-800 flex justify-end gap-3">
+              </div>
+              
+              <div className="p-4 sm:p-6 border-t border-slate-800 bg-slate-900/90 rounded-b-xl sm:rounded-b-2xl sticky bottom-0 z-20 backdrop-blur-md flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => {
                       setIsViewReportModalOpen(false);
                       setIsPrintPreviewOpen(true);
                     }}
-                    className="px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold transition-colors cursor-pointer flex items-center gap-2"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-sky-600/90 hover:bg-sky-500 text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm shadow-sky-900/50"
                   >
-                    <Eye className="h-4 w-4" /> PDF Preview
+                    <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> PDF Preview
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setIsViewReportModalOpen(false)}
-                    className="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold transition-colors cursor-pointer"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer border border-slate-700 sm:border-transparent"
                   >
-                    Close Summary
+                    Close
                   </button>
                 </div>
-              </div>
             </div>
           </div>
         )}
 
         {/* --- PRINT & PDF PREVIEW MODAL --- */}
         {isPrintPreviewOpen && selectedCompletedTask && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md overflow-y-auto">
-            <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col my-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/95 backdrop-blur-sm overflow-hidden w-full h-full">
+            <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-xl sm:rounded-2xl w-full max-w-5xl h-[95vh] sm:h-[90vh] flex flex-col">
 
               {/* MODAL HEADER */}
-              <div className="flex justify-between items-center p-5 border-b border-slate-800 bg-slate-900 rounded-t-2xl">
-                <div className="flex items-center gap-3">
-                  <Printer className="h-6 w-6 text-sky-400" />
-                  <div>
-                    <h2 className="text-lg font-bold text-white">Print & PDF Preview</h2>
-                    <p className="text-xs text-slate-400">Review single-page auto-fit scaling before downloading</p>
+              <div className="flex justify-between items-center p-3 sm:p-5 border-b border-slate-800 bg-slate-900/90 rounded-t-xl sm:rounded-t-2xl z-10 shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3 pr-2">
+                  <Printer className="h-5 w-5 sm:h-6 sm:w-6 text-sky-400 shrink-0" />
+                  <div className="truncate">
+                    <h2 className="text-base sm:text-lg font-bold text-white truncate">PDF Preview</h2>
+                    <p className="text-[9px] sm:text-xs text-slate-400 hidden sm:block truncate">Review single-page auto-fit scaling before downloading</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
                   <button
                     onClick={handleDownloadPdf}
                     disabled={isGeneratingPdf}
-                    className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-sm font-bold flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-sky-600/20 disabled:opacity-50"
+                    className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-sky-600/90 hover:bg-sky-500 text-white text-[10px] sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer shadow-sm shadow-sky-900/50 disabled:opacity-50"
                   >
-                    {isGeneratingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                    {isGeneratingPdf ? 'Generating PDF...' : 'Download PDF'}
+                    {isGeneratingPdf ? <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" /> : <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+                    <span className="hidden xs:inline">{isGeneratingPdf ? 'Wait...' : 'Download'}</span>
                   </button>
-
-                  {/* <button
-                    onClick={() => window.print()}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-600/20"
-                  >
-                    <Printer className="h-4 w-4" /> Print
-                  </button> */}
                   <button
                     onClick={() => setIsPrintPreviewOpen(false)}
-                    className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                    className="text-slate-400 hover:text-white p-1.5 sm:p-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer bg-slate-800/50 sm:bg-transparent"
                   >
-                    <X className="h-6 w-6" />
+                    <X className="h-5 w-5 sm:h-6 sm:w-6" />
                   </button>
                 </div>
               </div>
 
-              {/* MODAL BODY: SCALED DOCUMENT PREVIEW */}
-              <div className="p-8 overflow-y-auto bg-slate-950/60 flex flex-col items-center gap-8">
-                <div className="scale-[0.75] origin-top shadow-2xl rounded-sm">
+              {/* MODAL BODY: SCALED DOCUMENT PREVIEW (SCROLLABLE CONTAINER) */}
+              <div className="flex-1 overflow-auto bg-slate-950/80 flex flex-col items-center justify-start p-2 sm:p-6 lg:p-8 custom-scrollbar">
+                {/* 
+                  Wrapper for scaling.
+                  On very small screens, scale down more to fit width.
+                  On larger screens, use 0.75 or similar.
+                */}
+                <div className="scale-[0.45] xs:scale-[0.55] sm:scale-[0.7] md:scale-[0.8] lg:scale-100 origin-top shadow-2xl rounded-sm bg-white shrink-0 mt-4 sm:mt-0 transition-transform duration-300">
                   <PrintableDocumentContent task={selectedCompletedTask} slip={returnSlip} />
                 </div>
               </div>
 
               {/* MODAL FOOTER */}
-              <div className="p-4 border-t border-slate-800 bg-slate-900 flex justify-between items-center rounded-b-2xl">
-                <span className="text-xs text-slate-400 font-medium">Layout Target: Single-Page A4 Auto-Fit</span>
+              <div className="p-3 sm:p-4 border-t border-slate-800 bg-slate-900/90 flex justify-between items-center rounded-b-xl sm:rounded-b-2xl shrink-0">
+                <span className="text-[9px] sm:text-xs text-slate-400 font-medium truncate pr-2">Layout: Single-Page A4 Auto-Fit</span>
                 <button
                   onClick={() => setIsPrintPreviewOpen(false)}
-                  className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold transition-colors cursor-pointer"
+                  className="px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] sm:text-sm font-semibold transition-colors cursor-pointer border border-slate-700 sm:border-transparent shrink-0"
                 >
-                  Close Preview
+                  Close
                 </button>
               </div>
 
@@ -1129,6 +1155,39 @@ const StudentTaskDashboard = () => {
       <div className="hidden print-only-container">
         <PrintableDocumentContent task={selectedCompletedTask} slip={returnSlip} />
       </div>
+      
+      {/* Custom Scrollbar Styles for the Modals */}
+      <style>
+          {`
+            .custom-scrollbar::-webkit-scrollbar {
+              width: 6px;
+              height: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+              background: rgba(15, 23, 42, 0.5);
+              border-radius: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+              background: rgba(51, 65, 85, 0.8);
+              border-radius: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+              background: rgba(71, 85, 105, 1);
+            }
+            .hide-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+            .hide-scrollbar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            /* Extra small screen breakpoint helper */
+            @media (min-width: 400px) {
+                .xs\\:inline { display: inline; }
+                .xs\\:scale-\\[0\\.55\\] { transform: scale(0.55); }
+            }
+          `}
+      </style>
 
     </div>
   );
