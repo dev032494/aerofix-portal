@@ -153,7 +153,7 @@ export default function LibraryView() {
     }
   };
 
-  // 1. MOBILE & DESKTOP RENDERING LOGIC WITH HASH FRAGMENT NAVIGATION
+  // Robust Viewer URL generator mapping mobile PDF viewers and standard native PDF support
   const generateViewerUrl = useCallback((baseFileUrl, pageNumber = null) => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
@@ -165,17 +165,15 @@ export default function LibraryView() {
       isLocalNetwork = true;
     }
 
-    // Standard PDF URL hash parameters supported by Chrome/Firefox built-in PDF viewers and standard web viewers
-    const hashParams = pageNumber ? `#page=${pageNumber}&view=FitH` : `#view=FitH`;
-
-    // Google Docs Viewer handles page jumps via embedded parameters or standard query structures if public
+    // Google Docs Viewer expects page/zoom parameter structures differently on mobile devices
     if (isMobile && !isLocalNetwork) {
       const pageQuery = pageNumber ? `&asov=1&page=${pageNumber}` : '';
       return `https://docs.google.com/viewer?url=${encodeURIComponent(baseFileUrl)}${pageQuery}&embedded=true`;
     }
 
-    // Native browser viewer fallback with hash fragment navigation
-    return `${baseFileUrl}?ref=${Date.now()}${hashParams}`;
+    // Modern browsers and mobile PDF plugins accept anchor fragment page navigation (#page=N)
+    const hashParams = pageNumber ? `#page=${pageNumber}&view=FitH` : `#view=FitH`;
+    return `${baseFileUrl}${hashParams}`;
   }, []);
 
   const handleDocumentToggle = (doc) => {
@@ -195,8 +193,11 @@ export default function LibraryView() {
     if (!pageNumber || !activeDoc) return;
     const baseFileUrl = getDocUrl(activeDoc.file_path);
     
-    // Generate fresh URL with page hash fragment to force iframe re-render and trigger target page navigation
-    setActiveViewingUrl(generateViewerUrl(baseFileUrl, pageNumber));
+    // Clear the URL first to force iframe unmount/remount cycle so browser catches hash updates on mobile/tablet
+    setActiveViewingUrl('');
+    setTimeout(() => {
+      setActiveViewingUrl(generateViewerUrl(baseFileUrl, pageNumber));
+    }, 50);
     
     // Auto-hide TOC sidebar on mobile after clicking a bookmark to maximize viewport space
     if (window.innerWidth < 768) {
@@ -225,7 +226,6 @@ export default function LibraryView() {
                   <span className="w-5 shrink-0" />
                 )}
                 
-                {/* Entire row is fully touch/tap friendly for mobile and desktop */}
                 <span 
                   onClick={() => item.pageNumber && handleJumpToPage(item.pageNumber)}
                   className={`flex-1 truncate ${item.pageNumber ? 'text-slate-700 hover:text-sky-600 font-medium' : 'text-slate-500'}`}
