@@ -153,11 +153,10 @@ export default function LibraryView() {
     }
   };
 
-  // 1. MOBILE RENDERING LOGIC
+  // 1. MOBILE & DESKTOP RENDERING LOGIC WITH HASH FRAGMENT NAVIGATION
   const generateViewerUrl = useCallback((baseFileUrl, pageNumber = null) => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
-    // Check if the API is on a private network (Google Docs viewer requires public URLs)
     let isLocalNetwork = false;
     try {
       const hostname = new URL(baseFileUrl).hostname;
@@ -166,14 +165,16 @@ export default function LibraryView() {
       isLocalNetwork = true;
     }
 
-    const hashParams = pageNumber ? `#page=${pageNumber}&view=FitH&toolbar=0&navpanes=0` : `#view=FitH&toolbar=0&navpanes=0`;
+    // Standard PDF URL hash parameters supported by Chrome/Firefox built-in PDF viewers and standard web viewers
+    const hashParams = pageNumber ? `#page=${pageNumber}&view=FitH` : `#view=FitH`;
 
-    // Force Google Docs Viewer on mobile devices for public URLs to prevent Android auto-downloads
+    // Google Docs Viewer handles page jumps via embedded parameters or standard query structures if public
     if (isMobile && !isLocalNetwork) {
-      return `https://docs.google.com/viewer?url=${encodeURIComponent(baseFileUrl)}&embedded=true`;
+      const pageQuery = pageNumber ? `&asov=1&page=${pageNumber}` : '';
+      return `https://docs.google.com/viewer?url=${encodeURIComponent(baseFileUrl)}${pageQuery}&embedded=true`;
     }
 
-    // Native browser fallback for desktop or local environments
+    // Native browser viewer fallback with hash fragment navigation
     return `${baseFileUrl}?ref=${Date.now()}${hashParams}`;
   }, []);
 
@@ -194,9 +195,10 @@ export default function LibraryView() {
     if (!pageNumber || !activeDoc) return;
     const baseFileUrl = getDocUrl(activeDoc.file_path);
     
+    // Generate fresh URL with page hash fragment to force iframe re-render and trigger target page navigation
     setActiveViewingUrl(generateViewerUrl(baseFileUrl, pageNumber));
     
-    // Auto-hide TOC on mobile after clicking a bookmark to maximize screen space
+    // Auto-hide TOC sidebar on mobile after clicking a bookmark to maximize viewport space
     if (window.innerWidth < 768) {
       setShowTocSidebar(false);
     }
@@ -211,25 +213,29 @@ export default function LibraryView() {
 
           return (
             <li key={index} className="text-xs">
-              <div className="flex items-center gap-1 group py-0.5 rounded hover:bg-slate-100 px-1.5">
+              <div className="flex items-center gap-1 group py-1.5 px-2 rounded-lg hover:bg-slate-100 active:bg-slate-200 cursor-pointer transition-colors select-none">
                 {hasChildren ? (
-                  <button onClick={() => setIsOpen(!isOpen)} className="text-slate-400 hover:text-slate-700 p-0.5">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }} 
+                    className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer shrink-0"
+                  >
                     {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
                   </button>
                 ) : (
-                  <span className="w-4.5" />
+                  <span className="w-5 shrink-0" />
                 )}
                 
+                {/* Entire row is fully touch/tap friendly for mobile and desktop */}
                 <span 
                   onClick={() => item.pageNumber && handleJumpToPage(item.pageNumber)}
-                  className={`flex-1 truncate select-none py-0.5 ${item.pageNumber ? 'text-slate-700 hover:text-sky-600 cursor-pointer font-medium' : 'text-slate-500 cursor-default'}`}
+                  className={`flex-1 truncate ${item.pageNumber ? 'text-slate-700 hover:text-sky-600 font-medium' : 'text-slate-500'}`}
                   title={`${item.title} ${item.pageNumber ? `(Page ${item.pageNumber})` : ''}`}
                 >
                   {item.title}
                 </span>
 
                 {item.pageNumber && (
-                  <span className="text-[10px] font-mono text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded shrink-0">
+                  <span className="text-[10px] font-mono text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded shrink-0 font-bold">
                     p. {item.pageNumber}
                   </span>
                 )}
@@ -403,7 +409,6 @@ export default function LibraryView() {
                 </aside>
               )}
 
-              {/* 2. Enhanced iFrame attributes for mobile rendering */}
               <div className="flex-1 p-1 md:p-2.5 relative h-full w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <iframe 
                   key={activeViewingUrl} 
@@ -422,7 +427,6 @@ export default function LibraryView() {
 
       {activeModal === 'upload' && canUpload && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          {/* Upload Modal Content Unchanged functionally */}
           <div className="bg-white border border-slate-200 w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
             <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
               <h3 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider">Index & Upload New PDF Manual</h3>
