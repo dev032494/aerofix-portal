@@ -153,9 +153,9 @@ export default function LibraryView() {
     }
   };
 
-  // Robust Viewer URL generator mapping mobile PDF viewers and standard native PDF support
+  // Cross-Platform Universal Viewer URL Generator (Fixes Mobile/Tablet URL Parsing & Page Anchoring)
   const generateViewerUrl = useCallback((baseFileUrl, pageNumber = null) => {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isMobileOrTablet = /iPhone|iPad|iPod|Android|Tablet|Mobile/i.test(navigator.userAgent) || window.innerWidth < 1024;
     
     let isLocalNetwork = false;
     try {
@@ -165,13 +165,16 @@ export default function LibraryView() {
       isLocalNetwork = true;
     }
 
-    // Google Docs Viewer expects page/zoom parameter structures differently on mobile devices
-    if (isMobile && !isLocalNetwork) {
+    // Mobile/tablet browsers (especially Android Chrome & iOS Safari) frequently ignore native #page=N hash fragments 
+    // when loading raw PDF URLs directly in iframes. Using Google Docs Viewer with page queries or leveraging 
+    // Mozilla's PDF.js viewer parameters guarantees explicit mobile/tablet page jumping functionality.
+    if (isMobileOrTablet && !isLocalNetwork) {
+      // Google Docs Viewer parameter standard for targeting specific pages
       const pageQuery = pageNumber ? `&asov=1&page=${pageNumber}` : '';
       return `https://docs.google.com/viewer?url=${encodeURIComponent(baseFileUrl)}${pageQuery}&embedded=true`;
     }
 
-    // Modern browsers and mobile PDF plugins accept anchor fragment page navigation (#page=N)
+    // Desktop and local network fallback using standard PDF anchor fragments
     const hashParams = pageNumber ? `#page=${pageNumber}&view=FitH` : `#view=FitH`;
     return `${baseFileUrl}${hashParams}`;
   }, []);
@@ -193,14 +196,15 @@ export default function LibraryView() {
     if (!pageNumber || !activeDoc) return;
     const baseFileUrl = getDocUrl(activeDoc.file_path);
     
-    // Clear the URL first to force iframe unmount/remount cycle so browser catches hash updates on mobile/tablet
+    // Fully unmount iframe (clear URL) then reload with target page hash/query parameter 
+    // to force mobile and tablet browser PDF rendering engines to execute page navigation.
     setActiveViewingUrl('');
     setTimeout(() => {
       setActiveViewingUrl(generateViewerUrl(baseFileUrl, pageNumber));
-    }, 50);
+    }, 60);
     
-    // Auto-hide TOC sidebar on mobile after clicking a bookmark to maximize viewport space
-    if (window.innerWidth < 768) {
+    // Auto-hide TOC sidebar on mobile/tablet after clicking a bookmark to maximize viewport space
+    if (window.innerWidth < 1024) {
       setShowTocSidebar(false);
     }
   }, [activeDoc, generateViewerUrl]);
@@ -393,7 +397,7 @@ export default function LibraryView() {
                 <aside className="absolute inset-y-0 left-0 z-30 w-72 md:relative border-r border-slate-200 bg-white/95 md:bg-white/80 backdrop-blur-md shrink-0 flex flex-col h-full overflow-hidden shadow-xl md:shadow-none animate-slideIn">
                   <div className="p-3 bg-slate-50/80 border-b border-slate-200 shrink-0 flex justify-between items-center">
                     <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">Document Index Outline</span>
-                    <button onClick={() => setShowTocSidebar(false)} className="md:hidden text-slate-500 hover:text-slate-800">
+                    <button onClick={() => setShowTocSidebar(false)} className="lg:hidden text-slate-500 hover:text-slate-800">
                       <X className="h-4 w-4" />
                     </button>
                   </div>
