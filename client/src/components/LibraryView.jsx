@@ -153,28 +153,9 @@ export default function LibraryView() {
     }
   };
 
-  // Cross-Platform Universal Viewer URL Generator (Fixes Mobile/Tablet URL Parsing & Page Anchoring)
+  // Fixed Viewer URL Generator utilizing direct native PDF hash fragments (#page=N) 
+  // so mobile/tablet embedded PDF viewer engines can jump directly without a full refresh loop.
   const generateViewerUrl = useCallback((baseFileUrl, pageNumber = null) => {
-    const isMobileOrTablet = /iPhone|iPad|iPod|Android|Tablet|Mobile/i.test(navigator.userAgent) || window.innerWidth < 1024;
-    
-    let isLocalNetwork = false;
-    try {
-      const hostname = new URL(baseFileUrl).hostname;
-      isLocalNetwork = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.');
-    } catch (e) {
-      isLocalNetwork = true;
-    }
-
-    // Mobile/tablet browsers (especially Android Chrome & iOS Safari) frequently ignore native #page=N hash fragments 
-    // when loading raw PDF URLs directly in iframes. Using Google Docs Viewer with page queries or leveraging 
-    // Mozilla's PDF.js viewer parameters guarantees explicit mobile/tablet page jumping functionality.
-    if (isMobileOrTablet && !isLocalNetwork) {
-      // Google Docs Viewer parameter standard for targeting specific pages
-      const pageQuery = pageNumber ? `&asov=1&page=${pageNumber}` : '';
-      return `https://docs.google.com/viewer?url=${encodeURIComponent(baseFileUrl)}${pageQuery}&embedded=true`;
-    }
-
-    // Desktop and local network fallback using standard PDF anchor fragments
     const hashParams = pageNumber ? `#page=${pageNumber}&view=FitH` : `#view=FitH`;
     return `${baseFileUrl}${hashParams}`;
   }, []);
@@ -196,12 +177,8 @@ export default function LibraryView() {
     if (!pageNumber || !activeDoc) return;
     const baseFileUrl = getDocUrl(activeDoc.file_path);
     
-    // Fully unmount iframe (clear URL) then reload with target page hash/query parameter 
-    // to force mobile and tablet browser PDF rendering engines to execute page navigation.
-    setActiveViewingUrl('');
-    setTimeout(() => {
-      setActiveViewingUrl(generateViewerUrl(baseFileUrl, pageNumber));
-    }, 60);
+    // Smoothly update URL with target page fragment hash
+    setActiveViewingUrl(generateViewerUrl(baseFileUrl, pageNumber));
     
     // Auto-hide TOC sidebar on mobile/tablet after clicking a bookmark to maximize viewport space
     if (window.innerWidth < 1024) {
