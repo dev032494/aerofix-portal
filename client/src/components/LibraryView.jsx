@@ -15,17 +15,15 @@ export default function LibraryView() {
   const [activeDoc, setActiveDoc] = useState(null);
   const [activeViewingUrl, setActiveViewingUrl] = useState('');
   const [isFullscreenViewer, setIsFullscreenViewer] = useState(false);
-  const [showTocSidebar, setShowTocSidebar] = useState(false); // Default false on mobile/tablet to save screen real estate
+  const [showTocSidebar, setShowTocSidebar] = useState(false);
 
-  // Upload Modal State
-  const [activeModal, setActiveModal] = useState(null); // 'upload'
+  const [activeModal, setActiveModal] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({ title: '' });
   const [selectedFile, setSelectedFile] = useState(null);
 
   const getApiUrl = () => import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
-  // --- ROLE AUTHORIZATION PATTERN ---
   const userRole = useMemo(() => {
     try {
       const token = localStorage.getItem('aerofix_token');
@@ -43,7 +41,6 @@ export default function LibraryView() {
       const parsed = JSON.parse(jsonPayload);
       return parsed.role?.toLowerCase() || parsed.role_id?.toLowerCase() || null;
     } catch (e) {
-      console.error('Failed parsing security credential telemetry:', e);
       return null;
     }
   }, []);
@@ -51,7 +48,6 @@ export default function LibraryView() {
   const canUpload = useMemo(() => {
     return ['developer', 'admin', 'instructor'].includes(userRole);
   }, [userRole]);
-  // ----------------------------------
 
   const getDocUrl = (path) => {
     if (!path) return '';
@@ -99,14 +95,13 @@ export default function LibraryView() {
     const delayDebounceFn = setTimeout(() => {
       handleSearch(searchTerm);
     }, 400);
-
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, handleSearch]);
 
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
-    if (!canUpload) return alert('Access Denied: You do not possess clearance parameters to commit global uploads.');
-    if (!selectedFile) return alert('Please select a valid PDF file to upload.');
+    if (!canUpload) return alert('Access Denied.');
+    if (!selectedFile) return alert('Please select a valid PDF file.');
 
     const payload = new FormData();
     payload.append('title', formData.title);
@@ -142,7 +137,7 @@ export default function LibraryView() {
 
   const handleDeleteDocument = async (id, e) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this manual and its search indexing cache?')) return;
+    if (!confirm('Are you sure you want to delete this manual?')) return;
     try {
       const token = localStorage.getItem('aerofix_token');
       await axios.delete(`${getApiUrl()}/documents/${id}`, {
@@ -158,13 +153,20 @@ export default function LibraryView() {
     }
   };
 
-  const handleJumpToPage = (pageNumber) => {
+  // 1. FIX: Cache-buster ensures browser native viewers jump to the exact page without ignoring the hash
+  const handleJumpToPage = useCallback((pageNumber) => {
     if (!pageNumber || !activeDoc) return;
     const baseFileUrl = getDocUrl(activeDoc.file_path);
-    setActiveViewingUrl(`${baseFileUrl}#page=${pageNumber}`);
-  };
+    // Added view=FitH and toolbar/navpanes restrictions for better mobile inline fitting
+    const targetUrl = `${baseFileUrl}?ref=${Date.now()}#page=${pageNumber}&view=FitH&toolbar=0&navpanes=0`;
+    setActiveViewingUrl(targetUrl);
+    
+    // Auto-hide TOC on mobile after clicking a bookmark to show the PDF immediately
+    if (window.innerWidth < 768) {
+      setShowTocSidebar(false);
+    }
+  }, [activeDoc]);
 
-  // Reusable recursive component to render nested Table of Contents Nodes
   const TocTree = ({ items }) => {
     return (
       <ul className="pl-3 space-y-1 border-l border-slate-800 ml-1.5 mt-1">
@@ -216,11 +218,8 @@ export default function LibraryView() {
   return (
     <div className="w-full h-[calc(100vh-6rem)] md:h-[calc(100vh-4rem)] flex flex-col gap-4 animate-fadeIn relative overflow-hidden text-slate-200 p-2 sm:p-4">
       
-      {/* MASTER RESPONSIVE WORKING CONTENT FLEX CONTAINER */}
       <div className="flex-1 w-full flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden relative">
         
-        {/* 📋 CENTRAL DATA CATALOGUE LOG DISPLAY PANEL */}
-        {/* Responsive Behavior: Hidden completely on screens smaller than lg if a document is currently active */}
         <section className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden transition-all duration-300 
           ${activeViewingUrl ? 'hidden lg:flex lg:max-w-[35%] xl:max-w-[30%]' : 'flex'}`}>
           
@@ -275,7 +274,8 @@ export default function LibraryView() {
                       setActiveDoc(null);
                     } else {
                       setActiveDoc(doc);
-                      setActiveViewingUrl(docFileUrl);
+                      // 2. FIX: Include view parameters immediately upon opening for mobile support
+                      setActiveViewingUrl(`${docFileUrl}#view=FitH&toolbar=0&navpanes=0`);
                     }
                   }}
                   className={`p-4 rounded-xl flex justify-between items-center gap-3 transition-all border group cursor-pointer ${isCurrentlyViewing ? 'bg-sky-950/20 border-sky-500/40 shadow-md shadow-sky-500/5' : 'bg-slate-900 border-slate-800 hover:border-slate-700'}`}
@@ -299,7 +299,7 @@ export default function LibraryView() {
                           setActiveDoc(null);
                         } else {
                           setActiveDoc(doc);
-                          setActiveViewingUrl(docFileUrl);
+                          setActiveViewingUrl(`${docFileUrl}#view=FitH&toolbar=0&navpanes=0`);
                         }
                       }}
                       title={isCurrentlyViewing ? "Close Digital Viewer" : "Open PDF Outlines Viewer"}
@@ -307,7 +307,8 @@ export default function LibraryView() {
                     >
                       {isCurrentlyViewing ? <EyeOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                     </button>
-                    <a href={docFileUrl} target="_blank" rel="noreferrer" title="Open PDF original file in new tab" className="p-1.5 sm:p-2 text-slate-400 hover:text-white rounded-lg transition-colors">
+                    {/* The external link is retained specifically for users who explicitly want a new tab */}
+                    <a href={docFileUrl} target="_blank" rel="noreferrer" title="Force Open in New Tab" className="p-1.5 sm:p-2 text-slate-400 hover:text-white rounded-lg transition-colors">
                       <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </a>
                     
@@ -327,15 +328,10 @@ export default function LibraryView() {
           </div>
         </section>
 
-        {/* =========================================================================
-            ⚡ COLLAPSIBLE DUAL-PANE PDF + OUTLINE DIGITAL WORKSPACE VIEWPORT
-            ========================================================================= */}
-        {/* Responsive Behavior: Spans 100% viewport width when active on mobile/tablet. Adjusts dynamic split weights on desktop. */}
         {activeViewingUrl && activeDoc && (
           <section className={`h-full bg-slate-900 border border-slate-800 rounded-2xl flex flex-col overflow-hidden shadow-2xl transition-all duration-300 min-w-0 w-full 
             ${isFullscreenViewer ? 'lg:flex-1' : 'lg:flex-[0_0_65%] xl:flex-[0_0_70%]'}`}>
             
-            {/* Control Bar Header */}
             <div className="p-3 bg-slate-950 border-b border-slate-800 flex justify-between items-center px-3 sm:px-4 shrink-0 h-14">
               <div className="flex items-center gap-2 truncate max-w-[50%] sm:max-w-[70%]">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
@@ -345,7 +341,6 @@ export default function LibraryView() {
               </div>
               
               <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-900 p-1 border border-slate-800 rounded-xl shrink-0">
-                {/* Responsive TOC Toggle Button: Works globally, highly visual */}
                 <button 
                   onClick={() => setShowTocSidebar(!showTocSidebar)}
                   title="Toggle Table of Contents"
@@ -370,16 +365,12 @@ export default function LibraryView() {
               </div>
             </div>
             
-            {/* Split Screen Workspace Area */}
-            {/* Responsive Behavior: On mobile/tablet, the TOC sidebar overlays or collapses cleanly so the viewport doesn't shrink. */}
             <div className="flex-1 bg-slate-950 flex h-full w-full overflow-hidden relative">
               
-              {/* Interactive TOC Sidebar */}
               {showTocSidebar && (
                 <aside className="absolute inset-y-0 left-0 z-30 w-72 md:relative border-r border-slate-800 bg-slate-950/95 md:bg-slate-950/60 shrink-0 flex flex-col h-full overflow-hidden shadow-2xl md:shadow-none animate-slideIn">
                   <div className="p-3 bg-slate-900/50 border-b border-slate-800 shrink-0 flex justify-between items-center">
                     <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">Document Index Outline</span>
-                    {/* Close button visible on smaller screens for mobile drawer UX */}
                     <button onClick={() => setShowTocSidebar(false)} className="md:hidden text-slate-500 hover:text-white">
                       <X className="h-4 w-4" />
                     </button>
@@ -396,9 +387,10 @@ export default function LibraryView() {
                 </aside>
               )}
 
-              {/* Secure Web PDF Port */}
-              <div className="flex-1 p-1 md:p-2.5 relative h-full w-full">
+              {/* 3. FIX: Add Webkit overflow touch for iOS mobile and a dynamic React 'key' to force physical re-renders on hash changes */}
+              <div className="flex-1 p-1 md:p-2.5 relative h-full w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <iframe 
+                  key={activeViewingUrl} 
                   src={activeViewingUrl}
                   className="w-full h-full rounded-xl bg-[#1e2538] border border-slate-850 shadow-inner"
                   title="AeroFix Integrated Document Workspace Console"
@@ -409,14 +401,11 @@ export default function LibraryView() {
             </div>
           </section>
         )}
-
       </div>
 
-      {/* =========================================================================
-          ⚡ RESPONSIVE INTERACTIVE FLOATING UPLOAD MODAL OVERLAY
-          ========================================================================= */}
       {activeModal === 'upload' && canUpload && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-xs animate-fadeIn">
+          {/* Upload Modal Content Unchanged */}
           <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
             <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-850 shrink-0">
               <h3 className="font-bold text-white text-xs sm:text-sm uppercase tracking-wider">Index & Upload New PDF Manual</h3>
@@ -459,7 +448,6 @@ export default function LibraryView() {
                 </div>
               </div>
 
-              {/* Progress Tracking Indicator */}
               {uploadProgress > 0 && (
                 <div className="space-y-1.5 pt-1">
                   <div className="flex justify-between font-mono text-[10px] text-slate-400 font-bold">
