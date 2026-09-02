@@ -153,32 +153,67 @@ export default function LibraryView() {
     }
   };
 
-  // 1. FIX: Cache-buster ensures browser native viewers jump to the exact page without ignoring the hash
+  // 1. MOBILE RENDERING LOGIC
+  const generateViewerUrl = useCallback((baseFileUrl, pageNumber = null) => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    // Check if the API is on a private network (Google Docs viewer requires public URLs)
+    let isLocalNetwork = false;
+    try {
+      const hostname = new URL(baseFileUrl).hostname;
+      isLocalNetwork = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.');
+    } catch (e) {
+      isLocalNetwork = true;
+    }
+
+    const hashParams = pageNumber ? `#page=${pageNumber}&view=FitH&toolbar=0&navpanes=0` : `#view=FitH&toolbar=0&navpanes=0`;
+
+    // Force Google Docs Viewer on mobile devices for public URLs to prevent Android auto-downloads
+    if (isMobile && !isLocalNetwork) {
+      return `https://docs.google.com/viewer?url=${encodeURIComponent(baseFileUrl)}&embedded=true`;
+    }
+
+    // Native browser fallback for desktop or local environments
+    return `${baseFileUrl}?ref=${Date.now()}${hashParams}`;
+  }, []);
+
+  const handleDocumentToggle = (doc) => {
+    const docFileUrl = getDocUrl(doc.file_path);
+    const isCurrentlyViewing = activeViewingUrl && activeDoc?.id === doc.id;
+
+    if (isCurrentlyViewing) {
+      setActiveViewingUrl('');
+      setActiveDoc(null);
+    } else {
+      setActiveDoc(doc);
+      setActiveViewingUrl(generateViewerUrl(docFileUrl));
+    }
+  };
+
   const handleJumpToPage = useCallback((pageNumber) => {
     if (!pageNumber || !activeDoc) return;
     const baseFileUrl = getDocUrl(activeDoc.file_path);
-    // Added view=FitH and toolbar/navpanes restrictions for better mobile inline fitting
-    const targetUrl = `${baseFileUrl}?ref=${Date.now()}#page=${pageNumber}&view=FitH&toolbar=0&navpanes=0`;
-    setActiveViewingUrl(targetUrl);
     
-    // Auto-hide TOC on mobile after clicking a bookmark to show the PDF immediately
+    setActiveViewingUrl(generateViewerUrl(baseFileUrl, pageNumber));
+    
+    // Auto-hide TOC on mobile after clicking a bookmark to maximize screen space
     if (window.innerWidth < 768) {
       setShowTocSidebar(false);
     }
-  }, [activeDoc]);
+  }, [activeDoc, generateViewerUrl]);
 
   const TocTree = ({ items }) => {
     return (
-      <ul className="pl-3 space-y-1 border-l border-slate-800 ml-1.5 mt-1">
+      <ul className="pl-3 space-y-1 border-l border-slate-200 ml-1.5 mt-1">
         {items.map((item, index) => {
           const [isOpen, setIsOpen] = useState(false);
           const hasChildren = item.items && item.items.length > 0;
 
           return (
             <li key={index} className="text-xs">
-              <div className="flex items-center gap-1 group py-0.5 rounded hover:bg-slate-900 px-1.5">
+              <div className="flex items-center gap-1 group py-0.5 rounded hover:bg-slate-100 px-1.5">
                 {hasChildren ? (
-                  <button onClick={() => setIsOpen(!isOpen)} className="text-slate-500 hover:text-slate-300 p-0.5">
+                  <button onClick={() => setIsOpen(!isOpen)} className="text-slate-400 hover:text-slate-700 p-0.5">
                     {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
                   </button>
                 ) : (
@@ -187,14 +222,14 @@ export default function LibraryView() {
                 
                 <span 
                   onClick={() => item.pageNumber && handleJumpToPage(item.pageNumber)}
-                  className={`flex-1 truncate select-none py-0.5 ${item.pageNumber ? 'text-slate-300 hover:text-sky-400 cursor-pointer font-medium' : 'text-slate-500 cursor-default'}`}
+                  className={`flex-1 truncate select-none py-0.5 ${item.pageNumber ? 'text-slate-700 hover:text-sky-600 cursor-pointer font-medium' : 'text-slate-500 cursor-default'}`}
                   title={`${item.title} ${item.pageNumber ? `(Page ${item.pageNumber})` : ''}`}
                 >
                   {item.title}
                 </span>
 
                 {item.pageNumber && (
-                  <span className="text-[10px] font-mono text-amber-500 bg-amber-500/10 px-1.5 py-0.2 rounded shrink-0">
+                  <span className="text-[10px] font-mono text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded shrink-0">
                     p. {item.pageNumber}
                   </span>
                 )}
@@ -208,31 +243,31 @@ export default function LibraryView() {
   };
 
   if (error) return (
-    <div className="text-rose-400 bg-rose-950/30 p-5 border border-rose-800 rounded-xl max-w-2xl mx-auto mt-10 shadow-lg">
+    <div className="text-rose-800 bg-rose-50 p-5 border border-rose-200 rounded-xl max-w-2xl mx-auto mt-10 shadow-lg">
       <h3 className="font-bold text-lg flex items-center gap-2 mb-2">🚨 Library Telemetry Glitch</h3>
-      <p className="text-sm text-rose-300/80">{error}</p>
-      <button onClick={fetchCatalog} className="mt-4 text-xs bg-slate-800 px-3 py-2 rounded-xl border border-slate-700 text-slate-200 cursor-pointer">Retry Workspace Stream</button>
+      <p className="text-sm text-rose-600">{error}</p>
+      <button onClick={fetchCatalog} className="mt-4 text-xs bg-white px-3 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 cursor-pointer">Retry Workspace Stream</button>
     </div>
   );
 
   return (
-    <div className="w-full h-[calc(100vh-6rem)] md:h-[calc(100vh-4rem)] flex flex-col gap-4 animate-fadeIn relative overflow-hidden text-slate-200 p-2 sm:p-4">
+    <div className="w-full h-[calc(100vh-6rem)] md:h-[calc(100vh-4rem)] flex flex-col gap-4 animate-fadeIn relative overflow-hidden text-slate-900 p-2 sm:p-4 bg-slate-50">
       
       <div className="flex-1 w-full flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden relative">
         
         <section className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden transition-all duration-300 
           ${activeViewingUrl ? 'hidden lg:flex lg:max-w-[35%] xl:max-w-[30%]' : 'flex'}`}>
           
-          <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl flex flex-col gap-3 shrink-0">
+          <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex flex-col gap-3 shrink-0">
             <div className="flex items-center justify-between gap-2">
-              <span className="font-black text-xs uppercase tracking-widest text-sky-400 flex items-center gap-1.5 truncate">
+              <span className="font-black text-xs uppercase tracking-widest text-sky-600 flex items-center gap-1.5 truncate">
                 <BookOpen className="h-4 w-4 shrink-0" /> Systems Catalog
               </span>
               
               {canUpload && (
                 <button 
                   onClick={() => setActiveModal('upload')} 
-                  className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 cursor-pointer transition-colors shadow shrink-0"
+                  className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 cursor-pointer transition-colors shadow-sm shrink-0"
                 >
                   <Plus className="h-3.5 w-3.5" /> <span className="hidden xs:inline">Upload PDF</span>
                 </button>
@@ -240,12 +275,12 @@ export default function LibraryView() {
             </div>
             
             <div className="relative flex-1 text-sm">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
               <input 
                 type="text" 
                 value={searchTerm} 
                 onChange={(e) => setSearchTerm(e.target.value)} 
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white text-xs focus:outline-none focus:border-sky-500" 
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-slate-900 text-xs focus:outline-none focus:border-sky-500 focus:bg-white transition-colors" 
                 placeholder="Search PDF indices, titles, TOC..." 
               />
             </div>
@@ -253,62 +288,43 @@ export default function LibraryView() {
 
           <div className="text-[10px] font-bold tracking-wider text-slate-500 uppercase px-1 pt-3 pb-1 shrink-0 flex justify-between">
             <span>Results: {documents.length} Manuals</span>
-            {loading && <RefreshCw className="h-3 w-3 animate-spin text-sky-400" />}
+            {loading && <RefreshCw className="h-3 w-3 animate-spin text-sky-500" />}
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-2 pr-1 pb-4 custom-scrollbar">
             {documents.length === 0 && !loading ? (
-              <div className="text-center py-20 bg-slate-900/40 border border-slate-850 rounded-2xl text-slate-500 italic text-xs">
+              <div className="text-center py-20 bg-white border border-slate-200 rounded-2xl text-slate-500 italic text-xs shadow-sm">
                 No technical documents found matching search terms.
               </div>
             ) : documents.map(doc => {
-              const docFileUrl = getDocUrl(doc.file_path);
-              const isCurrentlyViewing = activeViewingUrl.startsWith(docFileUrl) && activeDoc?.id === doc.id;
+              const isCurrentlyViewing = activeViewingUrl && activeDoc?.id === doc.id;
 
               return (
                 <div 
                   key={doc.id} 
-                  onClick={() => {
-                    if (isCurrentlyViewing) {
-                      setActiveViewingUrl('');
-                      setActiveDoc(null);
-                    } else {
-                      setActiveDoc(doc);
-                      // 2. FIX: Include view parameters immediately upon opening for mobile support
-                      setActiveViewingUrl(`${docFileUrl}#view=FitH&toolbar=0&navpanes=0`);
-                    }
-                  }}
-                  className={`p-4 rounded-xl flex justify-between items-center gap-3 transition-all border group cursor-pointer ${isCurrentlyViewing ? 'bg-sky-950/20 border-sky-500/40 shadow-md shadow-sky-500/5' : 'bg-slate-900 border-slate-800 hover:border-slate-700'}`}
+                  onClick={() => handleDocumentToggle(doc)}
+                  className={`p-4 rounded-xl flex justify-between items-center gap-3 transition-all border group cursor-pointer shadow-sm ${isCurrentlyViewing ? 'bg-sky-50 border-sky-300 shadow-sky-100' : 'bg-white border-slate-200 hover:border-slate-300'}`}
                 >
                   <div className="min-w-0 space-y-1 flex-1">
-                    <h3 className={`font-black text-xs sm:text-sm tracking-tight truncate transition-colors ${isCurrentlyViewing ? 'text-sky-400' : 'text-white group-hover:text-sky-400'}`}>
+                    <h3 className={`font-black text-xs sm:text-sm tracking-tight truncate transition-colors ${isCurrentlyViewing ? 'text-sky-700' : 'text-slate-900 group-hover:text-sky-600'}`}>
                       {doc.title}
                     </h3>
                     <div className="flex gap-2 items-center text-[10px]">
-                      <span className="font-mono text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-850 truncate">
+                      <span className="font-mono text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 truncate">
                         {doc.table_of_contents?.length || 0} Outlines
                       </span>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-1 bg-slate-950 border border-slate-850 p-1 rounded-xl shrink-0 shadow-inner" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 p-1 rounded-xl shrink-0" onClick={(e) => e.stopPropagation()}>
                     <button 
-                      onClick={() => {
-                        if (isCurrentlyViewing) {
-                          setActiveViewingUrl('');
-                          setActiveDoc(null);
-                        } else {
-                          setActiveDoc(doc);
-                          setActiveViewingUrl(`${docFileUrl}#view=FitH&toolbar=0&navpanes=0`);
-                        }
-                      }}
+                      onClick={() => handleDocumentToggle(doc)}
                       title={isCurrentlyViewing ? "Close Digital Viewer" : "Open PDF Outlines Viewer"}
-                      className={`p-1.5 sm:p-2 rounded-lg cursor-pointer transition-all ${isCurrentlyViewing ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                      className={`p-1.5 sm:p-2 rounded-lg cursor-pointer transition-all ${isCurrentlyViewing ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'}`}
                     >
                       {isCurrentlyViewing ? <EyeOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                     </button>
-                    {/* The external link is retained specifically for users who explicitly want a new tab */}
-                    <a href={docFileUrl} target="_blank" rel="noreferrer" title="Force Open in New Tab" className="p-1.5 sm:p-2 text-slate-400 hover:text-white rounded-lg transition-colors">
+                    <a href={getDocUrl(doc.file_path)} target="_blank" rel="noreferrer" title="Force Open in New Tab" className="p-1.5 sm:p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 rounded-lg transition-colors hidden sm:block">
                       <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </a>
                     
@@ -316,7 +332,7 @@ export default function LibraryView() {
                       <button 
                         onClick={(e) => handleDeleteDocument(doc.id, e)} 
                         title="De-index Document" 
-                        className="p-1.5 sm:p-2 text-slate-400 hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 sm:p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                       >
                         <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </button>
@@ -329,35 +345,35 @@ export default function LibraryView() {
         </section>
 
         {activeViewingUrl && activeDoc && (
-          <section className={`h-full bg-slate-900 border border-slate-800 rounded-2xl flex flex-col overflow-hidden shadow-2xl transition-all duration-300 min-w-0 w-full 
+          <section className={`h-full bg-white border border-slate-200 rounded-2xl flex flex-col overflow-hidden shadow-md transition-all duration-300 min-w-0 w-full 
             ${isFullscreenViewer ? 'lg:flex-1' : 'lg:flex-[0_0_65%] xl:flex-[0_0_70%]'}`}>
             
-            <div className="p-3 bg-slate-950 border-b border-slate-800 flex justify-between items-center px-3 sm:px-4 shrink-0 h-14">
+            <div className="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center px-3 sm:px-4 shrink-0 h-14">
               <div className="flex items-center gap-2 truncate max-w-[50%] sm:max-w-[70%]">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                <span className="font-black text-xs md:text-sm text-slate-200 font-sans truncate tracking-wide uppercase" title={activeDoc.title}>
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0 shadow-sm" />
+                <span className="font-black text-xs md:text-sm text-slate-800 font-sans truncate tracking-wide uppercase" title={activeDoc.title}>
                   {activeDoc.title}
                 </span>
               </div>
               
-              <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-900 p-1 border border-slate-800 rounded-xl shrink-0">
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-white p-1 border border-slate-200 rounded-xl shrink-0 shadow-sm">
                 <button 
                   onClick={() => setShowTocSidebar(!showTocSidebar)}
                   title="Toggle Table of Contents"
-                  className={`p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer transition-colors ${showTocSidebar ? 'bg-slate-850 text-sky-400' : ''}`}
+                  className={`p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer transition-colors ${showTocSidebar ? 'bg-sky-100 text-sky-700' : ''}`}
                 >
                   <ListCollapse className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setIsFullscreenViewer(!isFullscreenViewer)}
                   title={isFullscreenViewer ? "Split Workspace Interface Layout" : "Maximize Document Viewport Pane"}
-                  className="hidden lg:block p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer transition-colors"
+                  className="hidden lg:block p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer transition-colors"
                 >
                   {isFullscreenViewer ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                 </button>
                 <button 
                   onClick={() => { setActiveViewingUrl(''); setActiveDoc(null); setIsFullscreenViewer(false); }}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/20 cursor-pointer transition-colors"
+                  className="p-1.5 rounded-lg text-slate-600 hover:text-rose-600 hover:bg-rose-50 cursor-pointer transition-colors"
                   title="Close Reader Console"
                 >
                   <X className="h-4 w-4" />
@@ -365,13 +381,13 @@ export default function LibraryView() {
               </div>
             </div>
             
-            <div className="flex-1 bg-slate-950 flex h-full w-full overflow-hidden relative">
+            <div className="flex-1 bg-slate-100 flex h-full w-full overflow-hidden relative">
               
               {showTocSidebar && (
-                <aside className="absolute inset-y-0 left-0 z-30 w-72 md:relative border-r border-slate-800 bg-slate-950/95 md:bg-slate-950/60 shrink-0 flex flex-col h-full overflow-hidden shadow-2xl md:shadow-none animate-slideIn">
-                  <div className="p-3 bg-slate-900/50 border-b border-slate-800 shrink-0 flex justify-between items-center">
+                <aside className="absolute inset-y-0 left-0 z-30 w-72 md:relative border-r border-slate-200 bg-white/95 md:bg-white/80 backdrop-blur-md shrink-0 flex flex-col h-full overflow-hidden shadow-xl md:shadow-none animate-slideIn">
+                  <div className="p-3 bg-slate-50/80 border-b border-slate-200 shrink-0 flex justify-between items-center">
                     <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">Document Index Outline</span>
-                    <button onClick={() => setShowTocSidebar(false)} className="md:hidden text-slate-500 hover:text-white">
+                    <button onClick={() => setShowTocSidebar(false)} className="md:hidden text-slate-500 hover:text-slate-800">
                       <X className="h-4 w-4" />
                     </button>
                   </div>
@@ -387,15 +403,16 @@ export default function LibraryView() {
                 </aside>
               )}
 
-              {/* 3. FIX: Add Webkit overflow touch for iOS mobile and a dynamic React 'key' to force physical re-renders on hash changes */}
+              {/* 2. Enhanced iFrame attributes for mobile rendering */}
               <div className="flex-1 p-1 md:p-2.5 relative h-full w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <iframe 
                   key={activeViewingUrl} 
                   src={activeViewingUrl}
-                  className="w-full h-full rounded-xl bg-[#1e2538] border border-slate-850 shadow-inner"
+                  className="w-full h-full rounded-xl bg-slate-200 border border-slate-300 shadow-inner"
                   title="AeroFix Integrated Document Workspace Console"
                   allow="autoplay; fullscreen"
                   loading="lazy"
+                  frameBorder="0"
                 />
               </div>
             </div>
@@ -404,33 +421,33 @@ export default function LibraryView() {
       </div>
 
       {activeModal === 'upload' && canUpload && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-xs animate-fadeIn">
-          {/* Upload Modal Content Unchanged */}
-          <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
-            <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-850 shrink-0">
-              <h3 className="font-bold text-white text-xs sm:text-sm uppercase tracking-wider">Index & Upload New PDF Manual</h3>
-              <button onClick={() => { setActiveModal(null); setFormData({ title: '' }); setSelectedFile(null); }} className="text-slate-400 hover:text-white p-1 cursor-pointer">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
+          {/* Upload Modal Content Unchanged functionally */}
+          <div className="bg-white border border-slate-200 w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+            <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
+              <h3 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider">Index & Upload New PDF Manual</h3>
+              <button onClick={() => { setActiveModal(null); setFormData({ title: '' }); setSelectedFile(null); }} className="text-slate-500 hover:text-slate-800 p-1 cursor-pointer">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleUploadSubmit} className="p-4 sm:p-5 space-y-4 overflow-y-auto text-xs">
+            <form onSubmit={handleUploadSubmit} className="p-4 sm:p-5 space-y-4 overflow-y-auto text-xs bg-white">
               <div>
-                <label className="block font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Document Title *</label>
+                <label className="block font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Document Title *</label>
                 <input 
                   type="text" 
                   name="title" 
                   required 
                   value={formData.title} 
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500 font-sans text-sm" 
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-sky-500 focus:bg-white font-sans text-sm transition-colors" 
                   placeholder="e.g., Cessna Maintenance Outline" 
                 />
               </div>
               
               <div>
-                <label className="block font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Binary PDF Document File *</label>
-                <div className="border-2 border-dashed border-slate-800 rounded-xl p-4 text-center hover:border-slate-700 transition-colors bg-slate-950 relative">
+                <label className="block font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Binary PDF Document File *</label>
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-slate-400 hover:bg-slate-100 transition-colors bg-slate-50 relative cursor-pointer">
                   <input 
                     type="file" 
                     accept="application/pdf"
@@ -440,7 +457,7 @@ export default function LibraryView() {
                   />
                   <div className="space-y-1">
                     <FileText className="h-8 w-8 text-sky-500 mx-auto" />
-                    <p className="text-[11px] text-slate-300 font-medium break-all px-2">
+                    <p className="text-[11px] text-slate-700 font-medium break-all px-2">
                       {selectedFile ? selectedFile.name : 'Click or Drag files here to choose'}
                     </p>
                     <p className="text-[10px] text-slate-500 font-mono">PDF files only</p>
@@ -450,11 +467,11 @@ export default function LibraryView() {
 
               {uploadProgress > 0 && (
                 <div className="space-y-1.5 pt-1">
-                  <div className="flex justify-between font-mono text-[10px] text-slate-400 font-bold">
+                  <div className="flex justify-between font-mono text-[10px] text-slate-500 font-bold">
                     <span>{uploadProgress === 100 ? 'Indexing PDF Outline...' : 'Uploading Asset...'}</span>
                     <span>{uploadProgress}%</span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-sky-500 transition-all duration-300" 
                       style={{ width: `${uploadProgress}%` }}
@@ -463,18 +480,18 @@ export default function LibraryView() {
                 </div>
               )}
 
-              <div className="pt-4 flex gap-2 border-t border-slate-800">
+              <div className="pt-4 flex gap-2 border-t border-slate-200">
                 <button 
                   type="button" 
                   onClick={() => { setActiveModal(null); setFormData({ title: '' }); setSelectedFile(null); }} 
-                  className="w-1/2 bg-slate-800 py-2.5 text-slate-300 font-bold rounded-xl cursor-pointer"
+                  className="w-1/2 bg-slate-200 hover:bg-slate-300 py-2.5 text-slate-700 font-bold rounded-xl cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
                   disabled={loading}
-                  className="w-1/2 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 py-2.5 text-white font-bold rounded-xl shadow-md cursor-pointer transition-colors"
+                  className="w-1/2 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-300 disabled:text-slate-500 py-2.5 text-white font-bold rounded-xl shadow-sm cursor-pointer transition-colors"
                 >
                   Upload & Index
                 </button>

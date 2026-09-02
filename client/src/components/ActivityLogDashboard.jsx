@@ -85,103 +85,103 @@ export default function ActivityLogDashboard() {
   const getMethodBadge = (method) => {
     const m = (method || 'LOG').toUpperCase();
     const colors = {
-      GET: 'bg-sky-950/60 text-sky-400 border-sky-800/50',
-      POST: 'bg-emerald-950/60 text-emerald-400 border-emerald-800/50',
-      PUT: 'bg-amber-950/60 text-amber-400 border-amber-800/50',
-      PATCH: 'bg-purple-950/60 text-purple-400 border-purple-800/50',
-      DELETE: 'bg-rose-950/60 text-rose-400 border-rose-800/50'
+      GET: 'bg-sky-50 text-sky-700 border-sky-200',
+      POST: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      PUT: 'bg-amber-50 text-amber-700 border-amber-200',
+      PATCH: 'bg-purple-50 text-purple-700 border-purple-200',
+      DELETE: 'bg-rose-50 text-rose-700 border-rose-200'
     };
     return (
-      <span className={`px-2 py-0.5 text-[9px] font-mono font-bold rounded border uppercase ${colors[m] || 'bg-slate-800 text-slate-300'}`}>
+      <span className={`px-2 py-0.5 text-[9px] font-mono font-bold rounded border uppercase ${colors[m] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
         {m}
       </span>
     );
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
-      <div className="w-full bg-slate-900 border border-slate-800 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col flex-1 max-h-[calc(100vh-2rem)]">
+    <div className="w-full h-full flex flex-col bg-slate-50 text-slate-900">
+      <div className="w-full bg-white border border-slate-200 rounded-xl sm:rounded-2xl shadow-xs overflow-hidden flex flex-col flex-1 max-h-[calc(100vh-2rem)]">
         
         {/* Title Bar */}
-        <div className="px-4 py-4 sm:px-6 sm:py-5 flex items-center justify-between gap-3 border-b border-slate-800 bg-slate-900/95 shrink-0">
+        <div className="px-4 py-4 sm:px-6 sm:py-5 flex items-center justify-between gap-3 border-b border-slate-200 bg-white shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 shrink-0 text-sky-400">
+            <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-sky-50 border border-sky-200 shrink-0 text-sky-600">
               <Activity className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-sm sm:text-lg font-black text-white tracking-wider uppercase truncate">System Activity Logs</h1>
-              <p className="text-slate-400 text-xs mt-0.5 truncate">Audit system interactions, operational actions, and request footprints.</p>
+              <h1 className="text-sm sm:text-lg font-black text-slate-900 tracking-wider uppercase truncate">System Activity Logs</h1>
+              <p className="text-slate-500 text-xs mt-0.5 truncate">Audit system interactions, operational actions, and request footprints.</p>
             </div>
           </div>
-          <div className="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center shrink-0">
-            <span className="text-[10px] text-slate-500 font-bold uppercase block">Total Records</span>
-            <span className="text-base font-mono font-bold text-sky-400">{totalRecords}</span>
+          <div className="bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-center shrink-0">
+            <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Records</span>
+            <span className="text-base font-mono font-bold text-sky-600">{totalRecords}</span>
           </div>
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="p-3 sm:p-5 md:p-6 bg-slate-900 w-full flex flex-col flex-1 overflow-y-auto box-border custom-scrollbar space-y-6">
+        <div className="p-3 sm:p-5 md:p-6 bg-slate-50 w-full flex flex-col flex-1 overflow-y-auto box-border custom-scrollbar space-y-6">
           
           {/* Filter Bar */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
             {/* Search */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                <Search className="h-3 w-3 text-slate-500" /> Search Terms
+            <div className="bg-white border border-slate-200 rounded-xl p-3.5 space-y-1 shadow-xs">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <Search className="h-3 w-3 text-slate-400" /> Search Terms
               </label>
               <input
                 type="text"
                 placeholder="Search action, description, IP..."
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setOffset(0); }}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500 placeholder-slate-600"
+                className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-sky-500 placeholder-slate-400 focus:bg-white"
               />
             </div>
 
             {/* Module Filter */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                <Filter className="h-3 w-3 text-slate-500" /> System Module
+            <div className="bg-white border border-slate-200 rounded-xl p-3.5 space-y-1 shadow-xs">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <Filter className="h-3 w-3 text-slate-400" /> System Module
               </label>
               <div className="relative">
                 <select
                   value={selectedModule}
                   onChange={(e) => { setSelectedModule(e.target.value); setOffset(0); }}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500 appearance-none cursor-pointer"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-sky-500 appearance-none cursor-pointer focus:bg-white"
                 >
                   <option value="">All Modules</option>
                   {modules.map((m) => (
                     <option key={m} value={m}>{m}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-2.5 top-2.5 h-3.5 w-3.5 text-slate-500 pointer-events-none" />
+                <ChevronDown className="absolute right-2.5 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
               </div>
             </div>
 
             {/* Start Date */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                <Calendar className="h-3 w-3 text-slate-500" /> Start Date
+            <div className="bg-white border border-slate-200 rounded-xl p-3.5 space-y-1 shadow-xs">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <Calendar className="h-3 w-3 text-slate-400" /> Start Date
               </label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => { setStartDate(e.target.value); setOffset(0); }}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500 [color-scheme:dark]"
+                className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-sky-500"
               />
             </div>
 
             {/* End Date & Reset */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-1">
+            <div className="bg-white border border-slate-200 rounded-xl p-3.5 space-y-1 shadow-xs">
               <div className="flex justify-between items-center">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                  <Calendar className="h-3 w-3 text-slate-500" /> End Date
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                  <Calendar className="h-3 w-3 text-slate-400" /> End Date
                 </label>
                 {(search || selectedModule || startDate || endDate) && (
                   <button
                     onClick={handleClearFilters}
-                    className="text-[10px] text-amber-400 hover:text-amber-300 font-bold uppercase flex items-center gap-1 cursor-pointer"
+                    className="text-[10px] text-amber-600 hover:text-amber-700 font-bold uppercase flex items-center gap-1 cursor-pointer"
                   >
                     <RotateCcw className="h-2.5 w-2.5" /> Clear
                   </button>
@@ -191,32 +191,32 @@ export default function ActivityLogDashboard() {
                 type="date"
                 value={endDate}
                 onChange={(e) => { setEndDate(e.target.value); setOffset(0); }}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500 [color-scheme:dark]"
+                className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-sky-500"
               />
             </div>
 
           </div>
 
           {/* Logs Table */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col text-xs">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden flex flex-col text-xs">
             
             {/* Pagination Bar */}
-            <div className="p-4 bg-slate-950 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3">
-              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Index Stream (<span className="text-sky-400 font-mono">{logs.length}</span> visible)
+            <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
+              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Index Stream (<span className="text-sky-600 font-mono">{logs.length}</span> visible)
               </h2>
               <div className="flex gap-2 w-full sm:w-auto justify-end">
                 <button
                   onClick={() => changePage(-1)}
                   disabled={offset === 0 || loading}
-                  className="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg font-bold uppercase disabled:opacity-30 text-slate-400 hover:text-white transition-all cursor-pointer flex items-center gap-1"
+                  className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-bold uppercase disabled:opacity-30 text-slate-700 hover:text-slate-950 transition-all cursor-pointer flex items-center gap-1 shadow-xs"
                 >
                   <ArrowLeft className="h-3 w-3" /> Prev
                 </button>
                 <button
                   onClick={() => changePage(1)}
                   disabled={offset + limit >= totalRecords || loading}
-                  className="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg font-bold uppercase disabled:opacity-30 text-slate-400 hover:text-white transition-all cursor-pointer flex items-center gap-1"
+                  className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-bold uppercase disabled:opacity-30 text-slate-700 hover:text-slate-950 transition-all cursor-pointer flex items-center gap-1 shadow-xs"
                 >
                   Next <ArrowRight className="h-3 w-3" />
                 </button>
@@ -227,7 +227,7 @@ export default function ActivityLogDashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[850px]">
                 <thead>
-                  <tr className="bg-slate-950/60 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-800 text-[10px]">
+                  <tr className="bg-slate-100/70 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200 text-[10px]">
                     <th className="p-4 w-16">ID</th>
                     <th className="p-4 w-32">Module / Action</th>
                     <th className="p-4 w-44">User / Actor</th>
@@ -237,66 +237,66 @@ export default function ActivityLogDashboard() {
                     <th className="p-4 w-16 text-center">Payload</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/50 bg-slate-900/30">
+                <tbody className="divide-y divide-slate-100 bg-white">
                   {loading ? (
                     <tr>
-                      <td colSpan="7" className="p-12 text-center text-sky-400 font-medium animate-pulse">
+                      <td colSpan="7" className="p-12 text-center text-sky-600 font-medium animate-pulse">
                         Querying activity trail indexes...
                       </td>
                     </tr>
                   ) : logs.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="p-12 text-center text-slate-500 italic">
+                      <td colSpan="7" className="p-12 text-center text-slate-400 italic">
                         No activity logs found matching the filter criteria.
                       </td>
                     </tr>
                   ) : (
                     logs.map((log) => (
-                      <tr key={log.id} className="hover:bg-slate-850/40 transition-colors">
-                        <td className="p-4 font-mono text-slate-500">#{log.id}</td>
+                      <tr key={log.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="p-4 font-mono text-slate-400">#{log.id}</td>
                         <td className="p-4 space-y-1">
-                          <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-bold uppercase text-[9px] block w-max">
+                          <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-bold uppercase text-[9px] block w-max border border-slate-200">
                             {log.module}
                           </span>
-                          <span className="font-bold text-white block">{log.action}</span>
+                          <span className="font-bold text-slate-900 block">{log.action}</span>
                         </td>
                         <td className="p-4">
-                          <div className="font-medium text-slate-200 flex items-center gap-1.5">
-                            <UserIcon className="h-3 w-3 text-slate-500" />
+                          <div className="font-medium text-slate-800 flex items-center gap-1.5">
+                            <UserIcon className="h-3 w-3 text-slate-400" />
                             {getUserName(log.user)}
                           </div>
                           {log.user?.role && (
-                            <span className="text-[10px] text-slate-500 capitalize">{log.user.role}</span>
+                            <span className="text-[10px] text-slate-400 capitalize">{log.user.role}</span>
                           )}
                         </td>
-                        <td className="p-4 text-slate-400 max-w-xs break-words">
+                        <td className="p-4 text-slate-600 max-w-xs break-words">
                           {log.description || '—'}
                         </td>
                         <td className="p-4 space-y-1">
                           <div>{getMethodBadge(log.method)}</div>
-                          <div className="font-mono text-[10px] text-slate-500 truncate max-w-[120px]" title={log.path}>
+                          <div className="font-mono text-[10px] text-slate-400 truncate max-w-[120px]" title={log.path}>
                             {log.path || '—'}
                           </div>
                         </td>
                         <td className="p-4 space-y-0.5">
-                          <div className="font-mono text-[11px] text-slate-400 flex items-center gap-1">
-                            <Globe className="h-3 w-3 text-slate-600" /> {log.ipAddress || 'Internal'}
+                          <div className="font-mono text-[11px] text-slate-600 flex items-center gap-1">
+                            <Globe className="h-3 w-3 text-slate-400" /> {log.ipAddress || 'Internal'}
                           </div>
-                          <div className="font-mono text-[10px] text-slate-500 flex items-center gap-1">
-                            <Clock className="h-3 w-3 text-slate-600" /> {new Date(log.createdAt).toLocaleString()}
+                          <div className="font-mono text-[10px] text-slate-400 flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-slate-400" /> {new Date(log.createdAt).toLocaleString()}
                           </div>
                         </td>
                         <td className="p-4 text-center">
                           {log.payload ? (
                             <button
                               onClick={() => setActivePayload(log.payload)}
-                              className="p-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-sky-400 rounded-lg transition-colors cursor-pointer"
+                              className="p-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-sky-600 rounded-lg transition-colors cursor-pointer shadow-xs"
                               title="View Payload JSON"
                             >
                               <Code className="h-3.5 w-3.5" />
                             </button>
                           ) : (
-                            <span className="text-slate-600 text-[10px]">—</span>
+                            <span className="text-slate-300 text-[10px]">—</span>
                           )}
                         </td>
                       </tr>
@@ -312,16 +312,16 @@ export default function ActivityLogDashboard() {
 
       {/* JSON Payload Modal */}
       {activePayload && (
-        <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center p-4 backdrop-blur-sm z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-            <div className="p-4 border-b border-slate-800 bg-slate-950 flex justify-between items-center">
+        <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center p-4 backdrop-blur-xs z-50">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+            <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <Code className="h-4 w-4 text-sky-400" />
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">Activity Context Payload</h3>
+                <Code className="h-4 w-4 text-sky-600" />
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Activity Context Payload</h3>
               </div>
               <button
                 onClick={() => setActivePayload(null)}
-                className="text-slate-500 hover:text-white text-xs font-bold uppercase cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 text-xs font-bold uppercase cursor-pointer"
               >
                 Close
               </button>
