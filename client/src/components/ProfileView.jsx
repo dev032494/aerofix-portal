@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { userService } from '../services/api';
-import { User, Key, Mail, Shield, CheckCircle, Save, ShieldAlert, BadgeInfo } from 'lucide-react';
+import { User, Key, Mail, Shield, CheckCircle, Save, ShieldAlert } from 'lucide-react';
 
 export default function ProfileView() {
   const [user, setUser] = useState(null);
@@ -96,107 +96,109 @@ export default function ProfileView() {
   if (loading || !user) return null;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto animate-fadeIn">
-      
-      {/* Dynamic Profile Cover Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row items-center gap-5 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/5 rounded-full blur-2xl pointer-events-none" />
-        <div className="w-16 h-16 rounded-2xl bg-sky-600/10 text-sky-400 border border-sky-500/20 flex items-center justify-center font-black text-xl shadow-inner shrink-0">
-          {user.first_name?.[0]}{user.last_name?.[0]}
-        </div>
-        <div className="text-center sm:text-left space-y-1 flex-1 min-w-0">
-          <h1 className="text-2xl font-black text-white tracking-tight truncate">{user.first_name} {user.middle_name?.[0] || ''} {user.last_name}</h1>
-          <p className="text-xs text-slate-400 font-mono tracking-wide truncate">{user.email}</p>
-          <div className="flex gap-2 justify-center sm:justify-start pt-1.5 flex-wrap">
-            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 rounded-md">Role: {user.role}</span>
-            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 rounded-md">Student ID: {user.student_id}</span>
-            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 rounded-md">Section/Year: {user.section_year}</span>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Two-Column Form Field Configuration Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    // Added a scrollable wrapper (h-full overflow-y-auto) to ensure scrolling within constrained parent layouts
+    <div className="h-full w-full overflow-y-auto pb-12 custom-scrollbar bg-slate-50 text-slate-900">
+      <div className="space-y-6 max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 animate-fadeIn">
         
-        {/* BLOCK A: UPDATE ACCOUNT INFORMATION */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col justify-between">
-          <div className="space-y-4">
-            <h3 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-              <User className="h-4 w-4 text-sky-400" /> Personnel Data Attributes
-            </h3>
-
-            {infoMessage && (
-              <div className={`p-3 text-xs rounded-xl flex items-start gap-2 ${infoMessage.type === 'success' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border border-rose-500/20 text-rose-400'}`}>
-                {infoMessage.type === 'success' ? <CheckCircle className="h-4 w-4 shrink-0" /> : <ShieldAlert className="h-4 w-4 shrink-0" />}
-                <p className="font-semibold">{infoMessage.text}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleUpdateInfo} className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="block font-bold text-slate-400 uppercase tracking-wide">First Name *</label>
-                  <input type="text" name="first_name" required value={infoForm.first_name} onChange={handleInfoChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-sky-500 font-sans text-sm" />
-                </div>
-                <div className="space-y-1">
-                  <label className="block font-bold text-slate-400 uppercase tracking-wide">Last Name *</label>
-                  <input type="text" name="last_name" required value={infoForm.last_name} onChange={handleInfoChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-sky-500 font-sans text-sm" />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="block font-bold text-slate-400 uppercase tracking-wide">Email Target Address *</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-600" />
-                  <input type="email" name="email" required value={infoForm.email} onChange={handleInfoChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-sky-500" />
-                </div>
-              </div>
-
-              <button type="submit" className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer text-sm">
-                <Save className="h-4 w-4" /> Save Record Shifts
-              </button>
-            </form>
+        {/* Dynamic Profile Cover Banner */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row items-center gap-4 sm:gap-5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center font-black text-xl sm:text-2xl shadow-inner shrink-0">
+            {user.first_name?.[0]}{user.last_name?.[0]}
+          </div>
+          <div className="text-center sm:text-left space-y-1.5 flex-1 min-w-0 w-full">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight truncate">{user.first_name} {user.middle_name?.[0] || ''} {user.last_name}</h1>
+            <p className="text-sm text-slate-500 font-mono tracking-wide truncate">{user.email}</p>
+            <div className="flex gap-2 justify-center sm:justify-start pt-2 flex-wrap">
+              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-600 rounded-md">Role: {user.role}</span>
+              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-600 rounded-md">Student ID: {user.student_id}</span>
+              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-600 rounded-md">Section/Year: {user.section_year}</span>
+            </div>
           </div>
         </div>
 
-        {/* BLOCK B: ROLL OVER PASSPHRASE CRITERIA */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col justify-between">
-          <div className="space-y-4">
-            <h3 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-              <Key className="h-4 w-4 text-amber-500" /> Change Password
-            </h3>
+        {/* Two-Column Form Field Configuration Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* BLOCK A: UPDATE ACCOUNT INFORMATION */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col justify-between">
+            <div className="space-y-4">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-3">
+                <User className="h-4 w-4 sm:h-5 sm:w-5 text-sky-600" /> Personnel Data Attributes
+              </h3>
 
-            {passwordMessage && (
-              <div className={`p-3 text-xs rounded-xl flex items-start gap-2 ${passwordMessage.type === 'success' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border border-rose-500/20 text-rose-400'}`}>
-                {passwordMessage.type === 'success' ? <CheckCircle className="h-4 w-4 shrink-0" /> : <ShieldAlert className="h-4 w-4 shrink-0" />}
-                <p className="font-semibold">{passwordMessage.text}</p>
-              </div>
-            )}
+              {infoMessage && (
+                <div className={`p-3 text-xs sm:text-sm rounded-xl flex items-start gap-2 ${infoMessage.type === 'success' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-rose-50 border border-rose-200 text-rose-700'}`}>
+                  {infoMessage.type === 'success' ? <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-emerald-600" /> : <ShieldAlert className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-rose-600" />}
+                  <p className="font-semibold mt-0.5">{infoMessage.text}</p>
+                </div>
+              )}
 
-            <form onSubmit={handleUpdatePassword} className="space-y-4 text-xs">
-              <div className="space-y-1">
-                <label className="block font-bold text-slate-400 uppercase tracking-wide">Current Password *</label>
-                <input type="password" name="current_password" required value={passwordForm.current_password} onChange={handlePasswordChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-sky-500" placeholder="••••••••" />
-              </div>
+              <form onSubmit={handleUpdateInfo} className="space-y-4 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide">First Name *</label>
+                    <input type="text" name="first_name" required value={infoForm.first_name} onChange={handleInfoChange} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 sm:px-4 py-3 sm:py-2.5 text-slate-900 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:bg-white font-sans text-base sm:text-sm transition-all" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide">Last Name *</label>
+                    <input type="text" name="last_name" required value={infoForm.last_name} onChange={handleInfoChange} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 sm:px-4 py-3 sm:py-2.5 text-slate-900 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:bg-white font-sans text-base sm:text-sm transition-all" />
+                  </div>
+                </div>
 
-              <div className="space-y-1">
-                <label className="block font-bold text-slate-400 uppercase tracking-wide">New Password *</label>
-                <input type="password" name="new_password" required value={passwordForm.new_password} onChange={handlePasswordChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-sky-500" placeholder="••••••••" />
-              </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide">Email Target Address *</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3.5 sm:top-3 h-4 w-4 text-slate-400" />
+                    <input type="email" name="email" required value={infoForm.email} onChange={handleInfoChange} className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 sm:py-2.5 text-slate-900 font-mono text-base sm:text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:bg-white transition-all" />
+                  </div>
+                </div>
 
-              <div className="space-y-1">
-                <label className="block font-bold text-slate-400 uppercase tracking-wide">Confirm New Password *</label>
-                <input type="password" name="confirm_password" required value={passwordForm.confirm_password} onChange={handlePasswordChange} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-sky-500" placeholder="••••••••" />
-              </div>
-
-              <button type="submit" className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-sm">
-                <Shield className="h-4 w-4 text-amber-500" /> Save New Password
-              </button>
-            </form>
+                <button type="submit" className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer text-sm sm:text-base active:scale-[0.98]">
+                  <Save className="h-4 w-4 sm:h-5 sm:w-5" /> Save Record Shifts
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
 
+          {/* BLOCK B: ROLL OVER PASSPHRASE CRITERIA */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col justify-between mt-6 lg:mt-0">
+            <div className="space-y-4">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-3">
+                <Key className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" /> Change Password
+              </h3>
+
+              {passwordMessage && (
+                <div className={`p-3 text-xs sm:text-sm rounded-xl flex items-start gap-2 ${passwordMessage.type === 'success' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-rose-50 border border-rose-200 text-rose-700'}`}>
+                  {passwordMessage.type === 'success' ? <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-emerald-600" /> : <ShieldAlert className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-rose-600" />}
+                  <p className="font-semibold mt-0.5">{passwordMessage.text}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleUpdatePassword} className="space-y-4 text-sm">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide">Current Password *</label>
+                  <input type="password" name="current_password" required value={passwordForm.current_password} onChange={handlePasswordChange} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 sm:py-2.5 text-slate-900 font-mono text-base sm:text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:bg-white transition-all" placeholder="••••••••" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide">New Password *</label>
+                  <input type="password" name="new_password" required value={passwordForm.new_password} onChange={handlePasswordChange} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 sm:py-2.5 text-slate-900 font-mono text-base sm:text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:bg-white transition-all" placeholder="••••••••" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide">Confirm New Password *</label>
+                  <input type="password" name="confirm_password" required value={passwordForm.confirm_password} onChange={handlePasswordChange} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 sm:py-2.5 text-slate-900 font-mono text-base sm:text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:bg-white transition-all" placeholder="••••••••" />
+                </div>
+
+                <button type="submit" className="w-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-sm sm:text-base active:scale-[0.98]">
+                  <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" /> Save New Password
+                </button>
+              </form>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   );

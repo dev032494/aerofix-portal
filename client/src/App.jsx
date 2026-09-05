@@ -16,7 +16,7 @@ import {
   GraduationCap,
   Wrench,
   CheckCircle2,
-  Calendar // Added icon for Maintenance Planning
+  Calendar
 } from "lucide-react";
 
 // Import your views
@@ -32,7 +32,7 @@ import UserActivationDashboard from "./components/UserActivationDashboard";
 import ActivityLogDashboard from "./components/ActivityLogDashboard"; 
 import InstructorView from "./components/InstructorView";
 import StudentTaskDashboard from "./components/StudentTaskDashboard"; 
-import MaintenanceSchedulePlanning from "./components/MaintenanceSchedulePlanning"; // Added new Maintenance component
+import MaintenanceSchedulePlanning from "./components/MaintenanceSchedulePlanning";
 
 // --- PROTECTED ROUTE INTERCEPTOR ---
 function ProtectedRoute({ children, currentUser }) {
@@ -57,10 +57,10 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#0284c7', 
-      cancelButtonColor: '#334155', 
+      cancelButtonColor: '#64748b', 
       confirmButtonText: 'Yes, log out',
-      background: '#0f172a', 
-      color: '#f1f5f9' 
+      background: '#ffffff', 
+      color: '#0f172a' 
     });
 
     if (result.isConfirmed) {
@@ -76,42 +76,42 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
   const navLinkClass = ({ isActive }) =>
     `flex items-center gap-3 px-4 py-3 rounded-xl font-semibold w-full text-left transition-all cursor-pointer ${
       isActive
-        ? "bg-sky-600 text-white shadow-lg shadow-sky-600/10"
-        : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+        ? "bg-sky-600 text-white shadow-md shadow-sky-600/10"
+        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
     }`;
 
   const developerNavLinkClass = ({ isActive }, color) =>
     `flex items-center gap-3 px-4 py-3 rounded-xl font-semibold w-full text-left transition-all cursor-pointer border ${
       isActive
-        ? `bg-${color}-600 text-white shadow-lg shadow-${color}-600/20 border-${color}-500/10`
-        : `text-${color}-400/80 hover:bg-${color}-950/20 hover:text-${color}-300 border-${color}-500/10`
+        ? `bg-${color}-600 text-white shadow-md shadow-${color}-600/20 border-${color}-500/20`
+        : `text-${color}-700 hover:bg-${color}-50 hover:text-${color}-800 border-${color}-200`
     }`;
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans relative">
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 text-slate-900 font-sans relative">
       {/* MOBILE ACTION TOP BAR HEADER */}
-      <header className="lg:hidden absolute top-0 left-0 right-0 h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 z-40">
+      <header className="lg:hidden absolute top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-40 shadow-xs">
         <div className="flex items-center gap-2.5">
-          <Hammer className="h-5 w-5 text-sky-500" />
-          <span className="font-black text-lg tracking-wider text-white">AERONEXUS</span>
+          <Hammer className="h-5 w-5 text-sky-600" />
+          <span className="font-black text-lg tracking-wider text-slate-900">AERONEXUS</span>
         </div>
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 text-slate-400 hover:text-white bg-slate-800/50 rounded-xl border border-slate-700/40 cursor-pointer"
+          className="p-2 text-slate-600 hover:text-slate-900 bg-slate-100 rounded-xl border border-slate-200 cursor-pointer"
         >
           {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </header>
 
       {/* SIDEBAR NAVIGATION PANEL */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 transform transition-transform duration-300 ease-in-out lg:static lg:transform-none ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 transform transition-transform duration-300 ease-in-out lg:static lg:transform-none shadow-sm ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
         <div>
-          <div className="p-6 flex items-center justify-between border-b border-slate-800 h-16 lg:h-auto">
+          <div className="p-6 flex items-center justify-between border-b border-slate-200 h-16 lg:h-auto">
             <div className="flex items-center gap-3">
-              <Hammer className="h-6 w-6 text-sky-500" />
-              <span className="font-black text-xl tracking-wider text-white">AERONEXUS</span>
+              <Hammer className="h-6 w-6 text-sky-600" />
+              <span className="font-black text-xl tracking-wider text-slate-900">AERONEXUS</span>
             </div>
-            <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden text-slate-500 hover:text-slate-300 p-1 cursor-pointer">
+            <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -119,10 +119,6 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
           <nav className="p-4 space-y-1.5 mt-4 lg:mt-2">
             {!isStudent && (
               <>
-                <NavLink to="aircraft" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
-                  <Plane className="h-5 w-5 shrink-0" /> Aircraft Fleet
-                </NavLink>
-
                 <NavLink to="work-orders" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
                   <Wrench className="h-5 w-5 shrink-0" /> Work Orders
                 </NavLink>
@@ -131,7 +127,6 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
                   <ClipboardList className="h-5 w-5 shrink-0" /> Work Order List
                 </NavLink>
 
-                {/* ⚡ NEW: NavLink for Maintenance Schedule Planning */}
                 <NavLink to="maintenance-planning" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
                   <Calendar className="h-5 w-5 shrink-0" /> Maintenance Planning
                 </NavLink>
@@ -146,7 +141,6 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
               </>
             )}
 
-            {/* ⚡ Exclusive NavLink for Students */}
             {isStudent && (
               <NavLink to="tasks" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
                 <CheckCircle2 className="h-5 w-5 shrink-0" /> My Tasks
@@ -161,7 +155,6 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
               <User className="h-5 w-5 shrink-0" /> My Profile Account
             </NavLink>
 
-            {/* ⚡ SECURE DEVELOPER MODULE LINKS */}
             {isDeveloper && (
               <>
                 <NavLink to="activation-logs" onClick={() => setIsMobileMenuOpen(false)} className={(props) => developerNavLinkClass(props, 'amber')}>
@@ -176,19 +169,19 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
           </nav>
         </div>
 
-        <div className="p-4 border-t border-slate-800 flex flex-col gap-3 bg-slate-900/40">
+        <div className="p-4 border-t border-slate-200 flex flex-col gap-3 bg-slate-50/50">
           <div className="flex items-center gap-2.5 px-2">
-            <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/10 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-sky-100 text-sky-600 border border-sky-200 flex items-center justify-center shrink-0">
               <User className="h-4 w-4" />
             </div>
             <div className="truncate text-xs">
-              <p className="font-bold text-slate-200 truncate">{currentUser.first_name} {currentUser.last_name}</p>
+              <p className="font-bold text-slate-800 truncate">{currentUser.first_name} {currentUser.last_name}</p>
               <p className="text-[10px] text-slate-500 font-mono capitalize tracking-wide truncate">{currentUser.role} mode</p>
             </div>
           </div>
           <button
             onClick={handleLogoutAction}
-            className="w-full bg-slate-950 hover:bg-rose-950/20 hover:text-rose-400 border border-slate-800 hover:border-rose-900/30 text-slate-400 text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-98"
+            className="w-full bg-white hover:bg-rose-50 hover:text-rose-600 border border-slate-200 hover:border-rose-200 text-slate-600 text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-98"
           >
             <LogOut className="h-3.5 w-3.5" /> End Shift Session
           </button>
@@ -196,13 +189,12 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
       </aside>
 
       {isMobileMenuOpen && (
-        <div onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 lg:hidden" />
+        <div onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs z-40 lg:hidden" />
       )}
 
       {/* WORKSPACE VIEWPORT */}
-      <main className="flex-1 overflow-hidden p-3 sm:p-4 lg:p-4 pt-20 lg:pt-4 bg-slate-950 flex flex-col min-w-0">
+      <main className="flex-1 overflow-hidden p-3 sm:p-4 lg:p-4 pt-20 lg:pt-4 bg-slate-50 flex flex-col min-w-0">
         <div className="w-full h-full max-w-full px-0 mx-0 flex flex-col flex-1">
-          {/* ⚡ Outlet dynamically renders the component matching the nested route URL */}
           <Outlet /> 
         </div>
       </main>
@@ -215,7 +207,6 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [appReady, setAppReady] = useState(false);
 
-  // Evaluate sessions on boot
   useEffect(() => {
     const cachedUser = localStorage.getItem("aerofix_user");
     const cachedToken = localStorage.getItem("aerofix_token");
@@ -230,7 +221,7 @@ export default function App() {
     setAppReady(true);
   }, []);
 
-  if (!appReady) return null; // Prevent UI layout shift on load
+  if (!appReady) return null;
 
   const isStudent = currentUser?.role === "student";
   const isDeveloper = currentUser?.role === "developer";
@@ -260,7 +251,6 @@ export default function App() {
           } 
         />
 
-        {/* ⚡ Nested routes for URL-based navigation */}
         <Route 
           path="/dashboard" 
           element={
@@ -269,28 +259,20 @@ export default function App() {
             </ProtectedRoute>
           } 
         >
-          {/* Redirect base /dashboard to library */}
           <Route index element={<Navigate to="library" replace />} />
           
-          {/* Protected routes against Students */}
           <Route path="aircraft" element={!isStudent ? <AircraftDashboard /> : <Navigate to="library" />} />
           <Route path="work-orders" element={!isStudent ? <WorkOrderDashboard /> : <Navigate to="library" />} />
           <Route path="work-order-list" element={!isStudent ? <WorkOrderList /> : <Navigate to="library" />} />
-          
-          {/* ⚡ NEW: Protected route for Maintenance Planning */}
           <Route path="maintenance-planning" element={!isStudent ? <MaintenanceSchedulePlanning /> : <Navigate to="library" />} />
-          
           <Route path="team" element={!isStudent ? <TeamRegistry /> : <Navigate to="library" />} />
           <Route path="instructor" element={!isStudent ? <InstructorView /> : <Navigate to="library" />} />
           
-          {/* ⚡ Protected route for Students only */}
           <Route path="tasks" element={isStudent ? <StudentTaskDashboard /> : <Navigate to="library" />} />
 
-          {/* Available to all valid users */}
           <Route path="library" element={<LibraryView />} />
           <Route path="profile" element={<ProfileView />} />
           
-          {/* Protected routes for Developers only */}
           <Route path="activation-logs" element={isDeveloper ? <UserActivationDashboard /> : <Navigate to="library" />} />
           <Route path="activity-logs" element={isDeveloper ? <ActivityLogDashboard /> : <Navigate to="library" />} />
         </Route>

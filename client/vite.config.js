@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
       port: 5001,
       strictPort: true, // Prevents falling back to a random port if 5001 is busy
       host: true,       // Exposes server to network/routing for cloud platforms
-      allowedHosts: [".up.railway.app", "localhost", "127.0.0.1", ".naap-aeronexus.com"],
+      allowedHosts: [".up.railway.app", "localhost", "127.0.0.1", ".naap-aeronexus.com",'192.168.18.4'],
 
       // ⚡ DYNAMIC MIX: Adjusts HMR based on where the app is being run
       hmr: isLocalDev

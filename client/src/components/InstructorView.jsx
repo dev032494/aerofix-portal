@@ -24,7 +24,7 @@ function Instructor() {
   const [error, setError] = useState(null);
   const [updatingStatusId, setUpdatingStatusId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'active' | 'pending' | 'inactive'
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'active' | 'inactive'
 
   // Toast Notification State
   const [toast, setToast] = useState(null); // { message: string, type: 'success' | 'error' }
@@ -101,8 +101,6 @@ function Instructor() {
   const handleToggleStatus = async (instructorId, currentStatus) => {
     setUpdatingStatusId(instructorId);
     try {
-      console.log(!currentStatus);
-
       await instructorService.updateStatus(instructorId, !currentStatus);
       triggerToast(`Instructor account ${!currentStatus ? 'activated' : 'deactivated'} successfully.`, 'success');
       fetchInstructors();
@@ -149,16 +147,13 @@ function Instructor() {
     e.preventDefault();
     try {
       if (editingInstructorId) {
-        // Update Instructor
         if (instructorService.updateInstructor) {
           await instructorService.updateInstructor(editingInstructorId, formData);
         } else {
-          // Fallback call if update function is named differently in API
           await instructorService.createInstructor({ id: editingInstructorId, ...formData });
         }
         triggerToast('Instructor profile updated successfully!', 'success');
       } else {
-        // Add Instructor
         await instructorService.createInstructor(formData);
         triggerToast('New instructor registered successfully!', 'success');
       }
@@ -182,7 +177,7 @@ function Instructor() {
 
     let matchesStatus = true;
     if (statusFilter === 'active') {
-      matchesStatus = activ;
+      matchesStatus = active;
     } else if (statusFilter === 'inactive') {
       matchesStatus = !active;
     }
@@ -191,26 +186,26 @@ function Instructor() {
   });
 
   if (loading) return (
-    <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-400 gap-3">
-      <GraduationCap className="h-10 w-10 text-sky-500 animate-spin" />
+    <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-500 gap-3 bg-slate-50">
+      <GraduationCap className="h-10 w-10 text-sky-600 animate-spin" />
       <span className="text-sm font-medium animate-pulse">Querying instructor database...</span>
     </div>
   );
 
   return (
-    <div className="space-y-6 text-slate-100 font-sans relative">
+    <div className="space-y-6 text-slate-900 font-sans relative bg-slate-50 min-h-full pb-12">
 
       {/* Dynamic Toast Notification Overlay */}
       {toast && (
         <div className="fixed top-5 right-5 z-50 max-w-sm w-full animate-in fade-in slide-in-from-top-4 duration-200">
-          <div className={`p-4 rounded-xl border shadow-2xl flex items-start gap-3 backdrop-blur-md ${toast.type === 'error'
-            ? 'bg-rose-950/90 border-rose-800 text-rose-200'
-            : 'bg-emerald-950/90 border-emerald-800 text-emerald-200'
+          <div className={`p-4 rounded-xl border shadow-xl flex items-start gap-3 backdrop-blur-md ${toast.type === 'error'
+            ? 'bg-rose-50 border-rose-200 text-rose-700'
+            : 'bg-emerald-50 border-emerald-200 text-emerald-700'
             }`}>
             {toast.type === 'error' ? (
-              <AlertCircle className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
+              <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
             ) : (
-              <CheckCircle className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+              <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
             )}
             <div className="flex-1 text-xs font-medium">
               <p className="font-bold mb-0.5 uppercase tracking-wider text-[10px]">
@@ -220,7 +215,7 @@ function Instructor() {
             </div>
             <button
               onClick={() => setToast(null)}
-              className="text-slate-400 hover:text-white transition-colors cursor-pointer p-0.5"
+              className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer p-0.5"
             >
               <X className="h-4 w-4" />
             </button>
@@ -229,25 +224,25 @@ function Instructor() {
       )}
 
       {/* Top Banner Block */}
-      <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-800 shadow-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase">Instructor Registry</h1>
-          <p className="text-slate-400 text-xs mt-1">Manage flight & technical instructor credentials, license records, and duty status.</p>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight uppercase">Instructor Registry</h1>
+          <p className="text-slate-500 text-xs mt-1">Manage flight & technical instructor credentials, license records, and duty status.</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex gap-2">
-            <div className="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center min-w-[100px]">
-              <span className="text-[10px] text-slate-500 font-bold uppercase block">Pending Review</span>
-              <span className="text-base font-mono font-bold text-amber-400">{pendingCount}</span>
+            <div className="bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-center min-w-[100px]">
+              <span className="text-[10px] text-slate-400 font-bold uppercase block">Pending Review</span>
+              <span className="text-base font-mono font-bold text-amber-600">{pendingCount}</span>
             </div>
-            <div className="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center min-w-[100px]">
-              <span className="text-[10px] text-slate-500 font-bold uppercase block">Total Cadre</span>
-              <span className="text-base font-mono font-bold text-sky-400">{instructors.length}</span>
+            <div className="bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-center min-w-[100px]">
+              <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Cadre</span>
+              <span className="text-base font-mono font-bold text-sky-600">{instructors.length}</span>
             </div>
           </div>
           <button
             onClick={handleOpenAddModal}
-            className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-4 py-3 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-sky-600/20 active:scale-98"
+            className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-4 py-3 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98"
           >
             <Plus className="h-4 w-4" /> Add Instructor
           </button>
@@ -255,20 +250,20 @@ function Instructor() {
       </div>
 
       {/* Master Roster Data Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden text-xs">
-        <div className="p-4 bg-slate-950 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-3">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider w-full md:w-auto">Master Instructor Roster</h2>
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden text-xs">
+        <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-3">
+          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider w-full md:w-auto">Master Instructor Roster</h2>
 
           {/* Controls: Search + Status Filter */}
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
 
             {/* Status Filter Dropdown */}
             <div className="relative w-full sm:w-44">
-              <Filter className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+              <Filter className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500 font-medium appearance-none cursor-pointer text-xs"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-slate-900 focus:outline-none focus:border-sky-500 focus:bg-white font-medium appearance-none cursor-pointer text-xs"
               >
                 <option value="all">All Statuses</option>
                 <option value="active">Active Profiles</option>
@@ -278,13 +273,13 @@ function Instructor() {
 
             {/* Search Input */}
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-600" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search ID, name or license #..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 font-medium"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-4 py-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:bg-white font-medium"
               />
             </div>
 
@@ -294,7 +289,7 @@ function Instructor() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-500 font-bold uppercase tracking-wider bg-slate-950/40">
+              <tr className="border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider bg-slate-100/70 text-[10px]">
                 <th className="p-4 w-20">ID</th>
                 <th className="p-4">Instructor Details</th>
                 <th className="p-4">License Number</th>
@@ -302,10 +297,10 @@ function Instructor() {
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/50">
+            <tbody className="divide-y divide-slate-100">
               {filteredInstructors.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="p-8 text-center text-slate-500 italic">
+                  <td colSpan="5" className="p-8 text-center text-slate-400 italic">
                     No instructor records matched the active search and status filters.
                   </td>
                 </tr>
@@ -315,33 +310,33 @@ function Instructor() {
                   const instId = instructor.i_id || instructor.id;
 
                   return (
-                    <tr key={instId || instructor.i_license_number} className="hover:bg-slate-850/40 transition-colors">
+                    <tr key={instId || instructor.i_license_number} className="hover:bg-slate-50/80 transition-colors">
                       <td className="p-4 align-middle">
-                        <span className="inline-flex items-center gap-1 font-mono font-bold text-slate-400 bg-slate-950 border border-slate-800 px-2 py-0.5 rounded-md text-[11px]">
-                          <Hash className="h-3 w-3 text-slate-600" />
+                        <span className="inline-flex items-center gap-1 font-mono font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md text-[11px]">
+                          <Hash className="h-3 w-3 text-slate-400" />
                           {instId ?? 'N/A'}
                         </span>
                       </td>
                       <td className="p-4">
-                        <div className="font-bold text-white text-sm flex items-center gap-2">
-                          <GraduationCap className="h-4 w-4 text-sky-400 shrink-0" />
+                        <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                          <GraduationCap className="h-4 w-4 text-sky-600 shrink-0" />
                           {getInstructorName(instructor)}
                         </div>
                       </td>
-                      <td className="p-4 align-middle text-slate-300 font-mono font-medium">
-                        <span className="inline-flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2.5 py-1 rounded-lg text-[11px]">
-                          <FileBadge className="h-3.5 w-3.5 text-slate-500" />
+                      <td className="p-4 align-middle text-slate-700 font-mono font-medium">
+                        <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg text-[11px]">
+                          <FileBadge className="h-3.5 w-3.5 text-slate-400" />
                           {getLicenseNumber(instructor)}
                         </span>
                       </td>
                       <td className="p-4 align-middle">
                         {active ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/5 border border-emerald-500/10 px-2.5 py-1 rounded-md">
-                            <CheckCircle className="h-3 w-3" /> Active Cadre
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md">
+                            <CheckCircle className="h-3 w-3 text-emerald-600" /> Active Cadre
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-400 bg-red-500/5 border border-red-500/10 px-2.5 py-1 rounded-md">
-                            <XCircle className="h-3 w-3" /> Inactive
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-md">
+                            <XCircle className="h-3 w-3 text-rose-600" /> Inactive
                           </span>
                         )}
                       </td>
@@ -350,9 +345,9 @@ function Instructor() {
                           {/* Edit Info Button */}
                           <button
                             onClick={() => handleOpenEditModal(instructor)}
-                            className="px-3 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer inline-flex items-center gap-1.5"
+                            className="px-3 py-1 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
                           >
-                            <Edit className="h-3 w-3 text-sky-400" />
+                            <Edit className="h-3 w-3 text-sky-600" />
                             Edit Info
                           </button>
 
@@ -360,9 +355,9 @@ function Instructor() {
                           <button
                             onClick={() => handleToggleStatus(instId, active)}
                             disabled={updatingStatusId === instId}
-                            className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer inline-flex items-center gap-1.5 ${active
-                              ? 'bg-rose-950/30 border-rose-900/50 text-rose-400 hover:bg-rose-900/40'
-                              : 'bg-emerald-950/30 border-emerald-900/50 text-emerald-400 hover:bg-emerald-900/40'
+                            className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs ${active
+                              ? 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100'
+                              : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
                               }`}
                           >
                             <Power className="h-3 w-3" />
@@ -381,20 +376,20 @@ function Instructor() {
 
       {/* Modal Container holding the Instructor Form */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-xl w-full shadow-2xl text-slate-100 font-sans">
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 max-w-xl w-full shadow-xl text-slate-900 font-sans">
 
             {/* Form Header */}
-            <div className="flex items-center justify-between pb-6 mb-6 border-b border-slate-800">
+            <div className="flex items-center justify-between pb-6 mb-6 border-b border-slate-200">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center shrink-0">
                   <GraduationCap className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg sm:text-xl font-black text-white tracking-tight uppercase">
+                  <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight uppercase">
                     {editingInstructorId ? 'Edit Instructor Profile' : 'Add Instructor Profile'}
                   </h2>
-                  <p className="text-slate-400 text-xs mt-0.5">
+                  <p className="text-slate-500 text-xs mt-0.5">
                     {editingInstructorId ? 'Update existing instructor details and CAA license records.' : 'Enter new cadre credentials and CAA license records.'}
                   </p>
                 </div>
@@ -403,7 +398,7 @@ function Instructor() {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-all cursor-pointer"
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -414,11 +409,11 @@ function Instructor() {
 
               {/* First Name */}
               <div className="space-y-1.5">
-                <label htmlFor="i_first_name" className="block text-slate-300 font-bold uppercase tracking-wider text-[10px]">
-                  First Name <span className="text-rose-400">*</span>
+                <label htmlFor="i_first_name" className="block text-slate-700 font-bold uppercase tracking-wider text-[10px]">
+                  First Name <span className="text-rose-600">*</span>
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-500" />
+                  <User className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
                   <input
                     type="text"
                     id="i_first_name"
@@ -428,18 +423,18 @@ function Instructor() {
                     value={formData.i_first_name}
                     onChange={handleChange}
                     placeholder="e.g. Alexander"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 font-medium transition-all"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:bg-white font-medium transition-all"
                   />
                 </div>
               </div>
 
               {/* Middle Name */}
               <div className="space-y-1.5">
-                <label htmlFor="i_middle_name" className="block text-slate-300 font-bold uppercase tracking-wider text-[10px]">
-                  Middle Name <span className="text-rose-400">*</span>
+                <label htmlFor="i_middle_name" className="block text-slate-700 font-bold uppercase tracking-wider text-[10px]">
+                  Middle Name <span className="text-rose-600">*</span>
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-500" />
+                  <User className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
                   <input
                     type="text"
                     id="i_middle_name"
@@ -449,18 +444,18 @@ function Instructor() {
                     value={formData.i_middle_name}
                     onChange={handleChange}
                     placeholder="e.g. Vance"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 font-medium transition-all"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:bg-white font-medium transition-all"
                   />
                 </div>
               </div>
 
               {/* Last Name */}
               <div className="space-y-1.5">
-                <label htmlFor="i_last_name" className="block text-slate-300 font-bold uppercase tracking-wider text-[10px]">
-                  Last Name <span className="text-rose-400">*</span>
+                <label htmlFor="i_last_name" className="block text-slate-700 font-bold uppercase tracking-wider text-[10px]">
+                  Last Name <span className="text-rose-600">*</span>
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-500" />
+                  <User className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
                   <input
                     type="text"
                     id="i_last_name"
@@ -470,18 +465,18 @@ function Instructor() {
                     value={formData.i_last_name}
                     onChange={handleChange}
                     placeholder="e.g. Sterling"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 font-medium transition-all"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:bg-white font-medium transition-all"
                   />
                 </div>
               </div>
 
               {/* License Number */}
               <div className="space-y-1.5">
-                <label htmlFor="i_license_number" className="block text-slate-300 font-bold uppercase tracking-wider text-[10px]">
-                  License Number <span className="text-rose-400">*</span>
+                <label htmlFor="i_license_number" className="block text-slate-700 font-bold uppercase tracking-wider text-[10px]">
+                  License Number <span className="text-rose-600">*</span>
                 </label>
                 <div className="relative">
-                  <FileBadge className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-500" />
+                  <FileBadge className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
                   <input
                     type="text"
                     id="i_license_number"
@@ -491,24 +486,24 @@ function Instructor() {
                     value={formData.i_license_number}
                     onChange={handleChange}
                     placeholder="e.g. LIC-994820-A"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 font-mono font-medium transition-all"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:bg-white font-mono font-medium transition-all"
                   />
                 </div>
               </div>
 
               {/* Form Action Controls */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800/80 mt-2">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 mt-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 font-bold rounded-xl transition-all cursor-pointer active:scale-98"
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-bold rounded-xl transition-all cursor-pointer active:scale-98"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-sky-600/20 active:scale-98"
+                  className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98"
                 >
                   <Save className="h-4 w-4" /> {editingInstructorId ? 'Update Instructor' : 'Save Instructor'}
                 </button>

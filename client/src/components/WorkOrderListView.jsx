@@ -43,8 +43,9 @@ export default function WorkOrderListView({ activeUser }) {
         title: 'Error',
         text: 'Failed to load work orders',
         icon: 'error',
-        background: '#0f172a',
-        color: '#f1f5f9'
+        background: '#ffffff',
+        color: '#0f172a',
+        confirmButtonColor: '#0284c7'
       });
     }
   };
@@ -64,8 +65,9 @@ export default function WorkOrderListView({ activeUser }) {
           text: 'Work order updated successfully.',
           timer: 2000,
           showConfirmButton: false,
-          background: '#0f172a',
-          color: '#f1f5f9'
+          background: '#ffffff',
+          color: '#0f172a',
+          confirmButtonColor: '#0284c7'
         });
       } else {
         await workOrderListService.create(formData);
@@ -75,8 +77,9 @@ export default function WorkOrderListView({ activeUser }) {
           text: 'Work order created successfully.',
           timer: 2000,
           showConfirmButton: false,
-          background: '#0f172a',
-          color: '#f1f5f9'
+          background: '#ffffff',
+          color: '#0f172a',
+          confirmButtonColor: '#0284c7'
         });
       }
       setIsModalOpen(false);
@@ -88,8 +91,9 @@ export default function WorkOrderListView({ activeUser }) {
         title: 'Error',
         text: err.response?.data?.error || err.message,
         icon: 'error',
-        background: '#0f172a',
-        color: '#f1f5f9'
+        background: '#ffffff',
+        color: '#0f172a',
+        confirmButtonColor: '#0284c7'
       });
     }
   };
@@ -101,10 +105,10 @@ export default function WorkOrderListView({ activeUser }) {
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444', // rose-500
-      cancelButtonColor: '#334155',  // slate-700
+      cancelButtonColor: '#64748b',  // slate-500
       confirmButtonText: 'Yes, delete it!',
-      background: '#0f172a',
-      color: '#f1f5f9'
+      background: '#ffffff',
+      color: '#0f172a'
     });
 
     if (result.isConfirmed) {
@@ -116,8 +120,9 @@ export default function WorkOrderListView({ activeUser }) {
           text: 'Work order deleted successfully.',
           timer: 2000,
           showConfirmButton: false,
-          background: '#0f172a',
-          color: '#f1f5f9'
+          background: '#ffffff',
+          color: '#0f172a',
+          confirmButtonColor: '#0284c7'
         });
         fetchWorkOrders();
       } catch (err) {
@@ -125,8 +130,9 @@ export default function WorkOrderListView({ activeUser }) {
           title: 'Error',
           text: 'Failed to delete record',
           icon: 'error',
-          background: '#0f172a',
-          color: '#f1f5f9'
+          background: '#ffffff',
+          color: '#0f172a',
+          confirmButtonColor: '#0284c7'
         });
       }
     }
@@ -148,74 +154,74 @@ export default function WorkOrderListView({ activeUser }) {
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
-      <div className="w-full bg-slate-950 border border-slate-850 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col flex-1 max-h-[calc(100vh-2rem)]">
+    <div className="w-full h-full flex flex-col bg-slate-50 text-slate-900">
+      <div className="w-full bg-white border border-slate-200 rounded-xl sm:rounded-2xl shadow-xs overflow-hidden flex flex-col flex-1 max-h-[calc(100vh-2rem)]">
         
         {/* HEADER SECTION */}
-        <div className="flex justify-between items-center bg-slate-900 p-5 border-b border-slate-800 shadow-sm shrink-0">
+        <div className="flex justify-between items-center bg-white p-5 border-b border-slate-200 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="p-2 bg-sky-500/10 rounded-lg shrink-0">
-              <ClipboardList className="h-6 w-6 text-sky-400" />
+            <div className="p-2 bg-sky-50 border border-sky-200 rounded-lg shrink-0 text-sky-600">
+              <ClipboardList className="h-6 w-6" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-xl font-bold text-white truncate">Work Order List</h2>
-              <p className="text-xs text-slate-400 mt-0.5 truncate">Manage and track active maintenance orders</p>
+              <h2 className="text-xl font-black text-slate-900 truncate uppercase tracking-tight">Work Order List</h2>
+              <p className="text-xs text-slate-500 mt-0.5 truncate">Manage and track active maintenance orders</p>
             </div>
           </div>
 
           <button
             onClick={() => openModal()}
-            className="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-lg shadow-sky-900/20 active:scale-95 cursor-pointer shrink-0"
+            className="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-xs cursor-pointer shrink-0"
           >
             <Plus className="h-4 w-4" /> Add Work Order
           </button>
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="p-3 sm:p-5 md:p-6 bg-slate-950 w-full flex flex-col flex-1 overflow-y-auto box-border custom-scrollbar space-y-4">
+        <div className="p-3 sm:p-5 md:p-6 bg-slate-50 w-full flex flex-col flex-1 overflow-y-auto box-border custom-scrollbar space-y-4">
 
           {/* TABLE SECTION */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl flex-1 overflow-hidden flex flex-col shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-2xl flex-1 overflow-hidden flex flex-col shadow-xs">
             <div className="overflow-x-auto flex-1">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-950/50 sticky top-0 z-10">
+                <thead className="bg-slate-100/70 border-b border-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider sticky top-0 z-10">
                   <tr>
-                    <th className="py-4 px-6 font-semibold text-xs tracking-wider text-slate-400 uppercase border-b border-slate-800 w-24 text-center">ID</th>
-                    <th className="py-4 px-6 font-semibold text-xs tracking-wider text-slate-400 uppercase border-b border-slate-800">Description</th>
-                    <th className="py-4 px-6 font-semibold text-xs tracking-wider text-slate-400 uppercase border-b border-slate-800 w-48">Created By</th>
-                    <th className="py-4 px-6 font-semibold text-xs tracking-wider text-slate-400 uppercase border-b border-slate-800 w-48">Created At</th>
-                    <th className="py-4 px-6 font-semibold text-xs tracking-wider text-slate-400 uppercase border-b border-slate-800 w-32 text-center">Actions</th>
+                    <th className="py-4 px-6 border-b border-slate-200 w-24 text-center">ID</th>
+                    <th className="py-4 px-6 border-b border-slate-200">Description</th>
+                    <th className="py-4 px-6 border-b border-slate-200 w-48">Created By</th>
+                    <th className="py-4 px-6 border-b border-slate-200 w-48">Created At</th>
+                    <th className="py-4 px-6 border-b border-slate-200 w-32 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/50 text-sm">
+                <tbody className="divide-y divide-slate-100 text-xs">
                   {workOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="py-12 text-center text-slate-500">
+                      <td colSpan="5" className="py-12 text-center text-slate-400 italic">
                         No work orders found. Click "Add Work Order" to create one.
                       </td>
                     </tr>
                   ) : (
                     workOrders.map((wo) => (
-                      <tr key={wo.wol_id} className="hover:bg-slate-800/20 transition-colors">
-                        <td className="py-3 px-6 text-slate-300 text-center font-mono">{wo.wol_id}</td>
-                        <td className="py-3 px-6 text-slate-200">{wo.wol_description}</td>
-                        <td className="py-3 px-6 text-slate-400">{wo.wol_create_by}</td>
-                        <td className="py-3 px-6 text-slate-400 text-xs">{new Date(wo.wol_create_at).toLocaleString()}</td>
+                      <tr key={wo.wol_id} className="hover:bg-slate-50 transition-colors">
+                        <td className="py-3 px-6 text-slate-600 text-center font-mono font-bold">{wo.wol_id}</td>
+                        <td className="py-3 px-6 text-slate-900 font-medium">{wo.wol_description}</td>
+                        <td className="py-3 px-6 text-slate-600">{wo.wol_create_by}</td>
+                        <td className="py-3 px-6 text-slate-500 font-mono text-[11px]">{new Date(wo.wol_create_at).toLocaleString()}</td>
                         <td className="py-3 px-6 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => openModal(wo)}
-                              className="p-1.5 text-amber-500 hover:bg-amber-500/10 rounded-lg transition-colors cursor-pointer"
+                              className="p-1.5 text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-all cursor-pointer shadow-xs"
                               title="Edit"
                             >
-                              <Edit2 className="h-4 w-4" />
+                              <Edit2 className="h-3.5 w-3.5" />
                             </button>
                             <button
                               onClick={() => handleDelete(wo.wol_id)}
-                              className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                              className="p-1.5 text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-all cursor-pointer shadow-xs"
                               title="Delete"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           </div>
                         </td>
@@ -232,26 +238,26 @@ export default function WorkOrderListView({ activeUser }) {
 
       {/* MODAL OVERLAY */}
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm z-50 p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animation-fade-in">
+        <div className="fixed inset-0 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs z-50 p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col text-xs font-sans">
 
-            <div className="flex justify-between items-center p-5 border-b border-slate-800 bg-slate-800/30">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                {editId ? <Edit2 className="h-5 w-5 text-sky-400" /> : <Plus className="h-5 w-5 text-sky-400" />}
+            <div className="flex justify-between items-center p-5 border-b border-slate-200 bg-slate-50">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2 uppercase">
+                {editId ? <Edit2 className="h-4 w-4 text-sky-600" /> : <Plus className="h-4 w-4 text-sky-600" />}
                 {editId ? 'Edit Work Order' : 'New Work Order'}
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer">
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer p-1">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
+            <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                  Task Description
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Task Description <span className="text-rose-600">*</span>
                 </label>
                 <textarea
-                  className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl p-3 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all resize-none"
+                  className="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl p-3 focus:outline-none focus:border-sky-500 focus:bg-white transition-all resize-none font-medium"
                   rows="5"
                   placeholder="Enter detailed maintenance instructions..."
                   value={formData.wol_description}
@@ -260,17 +266,17 @@ export default function WorkOrderListView({ activeUser }) {
                 />
               </div>
 
-              <div className="flex justify-end gap-3 mt-2">
+              <div className="flex justify-end gap-3 mt-2 pt-4 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl font-semibold text-white bg-sky-600 hover:bg-sky-500 shadow-lg shadow-sky-900/20 transition-all active:scale-95 cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl font-bold text-white bg-sky-600 hover:bg-sky-500 shadow-xs transition-all cursor-pointer"
                 >
                   {editId ? 'Save Changes' : 'Create Order'}
                 </button>
