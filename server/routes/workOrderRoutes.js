@@ -10,6 +10,7 @@ router.get('/student/:id', workOrderController.studentTask);
 router.put('/start-task/:id', workOrderController.startTask);
 router.put('/report/:id', workOrderController.reportTask);
 router.get('/view-report/:id', workOrderController.viewReport);
+router.get('/complete', workOrderController.getCompleteWorkOrders);
 
 
 module.exports = router;

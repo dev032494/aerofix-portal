@@ -16,23 +16,27 @@ import {
   GraduationCap,
   Wrench,
   CheckCircle2,
-  Calendar
+  Calendar,
+  FileText
 } from "lucide-react";
 
 // Import your views
 import AircraftDashboard from "./components/AircraftManager";
 import WorkOrderList from "./components/WorkOrderListView";
-import WorkOrderDashboard from "./components/WorkOrderDashboard"; 
+import WorkOrderDashboard from "./components/WorkOrderDashboard";
 import TeamRegistry from "./components/TeamRegistry";
-import LoginView from "./components/LoginView"; 
-import DeveloperLoginView from "./components/DeveloperLoginView"; 
-import ProfileView from "./components/ProfileView"; 
-import LibraryView from "./components/LibraryView"; 
-import UserActivationDashboard from "./components/UserActivationDashboard"; 
-import ActivityLogDashboard from "./components/ActivityLogDashboard"; 
+import LoginView from "./components/LoginView";
+import DeveloperLoginView from "./components/DeveloperLoginView";
+import ProfileView from "./components/ProfileView";
+import LibraryView from "./components/LibraryView";
+import UserActivationDashboard from "./components/UserActivationDashboard";
+import ActivityLogDashboard from "./components/ActivityLogDashboard";
 import InstructorView from "./components/InstructorView";
-import StudentTaskDashboard from "./components/StudentTaskDashboard"; 
+import StudentTaskDashboard from "./components/StudentTaskDashboard";
 import MaintenanceSchedulePlanning from "./components/MaintenanceSchedulePlanning";
+import Logbook from "./components/Logbook";
+
+import {workOrderService, logbookService} from "./services/api";
 
 // --- PROTECTED ROUTE INTERCEPTOR ---
 function ProtectedRoute({ children, currentUser }) {
@@ -56,11 +60,11 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
       text: "Are you sure you want to log out of Aeronexus?",
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#0284c7', 
-      cancelButtonColor: '#64748b', 
+      confirmButtonColor: '#0284c7',
+      cancelButtonColor: '#64748b',
       confirmButtonText: 'Yes, log out',
-      background: '#ffffff', 
-      color: '#0f172a' 
+      background: '#ffffff',
+      color: '#0f172a'
     });
 
     if (result.isConfirmed) {
@@ -74,17 +78,15 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
 
   // NavLink styling helper
   const navLinkClass = ({ isActive }) =>
-    `flex items-center gap-3 px-4 py-3 rounded-xl font-semibold w-full text-left transition-all cursor-pointer ${
-      isActive
-        ? "bg-sky-600 text-white shadow-md shadow-sky-600/10"
-        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+    `flex items-center gap-3 px-4 py-3 rounded-xl font-semibold w-full text-left transition-all cursor-pointer ${isActive
+      ? "bg-sky-600 text-white shadow-md shadow-sky-600/10"
+      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
     }`;
 
   const developerNavLinkClass = ({ isActive }, color) =>
-    `flex items-center gap-3 px-4 py-3 rounded-xl font-semibold w-full text-left transition-all cursor-pointer border ${
-      isActive
-        ? `bg-${color}-600 text-white shadow-md shadow-${color}-600/20 border-${color}-500/20`
-        : `text-${color}-700 hover:bg-${color}-50 hover:text-${color}-800 border-${color}-200`
+    `flex items-center gap-3 px-4 py-3 rounded-xl font-semibold w-full text-left transition-all cursor-pointer border ${isActive
+      ? `bg-${color}-600 text-white shadow-md shadow-${color}-600/20 border-${color}-500/20`
+      : `text-${color}-700 hover:bg-${color}-50 hover:text-${color}-800 border-${color}-200`
     }`;
 
   return (
@@ -116,19 +118,23 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
             </button>
           </div>
 
-          <nav className="p-4 space-y-1.5 mt-4 lg:mt-2">
+          <nav className="p-4 space-y-1.5 mt-4 lg:mt-2 overflow-y-auto max-h-[calc(100vh-14rem)]">
             {!isStudent && (
               <>
                 <NavLink to="work-orders" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
                   <Wrench className="h-5 w-5 shrink-0" /> Work Orders
                 </NavLink>
-                
+
                 <NavLink to="work-order-list" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
                   <ClipboardList className="h-5 w-5 shrink-0" /> Work Order List
                 </NavLink>
 
                 <NavLink to="maintenance-planning" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
                   <Calendar className="h-5 w-5 shrink-0" /> Maintenance Planning
+                </NavLink>
+
+                <NavLink to="logbook" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
+                  <FileText className="h-5 w-5 shrink-0" /> Flight Logbook
                 </NavLink>
 
                 <NavLink to="team" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
@@ -146,7 +152,6 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
                 <CheckCircle2 className="h-5 w-5 shrink-0" /> My Tasks
               </NavLink>
             )}
-
             <NavLink to="library" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
               <BookOpen className="h-5 w-5 shrink-0" /> Tech Library
             </NavLink>
@@ -193,9 +198,9 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
       )}
 
       {/* WORKSPACE VIEWPORT */}
-      <main className="flex-1 overflow-hidden p-3 sm:p-4 lg:p-4 pt-20 lg:pt-4 bg-slate-50 flex flex-col min-w-0">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 lg:p-4 pt-20 lg:pt-4 bg-slate-50 flex flex-col min-w-0">
         <div className="w-full h-full max-w-full px-0 mx-0 flex flex-col flex-1">
-          <Outlet /> 
+          <Outlet />
         </div>
       </main>
     </div>
@@ -229,57 +234,58 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route 
-          path="/login" 
+        <Route
+          path="/login"
           element={
             currentUser ? (
               <Navigate to="/dashboard" replace />
             ) : (
               <LoginView onLoginSuccess={(user) => setCurrentUser(user)} />
             )
-          } 
+          }
         />
 
-        <Route 
-          path="/developer-access" 
+        <Route
+          path="/developer-access"
           element={
             currentUser ? (
               <Navigate to="/dashboard" replace />
             ) : (
               <DeveloperLoginView onLoginSuccess={(user) => setCurrentUser(user)} />
             )
-          } 
+          }
         />
 
-        <Route 
-          path="/dashboard" 
+        <Route
+          path="/dashboard"
           element={
             <ProtectedRoute currentUser={currentUser}>
               <MainWorkspace currentUser={currentUser} setCurrentUser={setCurrentUser} />
             </ProtectedRoute>
-          } 
+          }
         >
           <Route index element={<Navigate to="library" replace />} />
-          
+
           <Route path="aircraft" element={!isStudent ? <AircraftDashboard /> : <Navigate to="library" />} />
           <Route path="work-orders" element={!isStudent ? <WorkOrderDashboard /> : <Navigate to="library" />} />
           <Route path="work-order-list" element={!isStudent ? <WorkOrderList /> : <Navigate to="library" />} />
           <Route path="maintenance-planning" element={!isStudent ? <MaintenanceSchedulePlanning /> : <Navigate to="library" />} />
           <Route path="team" element={!isStudent ? <TeamRegistry /> : <Navigate to="library" />} />
           <Route path="instructor" element={!isStudent ? <InstructorView /> : <Navigate to="library" />} />
-          
+
           <Route path="tasks" element={isStudent ? <StudentTaskDashboard /> : <Navigate to="library" />} />
 
+          <Route path="logbook" element={<Logbook />} />
           <Route path="library" element={<LibraryView />} />
           <Route path="profile" element={<ProfileView />} />
-          
+
           <Route path="activation-logs" element={isDeveloper ? <UserActivationDashboard /> : <Navigate to="library" />} />
           <Route path="activity-logs" element={isDeveloper ? <ActivityLogDashboard /> : <Navigate to="library" />} />
         </Route>
 
-        <Route 
-          path="*" 
-          element={<Navigate to={currentUser ? "/dashboard" : "/login"} replace />} 
+        <Route
+          path="*"
+          element={<Navigate to={currentUser ? "/dashboard" : "/login"} replace />}
         />
       </Routes>
     </Router>

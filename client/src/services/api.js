@@ -40,6 +40,7 @@ export const aircraftService = {
 
 export const workOrderService = {
   getAllWorkOrders: () => api.get('/work-orders'),
+  getCompleteWorkOrders: () => api.get('/work-orders/complete'),
   createWorkOrder: (data) => api.post('/work-orders', data),
   getInstructors: () => api.get('/instructors'),
   viewWorkOrderDetails: (id) => api.get(`/work-orders/view-details/${id}`),
@@ -125,5 +126,12 @@ export const maintenanceSchedulePlanningService = {
   getMaintenanceSchedule: (id) => api.get(`/maintenance-schedule/maintenance-schedule/${id}`),
 };
 
+export const logbookService = {
+  getAll: () => api.get('/logbook'),
+  create: (data) => api.post('/logbook', data),
+  viewReport: (id) => api.get(`/logbook/${id}`),
+  update: (id, data) => api.put(`/logbook/${id}`, data),
+  delete: (id) => api.delete(`/logbook/${id}`),
+};
 
 export default api;

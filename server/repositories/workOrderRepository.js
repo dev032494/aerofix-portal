@@ -32,6 +32,32 @@ class WorkOrderRepository extends BaseRepository {
     });
   }
 
+    async findAllComplete() {
+    return await super.findAll({
+      order: [['wo_work_order_number', 'DESC']], // Sorting by newest first
+      include: [
+        // 1. Fetch the Instructor's User Details
+        {
+          model: db.User,
+          as: 'instructor',
+          foreignKey: 'wo_instructor',
+          attributes: ['first_name', 'middle_name', 'last_name']
+        },
+        // 2. Fetch the Approver's User Details
+        {
+          model: db.User,
+          as: 'approver',
+          foreignKey: 'wo_approve_by',
+          attributes: ['first_name', 'middle_name', 'last_name']
+        },
+
+      ],
+      where: {
+        wo_status: 'complete'
+      }
+    });
+  }
+
   // View specific work order details using the custom Work Order Number
   async findByWorkOrderNumberWithDetails(workOrderNumber) {
     return await super.findOne({
