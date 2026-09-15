@@ -130,6 +130,7 @@ export const logbookService = {
   getAll: () => api.get('/logbook'),
   create: (data) => api.post('/logbook', data),
   viewReport: (id) => api.get(`/logbook/${id}`),
+  getWorkOrders: () => api.get('/logbook/no-logbooks'),
   update: (id, data) => api.put(`/logbook/${id}`, data),
   delete: (id) => api.delete(`/logbook/${id}`),
 };

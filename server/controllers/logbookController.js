@@ -10,7 +10,7 @@ const createLogbook = async (req, res) => {
     const { work_order_ref, aircraft_id, date, instructor, student, pilot_entries, aircraft_monitoring, fuel_oil, defects, component_changes, post_flight_signoff } = req.body;
     const work_order_id = work_order_ref;
     const details = JSON.stringify(req.body);
-    
+
     if (!work_order_id || !details) {
       return res.status(400).json({
         success: false,
@@ -74,11 +74,11 @@ const getAllLogbooks = async (req, res) => {
 };
 
 // Get all work orders that do not have a logbook yet
-const l = async (req, res) => {
+const getWorkOrders = async (req, res) => {
   try {
     const workOrders = await WorkOrder.findAll({
       where: literal(`wo_work_order_number NOT IN (SELECT work_order_id FROM logbooks WHERE work_order_id IS NOT NULL)`),
-      order: [['created_at', 'DESC']]
+      order: [['wo_work_order_number', 'ASC']]
     });
 
     return res.status(200).json({
@@ -200,5 +200,6 @@ module.exports = {
   getAllLogbooks,
   getLogbookById,
   updateLogbook,
-  deleteLogbook
+  deleteLogbook,
+  getWorkOrders
 };

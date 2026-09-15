@@ -70,8 +70,8 @@ export default function Logbook() {
 
     const fetchWorkOrders = async () => {
         try {
-            const response = await workOrderService.getCompleteWorkOrders();
-            const data = response.data || response;
+            const response = await logbookService.getWorkOrders();
+            const data = response.data?.data || response;
             setWorkOrders(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error('Failed to fetch work orders:', err);
