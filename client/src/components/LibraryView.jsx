@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
-import {
-  Search, BookOpen, Download, RefreshCw, FileText, Plus, X,
-  Eye, EyeOff, Maximize2, Minimize2, ChevronDown, ChevronRight, ListCollapse, Trash2
+import { 
+  Search, BookOpen, Download, RefreshCw, FileText, Plus, X, 
+  Eye, EyeOff, Maximize2, Minimize2, ChevronDown, ChevronRight, ListCollapse, Trash2 
 } from 'lucide-react';
 
 export default function LibraryView() {
@@ -10,7 +10,7 @@ export default function LibraryView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-
+  
   // Interactive PDF Outline Viewport States
   const [activeDoc, setActiveDoc] = useState(null);
   const [activeViewingUrl, setActiveViewingUrl] = useState('');
@@ -28,7 +28,7 @@ export default function LibraryView() {
     try {
       const token = localStorage.getItem('aerofix_token');
       if (!token) return null;
-
+      
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(
@@ -37,7 +37,7 @@ export default function LibraryView() {
           .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
           .join('')
       );
-
+      
       const parsed = JSON.parse(jsonPayload);
       return parsed.role?.toLowerCase() || parsed.role_id?.toLowerCase() || null;
     } catch (e) {
@@ -112,9 +112,9 @@ export default function LibraryView() {
     try {
       const token = localStorage.getItem('aerofix_token');
       await axios.post(`${getApiUrl()}/documents`, payload, {
-        headers: {
+        headers: { 
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}` 
         },
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -156,7 +156,7 @@ export default function LibraryView() {
   // Cross-Platform Universal Viewer URL Generator (Fixes Mobile/Tablet URL Parsing & Page Anchoring)
   const generateViewerUrl = useCallback((baseFileUrl, pageNumber = null) => {
     const isMobileOrTablet = /iPhone|iPad|iPod|Android|Tablet|Mobile/i.test(navigator.userAgent) || window.innerWidth < 1024;
-
+    
     let isLocalNetwork = false;
     try {
       const hostname = new URL(baseFileUrl).hostname;
@@ -168,11 +168,11 @@ export default function LibraryView() {
     // Mobile/tablet browsers (especially Android Chrome & iOS Safari) frequently ignore native #page=N hash fragments 
     // when loading raw PDF URLs directly in iframes. Using Google Docs Viewer with page queries or leveraging 
     // Mozilla's PDF.js viewer parameters guarantees explicit mobile/tablet page jumping functionality.
-    // if (isMobileOrTablet && !isLocalNetwork) {
-    //   // Google Docs Viewer parameter standard for targeting specific pages
-    //   const pageQuery = pageNumber ? `&asov=1&page=${pageNumber}` : '';
-    //   return `https://docs.google.com/viewer?url=${encodeURIComponent(baseFileUrl)}${pageQuery}&embedded=true`;
-    // }
+    if (isMobileOrTablet && !isLocalNetwork) {
+      // Google Docs Viewer parameter standard for targeting specific pages
+      const pageQuery = pageNumber ? `&asov=1&page=${pageNumber}` : '';
+      return `https://docs.google.com/viewer?url=${encodeURIComponent(baseFileUrl)}${pageQuery}&embedded=true`;
+    }
 
     // Desktop and local network fallback using standard PDF anchor fragments
     const hashParams = pageNumber ? `#page=${pageNumber}&view=FitH` : `#view=FitH`;
@@ -195,14 +195,14 @@ export default function LibraryView() {
   const handleJumpToPage = useCallback((pageNumber) => {
     if (!pageNumber || !activeDoc) return;
     const baseFileUrl = getDocUrl(activeDoc.file_path);
-
+    
     // Fully unmount iframe (clear URL) then reload with target page hash/query parameter 
     // to force mobile and tablet browser PDF rendering engines to execute page navigation.
     setActiveViewingUrl('');
     setTimeout(() => {
       setActiveViewingUrl(generateViewerUrl(baseFileUrl, pageNumber));
     }, 60);
-
+    
     // Auto-hide TOC sidebar on mobile/tablet after clicking a bookmark to maximize viewport space
     if (window.innerWidth < 1024) {
       setShowTocSidebar(false);
@@ -220,8 +220,8 @@ export default function LibraryView() {
             <li key={index} className="text-xs">
               <div className="flex items-center gap-1 group py-1.5 px-2 rounded-lg hover:bg-slate-100 active:bg-slate-200 cursor-pointer transition-colors select-none">
                 {hasChildren ? (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }} 
                     className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer shrink-0"
                   >
                     {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
@@ -229,8 +229,8 @@ export default function LibraryView() {
                 ) : (
                   <span className="w-5 shrink-0" />
                 )}
-
-                <span
+                
+                <span 
                   onClick={() => item.pageNumber && handleJumpToPage(item.pageNumber)}
                   className={`flex-1 truncate ${item.pageNumber ? 'text-slate-700 hover:text-sky-600 font-medium' : 'text-slate-500'}`}
                   title={`${item.title} ${item.pageNumber ? `(Page ${item.pageNumber})` : ''}`}
@@ -262,36 +262,36 @@ export default function LibraryView() {
 
   return (
     <div className="w-full h-[calc(100vh-6rem)] md:h-[calc(100vh-4rem)] flex flex-col gap-4 animate-fadeIn relative overflow-hidden text-slate-900 p-2 sm:p-4 bg-slate-50">
-
+      
       <div className="flex-1 w-full flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden relative">
-
+        
         <section className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden transition-all duration-300 
           ${activeViewingUrl ? 'hidden lg:flex lg:max-w-[35%] xl:max-w-[30%]' : 'flex'}`}>
-
+          
           <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex flex-col gap-3 shrink-0">
             <div className="flex items-center justify-between gap-2">
               <span className="font-black text-xs uppercase tracking-widest text-sky-600 flex items-center gap-1.5 truncate">
                 <BookOpen className="h-4 w-4 shrink-0" /> Systems Catalog
               </span>
-
+              
               {canUpload && (
-                <button
-                  onClick={() => setActiveModal('upload')}
+                <button 
+                  onClick={() => setActiveModal('upload')} 
                   className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 cursor-pointer transition-colors shadow-sm shrink-0"
                 >
                   <Plus className="h-3.5 w-3.5" /> <span className="hidden xs:inline">Upload PDF</span>
                 </button>
               )}
             </div>
-
+            
             <div className="relative flex-1 text-sm">
               <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-slate-900 text-xs focus:outline-none focus:border-sky-500 focus:bg-white transition-colors"
-                placeholder="Search PDF indices, titles, TOC..."
+              <input 
+                type="text" 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-slate-900 text-xs focus:outline-none focus:border-sky-500 focus:bg-white transition-colors" 
+                placeholder="Search PDF indices, titles, TOC..." 
               />
             </div>
           </div>
@@ -310,8 +310,8 @@ export default function LibraryView() {
               const isCurrentlyViewing = activeViewingUrl && activeDoc?.id === doc.id;
 
               return (
-                <div
-                  key={doc.id}
+                <div 
+                  key={doc.id} 
                   onClick={() => handleDocumentToggle(doc)}
                   className={`p-4 rounded-xl flex justify-between items-center gap-3 transition-all border group cursor-pointer shadow-sm ${isCurrentlyViewing ? 'bg-sky-50 border-sky-300 shadow-sky-100' : 'bg-white border-slate-200 hover:border-slate-300'}`}
                 >
@@ -325,9 +325,9 @@ export default function LibraryView() {
                       </span>
                     </div>
                   </div>
-
+                  
                   <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 p-1 rounded-xl shrink-0" onClick={(e) => e.stopPropagation()}>
-                    <button
+                    <button 
                       onClick={() => handleDocumentToggle(doc)}
                       title={isCurrentlyViewing ? "Close Digital Viewer" : "Open PDF Outlines Viewer"}
                       className={`p-1.5 sm:p-2 rounded-lg cursor-pointer transition-all ${isCurrentlyViewing ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'}`}
@@ -337,11 +337,11 @@ export default function LibraryView() {
                     <a href={getDocUrl(doc.file_path)} target="_blank" rel="noreferrer" title="Force Open in New Tab" className="p-1.5 sm:p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 rounded-lg transition-colors hidden sm:block">
                       <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </a>
-
+                    
                     {canUpload && (
-                      <button
-                        onClick={(e) => handleDeleteDocument(doc.id, e)}
-                        title="De-index Document"
+                      <button 
+                        onClick={(e) => handleDeleteDocument(doc.id, e)} 
+                        title="De-index Document" 
                         className="p-1.5 sm:p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                       >
                         <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -357,7 +357,7 @@ export default function LibraryView() {
         {activeViewingUrl && activeDoc && (
           <section className={`h-full bg-white border border-slate-200 rounded-2xl flex flex-col overflow-hidden shadow-md transition-all duration-300 min-w-0 w-full 
             ${isFullscreenViewer ? 'lg:flex-1' : 'lg:flex-[0_0_65%] xl:flex-[0_0_70%]'}`}>
-
+            
             <div className="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center px-3 sm:px-4 shrink-0 h-14">
               <div className="flex items-center gap-2 truncate max-w-[50%] sm:max-w-[70%]">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0 shadow-sm" />
@@ -365,9 +365,9 @@ export default function LibraryView() {
                   {activeDoc.title}
                 </span>
               </div>
-
+              
               <div className="flex items-center gap-1 sm:gap-1.5 bg-white p-1 border border-slate-200 rounded-xl shrink-0 shadow-sm">
-                <button
+                <button 
                   onClick={() => setShowTocSidebar(!showTocSidebar)}
                   title="Toggle Table of Contents"
                   className={`p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer transition-colors ${showTocSidebar ? 'bg-sky-100 text-sky-700' : ''}`}
@@ -381,7 +381,7 @@ export default function LibraryView() {
                 >
                   {isFullscreenViewer ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                 </button>
-                <button
+                <button 
                   onClick={() => { setActiveViewingUrl(''); setActiveDoc(null); setIsFullscreenViewer(false); }}
                   className="p-1.5 rounded-lg text-slate-600 hover:text-rose-600 hover:bg-rose-50 cursor-pointer transition-colors"
                   title="Close Reader Console"
@@ -390,9 +390,9 @@ export default function LibraryView() {
                 </button>
               </div>
             </div>
-
+            
             <div className="flex-1 bg-slate-100 flex h-full w-full overflow-hidden relative">
-
+              
               {showTocSidebar && (
                 <aside className="absolute inset-y-0 left-0 z-30 w-72 md:relative border-r border-slate-200 bg-white/95 md:bg-white/80 backdrop-blur-md shrink-0 flex flex-col h-full overflow-hidden shadow-xl md:shadow-none animate-slideIn">
                   <div className="p-3 bg-slate-50/80 border-b border-slate-200 shrink-0 flex justify-between items-center">
@@ -414,8 +414,8 @@ export default function LibraryView() {
               )}
 
               <div className="flex-1 p-1 md:p-2.5 relative h-full w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
-                <iframe
-                  key={activeViewingUrl}
+                <iframe 
+                  key={activeViewingUrl} 
                   src={activeViewingUrl}
                   className="w-full h-full rounded-xl bg-slate-200 border border-slate-300 shadow-inner"
                   title="AeroFix Integrated Document Workspace Console"
@@ -442,22 +442,22 @@ export default function LibraryView() {
             <form onSubmit={handleUploadSubmit} className="p-4 sm:p-5 space-y-4 overflow-y-auto text-xs bg-white">
               <div>
                 <label className="block font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Document Title *</label>
-                <input
-                  type="text"
-                  name="title"
-                  required
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-sky-500 focus:bg-white font-sans text-sm transition-colors"
-                  placeholder="e.g., Cessna Maintenance Outline"
+                <input 
+                  type="text" 
+                  name="title" 
+                  required 
+                  value={formData.title} 
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-sky-500 focus:bg-white font-sans text-sm transition-colors" 
+                  placeholder="e.g., Cessna Maintenance Outline" 
                 />
               </div>
-
+              
               <div>
                 <label className="block font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Binary PDF Document File *</label>
                 <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-slate-400 hover:bg-slate-100 transition-colors bg-slate-50 relative cursor-pointer">
-                  <input
-                    type="file"
+                  <input 
+                    type="file" 
                     accept="application/pdf"
                     required
                     onChange={(e) => setSelectedFile(e.target.files[0])}
@@ -480,8 +480,8 @@ export default function LibraryView() {
                     <span>{uploadProgress}%</span>
                   </div>
                   <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-sky-500 transition-all duration-300"
+                    <div 
+                      className="h-full bg-sky-500 transition-all duration-300" 
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
@@ -489,15 +489,15 @@ export default function LibraryView() {
               )}
 
               <div className="pt-4 flex gap-2 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => { setActiveModal(null); setFormData({ title: '' }); setSelectedFile(null); }}
+                <button 
+                  type="button" 
+                  onClick={() => { setActiveModal(null); setFormData({ title: '' }); setSelectedFile(null); }} 
                   className="w-1/2 bg-slate-200 hover:bg-slate-300 py-2.5 text-slate-700 font-bold rounded-xl cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
+                <button 
+                  type="submit" 
                   disabled={loading}
                   className="w-1/2 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-300 disabled:text-slate-500 py-2.5 text-white font-bold rounded-xl shadow-sm cursor-pointer transition-colors"
                 >
