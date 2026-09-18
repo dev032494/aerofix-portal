@@ -21,6 +21,9 @@ export default function LibraryView() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({ title: '' });
   const [selectedFile, setSelectedFile] = useState(null);
+  
+  // Local Preview State for Uploaded File
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const getApiUrl = () => import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
@@ -98,6 +101,19 @@ export default function LibraryView() {
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, handleSearch]);
 
+  // Generate and cleanup local preview URL when selectedFile changes
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreviewUrl(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(selectedFile);
+    setPreviewUrl(objectUrl);
+    
+    // Cleanup to prevent memory leaks
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedFile]);
+
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!canUpload) return alert('Access Denied.');
@@ -122,10 +138,7 @@ export default function LibraryView() {
         }
       });
 
-      setActiveModal(null);
-      setFormData({ title: '' });
-      setSelectedFile(null);
-      setUploadProgress(0);
+      closeUploadModal();
       fetchCatalog();
     } catch (err) {
       alert(err.response?.data?.message || err.message || 'Processing failed.');
@@ -133,6 +146,13 @@ export default function LibraryView() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const closeUploadModal = () => {
+    setActiveModal(null);
+    setFormData({ title: '' });
+    setSelectedFile(null);
+    setUploadProgress(0);
   };
 
   const handleDeleteDocument = async (id, e) => {
@@ -153,7 +173,6 @@ export default function LibraryView() {
     }
   };
 
-  // Cross-Platform Universal Viewer URL Generator (Fixes Mobile/Tablet URL Parsing & Page Anchoring)
   const generateViewerUrl = useCallback((baseFileUrl, pageNumber = null) => {
     const isMobileOrTablet = /iPhone|iPad|iPod|Android|Tablet|Mobile/i.test(navigator.userAgent) || window.innerWidth < 1024;
     
@@ -165,16 +184,11 @@ export default function LibraryView() {
       isLocalNetwork = true;
     }
 
-    // Mobile/tablet browsers (especially Android Chrome & iOS Safari) frequently ignore native #page=N hash fragments 
-    // when loading raw PDF URLs directly in iframes. Using Google Docs Viewer with page queries or leveraging 
-    // Mozilla's PDF.js viewer parameters guarantees explicit mobile/tablet page jumping functionality.
     if (isMobileOrTablet && !isLocalNetwork) {
-      // Google Docs Viewer parameter standard for targeting specific pages
       const pageQuery = pageNumber ? `&asov=1&page=${pageNumber}` : '';
       return `https://docs.google.com/viewer?url=${encodeURIComponent(baseFileUrl)}${pageQuery}&embedded=true`;
     }
 
-    // Desktop and local network fallback using standard PDF anchor fragments
     const hashParams = pageNumber ? `#page=${pageNumber}&view=FitH` : `#view=FitH`;
     return `${baseFileUrl}${hashParams}`;
   }, []);
@@ -196,14 +210,11 @@ export default function LibraryView() {
     if (!pageNumber || !activeDoc) return;
     const baseFileUrl = getDocUrl(activeDoc.file_path);
     
-    // Fully unmount iframe (clear URL) then reload with target page hash/query parameter 
-    // to force mobile and tablet browser PDF rendering engines to execute page navigation.
     setActiveViewingUrl('');
     setTimeout(() => {
       setActiveViewingUrl(generateViewerUrl(baseFileUrl, pageNumber));
     }, 60);
     
-    // Auto-hide TOC sidebar on mobile/tablet after clicking a bookmark to maximize viewport space
     if (window.innerWidth < 1024) {
       setShowTocSidebar(false);
     }
@@ -431,10 +442,11 @@ export default function LibraryView() {
 
       {activeModal === 'upload' && canUpload && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white border border-slate-200 w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+          {/* Increased max-width to max-w-lg to accommodate the preview pane comfortably */}
+          <div className="bg-white border border-slate-200 w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
             <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
               <h3 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider">Index & Upload New PDF Manual</h3>
-              <button onClick={() => { setActiveModal(null); setFormData({ title: '' }); setSelectedFile(null); }} className="text-slate-500 hover:text-slate-800 p-1 cursor-pointer">
+              <button onClick={closeUploadModal} className="text-slate-500 hover:text-slate-800 p-1 cursor-pointer">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -473,6 +485,21 @@ export default function LibraryView() {
                 </div>
               </div>
 
+              {/* Local File Preview Pane */}
+              {previewUrl && (
+                <div className="border border-slate-200 rounded-xl overflow-hidden h-64 relative bg-slate-100 shadow-inner">
+                  <div className="absolute top-0 left-0 right-0 bg-slate-800 text-slate-200 text-[10px] px-3 py-1.5 font-mono flex justify-between z-10">
+                    <span className="font-bold">Local File Preview</span>
+                    <span className="truncate ml-4 max-w-[200px]">{selectedFile.name}</span>
+                  </div>
+                  <iframe 
+                    src={`${previewUrl}#toolbar=0&view=FitH`} 
+                    className="w-full h-full pt-6" 
+                    title="Upload Local Preview"
+                  />
+                </div>
+              )}
+
               {uploadProgress > 0 && (
                 <div className="space-y-1.5 pt-1">
                   <div className="flex justify-between font-mono text-[10px] text-slate-500 font-bold">
@@ -491,7 +518,7 @@ export default function LibraryView() {
               <div className="pt-4 flex gap-2 border-t border-slate-200">
                 <button 
                   type="button" 
-                  onClick={() => { setActiveModal(null); setFormData({ title: '' }); setSelectedFile(null); }} 
+                  onClick={closeUploadModal} 
                   className="w-1/2 bg-slate-200 hover:bg-slate-300 py-2.5 text-slate-700 font-bold rounded-xl cursor-pointer transition-colors"
                 >
                   Cancel
