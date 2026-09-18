@@ -156,14 +156,14 @@ export default function LibraryView() {
   // Cross-Platform Universal Viewer URL Generator (Fixes Mobile/Tablet URL Parsing & Page Anchoring)
   const generateViewerUrl = useCallback((baseFileUrl, pageNumber = null) => {
     const isMobileOrTablet = /iPhone|iPad|iPod|Android|Tablet|Mobile/i.test(navigator.userAgent) || window.innerWidth < 1024;
-    const hostname = new URL(baseFileUrl).hostname;
-    // let isLocalNetwork = false;
-    // try {
-    //   const hostname = new URL(baseFileUrl).hostname;
-    //   isLocalNetwork = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.');
-    // } catch (e) {
-    //   isLocalNetwork = true;
-    // }
+
+    let isLocalNetwork = false;
+    try {
+      const hostname = new URL(baseFileUrl).hostname;
+      isLocalNetwork = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.');
+    } catch (e) {
+      isLocalNetwork = true;
+    }
 
     // Mobile/tablet browsers (especially Android Chrome & iOS Safari) frequently ignore native #page=N hash fragments 
     // when loading raw PDF URLs directly in iframes. Using Google Docs Viewer with page queries or leveraging 
