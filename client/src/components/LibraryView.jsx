@@ -103,15 +103,15 @@ export default function LibraryView() {
     script.src = 'https://acrobatservices.adobe.com/view-sdk/viewer.js';
     script.async = true;
     
-    document.addEventListener("adobe_dc_view_sdk.ready", () => {
+    const handleSdkReady = () => {
       setIsAdobeSdkReady(true);
-    });
+    };
 
+    document.addEventListener("adobe_dc_view_sdk.ready", handleSdkReady);
     document.body.appendChild(script);
 
     return () => {
-      // Cleanup event listener if unmounted
-      document.removeEventListener("adobe_dc_view_sdk.ready", () => {});
+      document.removeEventListener("adobe_dc_view_sdk.ready", handleSdkReady);
     };
   }, []);
 
