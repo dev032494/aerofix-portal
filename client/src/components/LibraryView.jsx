@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import axios from 'axios';
 import { 
-  Search, BookOpen, Download, RefreshCw, FileText, Plus, X, 
+  Search, BookOpen, RefreshCw, FileText, Plus, X, 
   Eye, EyeOff, Maximize2, Minimize2, ChevronDown, ChevronRight, ListCollapse, Trash2 
 } from 'lucide-react';
 
@@ -13,16 +13,17 @@ export default function LibraryView() {
   
   // Interactive PDF Outline Viewport States
   const [activeDoc, setActiveDoc] = useState(null);
-  const [activeViewingUrl, setActiveViewingUrl] = useState('');
   const [isFullscreenViewer, setIsFullscreenViewer] = useState(false);
   const [showTocSidebar, setShowTocSidebar] = useState(false);
+
+  // Adobe PDF Embed API States
+  const [isAdobeSdkReady, setIsAdobeSdkReady] = useState(false);
+  const adobeViewerApiRef = useRef(null);
 
   const [activeModal, setActiveModal] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({ title: '' });
   const [selectedFile, setSelectedFile] = useState(null);
-  
-  // Local Preview State for Uploaded File
   const [previewUrl, setPreviewUrl] = useState(null);
 
   const getApiUrl = () => import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
@@ -31,26 +32,18 @@ export default function LibraryView() {
     try {
       const token = localStorage.getItem('aerofix_token');
       if (!token) return null;
-      
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
+        atob(base64).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
       );
-      
-      const parsed = JSON.parse(jsonPayload);
-      return parsed.role?.toLowerCase() || parsed.role_id?.toLowerCase() || null;
+      return JSON.parse(jsonPayload).role?.toLowerCase() || JSON.parse(jsonPayload).role_id?.toLowerCase() || null;
     } catch (e) {
       return null;
     }
   }, []);
 
-  const canUpload = useMemo(() => {
-    return ['developer', 'admin', 'instructor'].includes(userRole);
-  }, [userRole]);
+  const canUpload = useMemo(() => ['developer', 'admin', 'instructor'].includes(userRole), [userRole]);
 
   const getDocUrl = (path) => {
     if (!path) return '';
@@ -95,13 +88,22 @@ export default function LibraryView() {
   }, []);
 
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      handleSearch(searchTerm);
-    }, 400);
+    const delayDebounceFn = setTimeout(() => handleSearch(searchTerm), 400);
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, handleSearch]);
 
-  // Generate and cleanup local preview URL when selectedFile changes
+  // Inject Adobe PDF Embed API Script
+  useEffect(() => {
+    if (window.AdobeDC) {
+      setIsAdobeSdkReady(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://documentcloud.adobe.com/view-sdk/main.js';
+    script.onload = () => setIsAdobeSdkReady(true);
+    document.body.appendChild(script);
+  }, []);
+
   useEffect(() => {
     if (!selectedFile) {
       setPreviewUrl(null);
@@ -109,10 +111,40 @@ export default function LibraryView() {
     }
     const objectUrl = URL.createObjectURL(selectedFile);
     setPreviewUrl(objectUrl);
-    
-    // Cleanup to prevent memory leaks
     return () => URL.revokeObjectURL(objectUrl);
   }, [selectedFile]);
+
+  // Initialize Adobe Viewer when activeDoc and SDK are ready
+  useEffect(() => {
+    if (isAdobeSdkReady && activeDoc) {
+      const url = getDocUrl(activeDoc.file_path);
+      
+      // REQUIRES A VALID ADOBE CLIENT ID IN YOUR .env FILE
+      const clientId = import.meta.env.VITE_ADOBE_CLIENT_ID || 'YOUR_ADOBE_CLIENT_ID';
+      
+      const adobeDCView = new window.AdobeDC.View({
+        clientId: clientId,
+        divId: 'adobe-dc-view',
+      });
+
+      const viewerConfig = {
+        embedMode: 'SIZED_CONTAINER',
+        showDownloadPDF: true,
+        showPrintPDF: false,
+        showLeftHandPanel: false, // Disabling Adobe's panel to use your custom TOC
+      };
+
+      adobeDCView.previewFile({
+        content: { location: { url } },
+        metaData: { fileName: activeDoc.title }
+      }, viewerConfig)
+      .then(viewer => viewer.getAPIs())
+      .then(apis => {
+        adobeViewerApiRef.current = apis;
+      })
+      .catch(console.error);
+    }
+  }, [activeDoc, isAdobeSdkReady]);
 
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
@@ -133,8 +165,7 @@ export default function LibraryView() {
           Authorization: `Bearer ${token}` 
         },
         onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percentCompleted);
+          setUploadProgress(Math.round((progressEvent.loaded * 100) / progressEvent.total));
         }
       });
 
@@ -165,7 +196,7 @@ export default function LibraryView() {
       });
       if (activeDoc?.id === id) {
         setActiveDoc(null);
-        setActiveViewingUrl('');
+        adobeViewerApiRef.current = null;
       }
       fetchCatalog();
     } catch (err) {
@@ -173,52 +204,28 @@ export default function LibraryView() {
     }
   };
 
-  const generateViewerUrl = useCallback((baseFileUrl, pageNumber = null) => {
-    const isMobileOrTablet = /iPhone|iPad|iPod|Android|Tablet|Mobile/i.test(navigator.userAgent) || window.innerWidth < 1024;
-    
-    let isLocalNetwork = false;
-    try {
-      const hostname = new URL(baseFileUrl).hostname;
-      isLocalNetwork = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.');
-    } catch (e) {
-      isLocalNetwork = true;
-    }
-
-    if (isMobileOrTablet && !isLocalNetwork) {
-      const pageQuery = pageNumber ? `&asov=1&page=${pageNumber}` : '';
-      return `https://docs.google.com/viewer?url=${encodeURIComponent(baseFileUrl)}${pageQuery}&embedded=true`;
-    }
-
-    const hashParams = pageNumber ? `#page=${pageNumber}&view=FitH` : `#view=FitH`;
-    return `${baseFileUrl}${hashParams}`;
-  }, []);
-
   const handleDocumentToggle = (doc) => {
-    const docFileUrl = getDocUrl(doc.file_path);
-    const isCurrentlyViewing = activeViewingUrl && activeDoc?.id === doc.id;
-
-    if (isCurrentlyViewing) {
-      setActiveViewingUrl('');
+    if (activeDoc?.id === doc.id) {
       setActiveDoc(null);
+      adobeViewerApiRef.current = null;
     } else {
       setActiveDoc(doc);
-      setActiveViewingUrl(generateViewerUrl(docFileUrl));
     }
   };
 
+  // Uses Adobe Viewer API to jump to pages instead of reloading an iframe
   const handleJumpToPage = useCallback((pageNumber) => {
     if (!pageNumber || !activeDoc) return;
-    const baseFileUrl = getDocUrl(activeDoc.file_path);
     
-    setActiveViewingUrl('');
-    setTimeout(() => {
-      setActiveViewingUrl(generateViewerUrl(baseFileUrl, pageNumber));
-    }, 60);
+    if (adobeViewerApiRef.current) {
+      adobeViewerApiRef.current.gotoLocation(parseInt(pageNumber))
+        .catch(err => console.error("Adobe Page Jump Failed:", err));
+    }
     
     if (window.innerWidth < 1024) {
       setShowTocSidebar(false);
     }
-  }, [activeDoc, generateViewerUrl]);
+  }, [activeDoc]);
 
   const TocTree = ({ items }) => {
     return (
@@ -277,7 +284,7 @@ export default function LibraryView() {
       <div className="flex-1 w-full flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden relative">
         
         <section className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden transition-all duration-300 
-          ${activeViewingUrl ? 'hidden lg:flex lg:max-w-[35%] xl:max-w-[30%]' : 'flex'}`}>
+          ${activeDoc ? 'hidden lg:flex lg:max-w-[35%] xl:max-w-[30%]' : 'flex'}`}>
           
           <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex flex-col gap-3 shrink-0">
             <div className="flex items-center justify-between gap-2">
@@ -318,7 +325,7 @@ export default function LibraryView() {
                 No technical documents found matching search terms.
               </div>
             ) : documents.map(doc => {
-              const isCurrentlyViewing = activeViewingUrl && activeDoc?.id === doc.id;
+              const isCurrentlyViewing = activeDoc?.id === doc.id;
 
               return (
                 <div 
@@ -365,13 +372,13 @@ export default function LibraryView() {
           </div>
         </section>
 
-        {activeViewingUrl && activeDoc && (
+        {activeDoc && (
           <section className={`h-full bg-white border border-slate-200 rounded-2xl flex flex-col overflow-hidden shadow-md transition-all duration-300 min-w-0 w-full 
             ${isFullscreenViewer ? 'lg:flex-1' : 'lg:flex-[0_0_65%] xl:flex-[0_0_70%]'}`}>
             
-            <div className="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center px-3 sm:px-4 shrink-0 h-14">
+            <div className="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center px-3 sm:px-4 shrink-0 h-14 relative z-20">
               <div className="flex items-center gap-2 truncate max-w-[50%] sm:max-w-[70%]">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0 shadow-sm" />
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" />
                 <span className="font-black text-xs md:text-sm text-slate-800 font-sans truncate tracking-wide uppercase" title={activeDoc.title}>
                   {activeDoc.title}
                 </span>
@@ -393,7 +400,7 @@ export default function LibraryView() {
                   {isFullscreenViewer ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                 </button>
                 <button 
-                  onClick={() => { setActiveViewingUrl(''); setActiveDoc(null); setIsFullscreenViewer(false); }}
+                  onClick={() => { setActiveDoc(null); adobeViewerApiRef.current = null; setIsFullscreenViewer(false); }}
                   className="p-1.5 rounded-lg text-slate-600 hover:text-rose-600 hover:bg-rose-50 cursor-pointer transition-colors"
                   title="Close Reader Console"
                 >
@@ -424,16 +431,9 @@ export default function LibraryView() {
                 </aside>
               )}
 
-              <div className="flex-1 p-1 md:p-2.5 relative h-full w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
-                <iframe 
-                  key={activeViewingUrl} 
-                  src={activeViewingUrl}
-                  className="w-full h-full rounded-xl bg-slate-200 border border-slate-300 shadow-inner"
-                  title="AeroFix Integrated Document Workspace Console"
-                  allow="autoplay; fullscreen"
-                  loading="lazy"
-                  frameBorder="0"
-                />
+              <div className="flex-1 p-1 md:p-2.5 relative h-full w-full bg-slate-200" style={{ WebkitOverflowScrolling: 'touch' }}>
+                {/* Adobe PDF Embed API Render Target */}
+                <div id="adobe-dc-view" className="w-full h-full rounded-xl border border-slate-300 shadow-inner overflow-hidden" />
               </div>
             </div>
           </section>
@@ -442,7 +442,6 @@ export default function LibraryView() {
 
       {activeModal === 'upload' && canUpload && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          {/* Increased max-width to max-w-lg to accommodate the preview pane comfortably */}
           <div className="bg-white border border-slate-200 w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
             <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
               <h3 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider">Index & Upload New PDF Manual</h3>
@@ -485,7 +484,6 @@ export default function LibraryView() {
                 </div>
               </div>
 
-              {/* Local File Preview Pane */}
               {previewUrl && (
                 <div className="border border-slate-200 rounded-xl overflow-hidden h-64 relative bg-slate-100 shadow-inner">
                   <div className="absolute top-0 left-0 right-0 bg-slate-800 text-slate-200 text-[10px] px-3 py-1.5 font-mono flex justify-between z-10">
