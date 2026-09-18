@@ -92,16 +92,27 @@ export default function LibraryView() {
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, handleSearch]);
 
-  // Inject Adobe PDF Embed API Script
+  // Inject Adobe Acrobat Services View SDK Script & Listen for Ready Event
   useEffect(() => {
     if (window.AdobeDC) {
       setIsAdobeSdkReady(true);
       return;
     }
+
     const script = document.createElement('script');
-    script.src = 'https://documentcloud.adobe.com/view-sdk/main.js';
-    script.onload = () => setIsAdobeSdkReady(true);
+    script.src = 'https://acrobatservices.adobe.com/view-sdk/viewer.js';
+    script.async = true;
+    
+    document.addEventListener("adobe_dc_view_sdk.ready", () => {
+      setIsAdobeSdkReady(true);
+    });
+
     document.body.appendChild(script);
+
+    return () => {
+      // Cleanup event listener if unmounted
+      document.removeEventListener("adobe_dc_view_sdk.ready", () => {});
+    };
   }, []);
 
   useEffect(() => {
@@ -114,42 +125,39 @@ export default function LibraryView() {
     return () => URL.revokeObjectURL(objectUrl);
   }, [selectedFile]);
 
-  // Initialize Adobe Viewer optimized with touch support
+  // Initialize Adobe Viewer using the official ready pattern when activeDoc is selected
   useEffect(() => {
     if (isAdobeSdkReady && activeDoc) {
       const url = getDocUrl(activeDoc.file_path);
       const clientId = '801991edca6e44fa89553415d84b81ef';
       
-      // Clear previous view container contents if any
       const container = document.getElementById('adobe-dc-view');
       if (container) container.innerHTML = '';
 
-      const adobeDCView = new window.AdobeDC.View({
-        clientId: clientId,
-        divId: 'adobe-dc-view',
-      });
+      if (window.AdobeDC) {
+        const adobeDCView = new window.AdobeDC.View({
+          clientId: clientId,
+          divId: 'adobe-dc-view',
+        });
 
-      const isMobile = window.innerWidth < 1024;
+        const viewerConfig = {
+          embedMode: 'SIZED_CONTAINER',
+          showDownloadPDF: true,
+          showPrintPDF: false,
+          showLeftHandPanel: false,
+          defaultViewMode: 'FIT_PAGE',
+        };
 
-      const viewerConfig = {
-        // Use SIZED_CONTAINER, but allow mobile touch event propagation natively
-        embedMode: 'SIZED_CONTAINER',
-        showDownloadPDF: true,
-        showPrintPDF: false,
-        showLeftHandPanel: false,
-        // Optimize touch scrolling and interaction behavior for touch screens
-        defaultViewMode: 'FIT_PAGE',
-      };
-
-      adobeDCView.previewFile({
-        content: { location: { url } },
-        metaData: { fileName: activeDoc.title }
-      }, viewerConfig)
-      .then(viewer => viewer.getAPIs())
-      .then(apis => {
-        adobeViewerApiRef.current = apis;
-      })
-      .catch(console.error);
+        adobeDCView.previewFile({
+          content: { location: { url } },
+          metaData: { fileName: activeDoc.title }
+        }, viewerConfig)
+        .then(viewer => viewer.getAPIs())
+        .then(apis => {
+          adobeViewerApiRef.current = apis;
+        })
+        .catch(console.error);
+      }
     }
   }, [activeDoc, isAdobeSdkReady]);
 
@@ -437,7 +445,6 @@ export default function LibraryView() {
                 </aside>
               )}
 
-              {/* Added touch-pan-y and touch-action styling to allow smooth touch manipulation inside the container */}
               <div 
                 className="flex-1 p-1 md:p-2.5 relative h-full w-full bg-slate-200 touch-pan-y" 
                 style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y pinch-zoom' }}
