@@ -114,24 +114,31 @@ export default function LibraryView() {
     return () => URL.revokeObjectURL(objectUrl);
   }, [selectedFile]);
 
-  // Initialize Adobe Viewer with your provided Client ID
+  // Initialize Adobe Viewer optimized with touch support
   useEffect(() => {
     if (isAdobeSdkReady && activeDoc) {
       const url = getDocUrl(activeDoc.file_path);
-      
-      // Configured with your explicit Adobe Client ID
       const clientId = '801991edca6e44fa89553415d84b81ef';
       
+      // Clear previous view container contents if any
+      const container = document.getElementById('adobe-dc-view');
+      if (container) container.innerHTML = '';
+
       const adobeDCView = new window.AdobeDC.View({
         clientId: clientId,
         divId: 'adobe-dc-view',
       });
 
+      const isMobile = window.innerWidth < 1024;
+
       const viewerConfig = {
+        // Use SIZED_CONTAINER, but allow mobile touch event propagation natively
         embedMode: 'SIZED_CONTAINER',
         showDownloadPDF: true,
         showPrintPDF: false,
-        showLeftHandPanel: false, // Disabling Adobe's panel to use your custom TOC tree
+        showLeftHandPanel: false,
+        // Optimize touch scrolling and interaction behavior for touch screens
+        defaultViewMode: 'FIT_PAGE',
       };
 
       adobeDCView.previewFile({
@@ -430,7 +437,11 @@ export default function LibraryView() {
                 </aside>
               )}
 
-              <div className="flex-1 p-1 md:p-2.5 relative h-full w-full bg-slate-200" style={{ WebkitOverflowScrolling: 'touch' }}>
+              {/* Added touch-pan-y and touch-action styling to allow smooth touch manipulation inside the container */}
+              <div 
+                className="flex-1 p-1 md:p-2.5 relative h-full w-full bg-slate-200 touch-pan-y" 
+                style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y pinch-zoom' }}
+              >
                 {/* Adobe PDF Embed API Render Target */}
                 <div id="adobe-dc-view" className="w-full h-full rounded-xl border border-slate-300 shadow-inner overflow-hidden" />
               </div>
