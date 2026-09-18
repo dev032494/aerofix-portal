@@ -114,13 +114,13 @@ export default function LibraryView() {
     return () => URL.revokeObjectURL(objectUrl);
   }, [selectedFile]);
 
-  // Initialize Adobe Viewer when activeDoc and SDK are ready
+  // Initialize Adobe Viewer with your provided Client ID
   useEffect(() => {
     if (isAdobeSdkReady && activeDoc) {
       const url = getDocUrl(activeDoc.file_path);
       
-      // REQUIRES A VALID ADOBE CLIENT ID IN YOUR .env FILE
-      const clientId = import.meta.env.VITE_ADOBE_CLIENT_ID || 'YOUR_ADOBE_CLIENT_ID';
+      // Configured with your explicit Adobe Client ID
+      const clientId = '801991edca6e44fa89553415d84b81ef';
       
       const adobeDCView = new window.AdobeDC.View({
         clientId: clientId,
@@ -131,7 +131,7 @@ export default function LibraryView() {
         embedMode: 'SIZED_CONTAINER',
         showDownloadPDF: true,
         showPrintPDF: false,
-        showLeftHandPanel: false, // Disabling Adobe's panel to use your custom TOC
+        showLeftHandPanel: false, // Disabling Adobe's panel to use your custom TOC tree
       };
 
       adobeDCView.previewFile({
@@ -213,7 +213,6 @@ export default function LibraryView() {
     }
   };
 
-  // Uses Adobe Viewer API to jump to pages instead of reloading an iframe
   const handleJumpToPage = useCallback((pageNumber) => {
     if (!pageNumber || !activeDoc) return;
     
