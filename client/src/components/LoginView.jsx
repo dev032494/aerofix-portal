@@ -58,7 +58,7 @@ export default function LoginView({ onLoginSuccess }) {
       const isDuringHours = hours >= 7 && hours < 18;
       const isOpen = isWeekday && isDuringHours;
 
-      setIsSchoolHours(isOpen);
+      setIsSchoolHours(true);
     };
 
     checkGateStatus();
