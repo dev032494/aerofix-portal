@@ -14,6 +14,7 @@ const workOrderListRoutes = require('./workOrderListRoutes'); // ⚡ ADDED: Impo
 const taskRoutes = require('./taskRoutes'); // ⚡ ADDED: Import new task sub-router
 const manualRoutes = require('./manualRoutes'); // ⚡ ADDED: Import new manual sub-router
 const maintenanceSchedulePlanningRoutes = require('./maintenanceSchedulePlanningRoutes'); // ⚡ ADDED: Import new maintenance schedule sub-router
+const logbookRoutes = require('./logbookRoutes'); // ⚡ ADDED: Import new logbook sub-router
 // =========================================================================
 // GATEWAY CORE ROUTING ROUTE ROUTE PIPELINES
 // =========================================================================
@@ -52,5 +53,10 @@ router.use('/manual', manualRoutes);
 
 // ⚡ ADDED: Maintenance Schedule Management Sub-System -> Maps to /api/v1/maintenance-schedule
 router.use('/maintenance-schedule', maintenanceSchedulePlanningRoutes);
+
+// ⚡ ADDED: Logbook Management Sub-System -> Maps to /api/v1/logbook
+router.use('/logbook', logbookRoutes);
+
+
 
 module.exports = { apiRouter: router };

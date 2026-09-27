@@ -14,6 +14,19 @@ exports.getAllWorkOrders = async (req, res) => {
     }
 }
 
+exports.getCompleteWorkOrders = async (req, res) => {
+    try {
+        const data = await workOrderRepository.findAllComplete();
+        console.log(data);
+
+        res.status(200).json(data);
+
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: error.message })
+    }
+}
+
 exports.createWorkOrder = async (req, res) => {
     try {
         const { workorder, personnel, items } = req.body;

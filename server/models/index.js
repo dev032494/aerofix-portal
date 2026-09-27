@@ -41,6 +41,13 @@ const modelFactories = [
   require('./manualDetail'),
   require('./manualItem'),
   require('./maintenancePlanningSchedule'),
+  require('./flightLogs'),
+  require('./aircraftMonitoringLog'),
+  require('./fuelOilRecord'),
+  require('./maintenanceDefect'),
+  require('./componentChange'),
+  require('./postFlightSignoff'),
+  require('./logbook')
 ];
 
 // Initialize each model instance and store it inside the db map context
