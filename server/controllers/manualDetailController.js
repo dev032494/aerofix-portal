@@ -11,7 +11,7 @@ exports.createManualDetail = async (req, res) => {
 
 exports.getManualDetailList = async (req, res) => {
   try {
-    const data = await ManualDetailRepository.findAll();
+    const data = await ManualDetailRepository.findAllOrderBy('md_create_at');
     res.status(200).json(data);
 
   } catch (error) {

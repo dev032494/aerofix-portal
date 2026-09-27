@@ -18,6 +18,12 @@ class ManualDetailRepository extends BaseRepository {
     return await super.findAll({ include });
   }
 
+  async findAllOrderBy(created_at) {
+    return await super.findAll({
+      order: [[`${created_at}`, 'ASC']]
+    });
+  }
+
   async create(data) {
     try {
       const record = await super.create(data);

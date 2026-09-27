@@ -121,6 +121,10 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
           <nav className="p-4 space-y-1.5 mt-4 lg:mt-2 overflow-y-auto max-h-[calc(100vh-14rem)]">
             {!isStudent && (
               <>
+               <NavLink to="aircraft" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
+                  <Plane className="h-5 w-5 shrink-0" /> Aircraft Fleet
+                </NavLink>
+                
                 <NavLink to="work-orders" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
                   <Wrench className="h-5 w-5 shrink-0" /> Work Orders
                 </NavLink>

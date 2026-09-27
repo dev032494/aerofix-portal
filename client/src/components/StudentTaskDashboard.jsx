@@ -24,7 +24,10 @@ import {
   Printer,
   Download,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Camera,
+  Upload,
+  ImageIcon
 } from 'lucide-react';
 
 const StudentTaskDashboard = () => {
@@ -41,13 +44,21 @@ const StudentTaskDashboard = () => {
     actionTaken: '',
     discrepancy: '',
     correctiveAction: '',
-    parts: [{ quantity: 1, nomenclature: '', partNumber: '' }]
+    parts: [{ quantity: 1, nomenclature: '', partNumber: '' }],
+    proofImages: []
   });
+
+  // Proof Image Upload States inside modal
+  const [imageCaption, setImageCaption] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // --- VIEW REPORT SUMMARY MODAL STATE ---
   const [isViewReportModalOpen, setIsViewReportModalOpen] = useState(false);
   const [selectedCompletedTask, setSelectedCompletedTask] = useState(null);
   const [isLoadingReportDetails, setIsLoadingReportDetails] = useState(false);
+
+  // --- LIGHTBOX / FULLSCREEN PROOF IMAGE STATE ---
+  const [activePreviewImage, setActivePreviewImage] = useState(null);
 
   // --- PRINT PREVIEW MODAL STATE ---
   const [isPrintPreviewOpen, setIsPrintPreviewOpen] = useState(false);
@@ -115,6 +126,40 @@ const StudentTaskDashboard = () => {
     setReportForm({ ...reportForm, parts: updatedParts });
   };
 
+  // MULTIPLE IMAGE UPLOAD HANDLER
+  const handleProofImageUpload = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setUploadingImage(true);
+    setTimeout(() => {
+      const newProofs = files.map((file, idx) => ({
+        id: Date.now() + idx,
+        file: file,
+        url: URL.createObjectURL(file),
+        caption: imageCaption || file.name,
+        uploadedAt: new Date().toISOString()
+      }));
+
+      setReportForm(prev => ({
+        ...prev,
+        proofImages: [...newProofs, ...prev.proofImages]
+      }));
+      setImageCaption('');
+      setUploadingImage(false);
+
+      // Reset the file input so selecting the same file again works smoothly
+      e.target.value = '';
+    }, 600);
+  };
+
+  const removeProofImage = (id) => {
+    setReportForm(prev => ({
+      ...prev,
+      proofImages: prev.proofImages.filter(img => img.id !== id)
+    }));
+  };
+
   const handleActionClick = async (task) => {
     const currentStatus = task.wo_status || 'active';
 
@@ -126,8 +171,10 @@ const StudentTaskDashboard = () => {
         actionTaken: '',
         discrepancy: '',
         correctiveAction: '',
-        parts: [{ quantity: 1, nomenclature: '', partNumber: '' }]
+        parts: [{ quantity: 1, nomenclature: '', partNumber: '' }],
+        proofImages: []
       });
+      setImageCaption('');
       setIsReportModalOpen(true);
     } else if (currentStatus === 'complete') {
       const reportDetails = await fetchReportDetails(task.wo_work_order_number);
@@ -197,7 +244,13 @@ const StudentTaskDashboard = () => {
         corrective_action: reportForm.correctiveAction,
         parts: reportForm.parts.filter(
           p => p.nomenclature?.trim() !== '' || p.partNumber?.trim() !== ''
-        )
+        ),
+        // Pass the actual binary File object along with metadata
+        proofs: reportForm.proofImages.map(img => ({
+          file: img.file, // Native File object from <input type="file" />
+          caption: img.caption,
+          uploadedAt: img.uploadedAt
+        }))
       };
 
       await workOrderService.submitReport(taskId, payload);
@@ -207,7 +260,7 @@ const StudentTaskDashboard = () => {
       Swal.fire({
         icon: 'success',
         title: 'Report Submitted!',
-        text: `Work order ${selectedTaskToReport.wo_work_order_number} has been completed successfully.`,
+        text: `Work order ${selectedTaskToReport.wo_work_order_number} has been completed successfully with ${reportForm.proofImages.length} proof image(s) attached.`,
         background: '#ffffff',
         color: '#0f172a',
         confirmButtonColor: '#10b981',
@@ -291,6 +344,16 @@ const StudentTaskDashboard = () => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Helper to format proof image paths stored on backend server
+  const getImageUrl = (filePath) => {
+    if (!filePath) return '';
+    if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('blob:')) {
+      return filePath;
+    }
+    // Prefix relative backend upload path
+    return `${filePath.startsWith('/') ? '' : '/'}${filePath}`;
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -394,14 +457,14 @@ const StudentTaskDashboard = () => {
               <div className="border-2 border-black h-32 sm:h-48 p-1 overflow-hidden flex flex-col">
                 <span className="font-bold uppercase block text-[9px] mb-0.5 shrink-0">Work Order:</span>
                 <div className="flex-1 overflow-y-auto">
-                    <p className="font-medium normal-case text-[9px] leading-tight">{workOrderItemsText}</p>
+                  <p className="font-medium normal-case text-[9px] leading-tight">{workOrderItemsText}</p>
                 </div>
               </div>
 
               <div className="border-2 border-black h-32 sm:h-48 p-1 overflow-hidden flex flex-col">
                 <span className="font-bold uppercase block text-[9px] mb-0.5 shrink-0">Action Taken:</span>
                 <div className="flex-1 overflow-y-auto">
-                    <p className="font-medium normal-case text-[9px] leading-tight">{actionTakenText}</p>
+                  <p className="font-medium normal-case text-[9px] leading-tight">{actionTakenText}</p>
                 </div>
               </div>
 
@@ -687,8 +750,8 @@ const StudentTaskDashboard = () => {
                     }
 
                     return (
-                      <tr 
-                        key={task.wo_id} 
+                      <tr
+                        key={task.wo_id}
                         className={`hover:bg-slate-50/80 transition-colors ${task.wo_status === 'complete' ? 'opacity-75' : ''}`}
                       >
                         <td className="p-3 sm:p-4">
@@ -756,7 +819,7 @@ const StudentTaskDashboard = () => {
           )}
         </div>
 
-        {/* --- REPORT TASK MODAL --- */}
+        {/* --- REPORT TASK MODAL WITH MULTIPLE IMAGE PROOF UPLOADS --- */}
         {isReportModalOpen && selectedTaskToReport && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto w-full h-full">
             <div className="bg-white border border-slate-200 shadow-xl rounded-xl sm:rounded-2xl w-full max-w-3xl my-4 sm:my-8 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[95vh] sm:max-h-[90vh]">
@@ -892,6 +955,68 @@ const StudentTaskDashboard = () => {
                   </div>
                 </div>
 
+                {/* --- UPLOAD PROOF OF WORK SECTION (MULTIPLE IMAGE SUPPORT) --- */}
+                <div className="bg-slate-50 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 space-y-3">
+                  <div className="flex justify-between items-center border-b border-slate-200 pb-2 sm:pb-3">
+                    <h3 className="text-xs sm:text-sm font-extrabold text-sky-700 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
+                      <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-sky-600" /> Maintenance Proof of Work
+                    </h3>
+                    {reportForm.proofImages.length > 0 && (
+                      <span className="text-[10px] font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded-full">
+                        {reportForm.proofImages.length} photo(s) attached
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="p-3 bg-white border-2 border-dashed border-slate-300 rounded-xl space-y-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="text"
+                        placeholder="Default caption or tag for uploaded photo(s)..."
+                        value={imageCaption}
+                        onChange={(e) => setImageCaption(e.target.value)}
+                        className="bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-slate-900 flex-1 text-xs focus:outline-none focus:border-sky-500"
+                      />
+                      <label className="bg-sky-600 hover:bg-sky-500 text-white px-3.5 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-colors shrink-0">
+                        <Upload className="h-3.5 w-3.5" />
+                        {uploadingImage ? 'Attaching...' : 'Choose Photo(s)'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleProofImageUpload}
+                          disabled={uploadingImage}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Attached Images Grid Preview */}
+                  {reportForm.proofImages.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+                      {reportForm.proofImages.map((img) => (
+                        <div key={img.id} className="relative bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs flex flex-col group">
+                          <div className="h-28 bg-slate-100 relative">
+                            <img src={img.url} alt={img.caption} className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => removeProofImage(img.id)}
+                              className="absolute top-1.5 right-1.5 bg-rose-600 text-white p-1 rounded-full hover:bg-rose-700 transition-colors shadow-xs"
+                              title="Remove photo"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                          <div className="p-2 text-[10px] font-bold text-slate-800 truncate" title={img.caption}>
+                            {img.caption}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="bg-slate-50 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 space-y-3 sm:space-y-4">
                   <h3 className="text-xs sm:text-sm font-extrabold text-amber-600 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 border-b border-slate-200 pb-2 sm:pb-3">
                     <ClipboardCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Return Slip
@@ -930,28 +1055,28 @@ const StudentTaskDashboard = () => {
               </form>
 
               <div className="p-4 sm:p-6 border-t border-slate-200 bg-white rounded-b-xl sm:rounded-b-2xl sticky bottom-0 z-20 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsReportModalOpen(false)}
-                    className="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm text-slate-700 font-semibold hover:bg-slate-100 transition-colors cursor-pointer border border-slate-300 sm:border-transparent"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    onClick={handleReportSubmit}
-                    disabled={isSubmittingReport}
-                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs sm:text-sm font-bold disabled:opacity-50 transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2"
-                  >
-                    {isSubmittingReport ? <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" /> : <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
-                    Submit & Complete
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsReportModalOpen(false)}
+                  className="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm text-slate-700 font-semibold hover:bg-slate-100 transition-colors cursor-pointer border border-slate-300 sm:border-transparent"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  onClick={handleReportSubmit}
+                  disabled={isSubmittingReport}
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs sm:text-sm font-bold disabled:opacity-50 transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2"
+                >
+                  {isSubmittingReport ? <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" /> : <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+                  Submit & Complete
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* --- VIEW REPORT SUMMARY MODAL --- */}
+        {/* --- VIEW REPORT SUMMARY MODAL (UPDATED TO DISPLAY PROOFS) --- */}
         {isViewReportModalOpen && selectedCompletedTask && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto w-full h-full">
             <div className="bg-white border border-slate-200 shadow-xl rounded-xl sm:rounded-2xl w-full max-w-3xl my-4 sm:my-8 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[95vh] sm:max-h-[90vh]">
@@ -974,6 +1099,7 @@ const StudentTaskDashboard = () => {
               </div>
 
               <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto custom-scrollbar flex-1">
+                {/* Section 1: Execution Details */}
                 <div className="bg-slate-50 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 space-y-3 sm:space-y-4">
                   <h3 className="text-xs sm:text-sm font-extrabold text-sky-600 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 border-b border-slate-200 pb-2 sm:pb-3">
                     <Wrench className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Execution Details
@@ -1042,6 +1168,59 @@ const StudentTaskDashboard = () => {
                   </div>
                 </div>
 
+                {/* Section 2: Maintenance Proof Gallery */}
+                <div className="bg-slate-50 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 space-y-3">
+                  <div className="flex justify-between items-center border-b border-slate-200 pb-2 sm:pb-3">
+                    <h3 className="text-xs sm:text-sm font-extrabold text-sky-700 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
+                      <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-sky-600" /> Maintenance Proof of Work
+                    </h3>
+                    {selectedCompletedTask.proofs && selectedCompletedTask.proofs.length > 0 && (
+                      <span className="text-[10px] font-bold text-sky-700 bg-sky-100 px-2.5 py-0.5 rounded-full border border-sky-200">
+                        {selectedCompletedTask.proofs.length} photo(s)
+                      </span>
+                    )}
+                  </div>
+
+                  {selectedCompletedTask.proofs && selectedCompletedTask.proofs.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {selectedCompletedTask.proofs.map((proof, idx) => {
+                        const imgUrl = getImageUrl(proof.file_path || proof.url || proof.filePath);
+                        return (
+                          <div
+                            key={proof.id || idx}
+                            onClick={() => setActivePreviewImage({ url: imgUrl, caption: proof.caption || proof.fileName || 'Proof Image' })}
+                            className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col"
+                          >
+                            <div className="h-28 sm:h-32 bg-slate-100 relative overflow-hidden">
+                              <img
+                                src={imgUrl}
+                                alt={proof.caption || 'Proof of work'}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                              />
+                              <div className="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                                <Eye className="h-5 w-5 drop-shadow-xs" />
+                              </div>
+                            </div>
+                            <div className="p-2 bg-white">
+                              <p className="text-[10px] sm:text-xs font-semibold text-slate-800 truncate" title={proof.caption || proof.fileName}>
+                                {proof.caption || proof.file_name || proof.fileName || `Photo #${idx + 1}`}
+                              </p>
+                              {proof.uploaded_at && (
+                                <p className="text-[9px] text-slate-400 mt-0.5">{new Date(proof.uploaded_at).toLocaleDateString()}</p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-white border border-dashed border-slate-300 rounded-xl text-center text-xs text-slate-400 italic">
+                      No proof images uploaded for this work order.
+                    </div>
+                  )}
+                </div>
+
+                {/* Section 3: Return Slip Summary */}
                 <div className="bg-slate-50 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 space-y-3 sm:space-y-4">
                   <h3 className="text-xs sm:text-sm font-extrabold text-amber-600 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 border-b border-slate-200 pb-2 sm:pb-3">
                     <ClipboardCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Return Slip Summary
@@ -1062,28 +1241,52 @@ const StudentTaskDashboard = () => {
                   </div>
                 </div>
               </div>
-              
-              <div className="p-4 sm:p-6 border-t border-slate-200 bg-white rounded-b-xl sm:rounded-b-2xl sticky bottom-0 z-20 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsViewReportModalOpen(false);
-                      setZoomLevel(0.45);
-                      setIsPrintPreviewOpen(true);
-                    }}
-                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 shadow-xs"
-                  >
-                    <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> PDF Preview
-                  </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setIsViewReportModalOpen(false)}
-                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold transition-colors cursor-pointer border border-slate-300 sm:border-transparent"
-                  >
-                    Close
-                  </button>
-                </div>
+              <div className="p-4 sm:p-6 border-t border-slate-200 bg-white rounded-b-xl sm:rounded-b-2xl sticky bottom-0 z-20 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsViewReportModalOpen(false);
+                    setZoomLevel(0.45);
+                    setIsPrintPreviewOpen(true);
+                  }}
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 shadow-xs"
+                >
+                  <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> PDF Preview
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsViewReportModalOpen(false)}
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold transition-colors cursor-pointer border border-slate-300 sm:border-transparent"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- IMAGE LIGHTBOX PREVIEW MODAL --- */}
+        {activePreviewImage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="relative max-w-4xl w-full bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+              <div className="flex justify-between items-center p-4 border-b border-slate-800 bg-slate-900">
+                <p className="text-white text-xs sm:text-sm font-semibold truncate pr-4">{activePreviewImage.caption}</p>
+                <button
+                  onClick={() => setActivePreviewImage(null)}
+                  className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="p-2 sm:p-4 flex items-center justify-center bg-slate-950 max-h-[75vh] overflow-hidden">
+                <img
+                  src={activePreviewImage.url}
+                  alt={activePreviewImage.caption}
+                  className="max-h-[70vh] w-auto max-w-full object-contain rounded-lg"
+                />
+              </div>
             </div>
           </div>
         )}
@@ -1140,7 +1343,7 @@ const StudentTaskDashboard = () => {
               </div>
 
               <div className="flex-1 overflow-auto bg-slate-100 flex flex-col items-center justify-start p-4 sm:p-8 custom-scrollbar relative">
-                <div 
+                <div
                   className="origin-top shadow-xl rounded-sm bg-white shrink-0 transition-transform duration-150 my-auto border border-slate-200"
                   style={{ transform: `scale(${zoomLevel})` }}
                 >
@@ -1168,9 +1371,9 @@ const StudentTaskDashboard = () => {
       <div className="hidden print-only-container">
         <PrintableDocumentContent task={selectedCompletedTask} slip={returnSlip} />
       </div>
-      
+
       <style>
-          {`
+        {`
             .custom-scrollbar::-webkit-scrollbar {
               width: 6px;
               height: 6px;

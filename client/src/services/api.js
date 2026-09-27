@@ -46,7 +46,37 @@ export const workOrderService = {
   viewWorkOrderDetails: (id) => api.get(`/work-orders/view-details/${id}`),
   studentTask: (id) => api.get(`/work-orders/student/${id}`),
   startTask: (id, data) => api.put(`/work-orders/start-task/${id}`, data),
-  submitReport: (id, data) => api.put(`/work-orders/report/${id}`, data),
+  submitReport: (id, data) => {
+    const formData = new FormData();
+
+    // Append single-value text fields
+    formData.append('wo_status', data.wo_status || 'complete');
+    formData.append('action_taken', data.action_taken || '');
+    formData.append('discrepancy', data.discrepancy || '');
+    formData.append('corrective_action', data.corrective_action || '');
+
+    // JSON stringify array structures so express/multer can parse them
+    formData.append('parts', JSON.stringify(data.parts || []));
+
+    // Collect captions matching each file
+    const captions = (data.proofs || []).map(p => p.caption || '');
+    formData.append('captions', JSON.stringify(captions));
+
+    // Append actual binary File objects under 'proofs' key for Multer
+    if (Array.isArray(data.proofs)) {
+      data.proofs.forEach((proof) => {
+        if (proof.file) {
+          formData.append('proofs', proof.file);
+        }
+      });
+    }
+
+    return api.put(`/work-orders/report/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+  },
   viewReport: (id) => api.get(`/work-orders/view-report/${id}`)
 };
 

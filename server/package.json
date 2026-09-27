@@ -16,7 +16,8 @@
     "migrate:generate": "npx sequelize-cli migration:generate --name",
     "migrate:run": "npx sequelize-cli db:migrate",
     "migrate:undo": "npx sequelize-cli db:migrate:undo",
-    "migrate:undo:all": "npx sequelize-cli db:migrate:undo:all"
+    "migrate:undo:all": "npx sequelize-cli db:migrate:undo:all",
+    "make:crud": "node scripts/make-crud.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

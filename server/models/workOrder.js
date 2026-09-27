@@ -65,6 +65,14 @@ module.exports = (sequelize, DataTypes) => {
           as: 'approver'
         });
       }
+
+      if(models.WorkOrderProof) {
+        WorkOrder.hasMany(models.WorkOrderProof, {
+          foreignKey: 'work_order_number',
+          sourceKey: 'wo_work_order_number',
+          as: 'proofs'
+        });
+      }
     }
   }
 

@@ -11,7 +11,7 @@ exports.createTaskDetail = async (req, res) => {
 
 exports.getTaskDetailList = async (req, res) => {
     try {
-        const data = await TaskDetailRepository.findAll();
+        const data = await TaskDetailRepository.findAllOrderBy('td_create_at');
         res.status(200).json(data);
 
     } catch (error) {

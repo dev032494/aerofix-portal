@@ -32,7 +32,7 @@ class WorkOrderRepository extends BaseRepository {
     });
   }
 
-    async findAllComplete() {
+  async findAllComplete() {
     return await super.findAll({
       order: [['wo_work_order_number', 'DESC']], // Sorting by newest first
       include: [
@@ -245,7 +245,7 @@ class WorkOrderRepository extends BaseRepository {
     );
   }
 
-  async updateTaskToComplete(woNumber, actionTaken, aircraftDiscrepancy, correctiveAction, partsReplacement = []) {
+  async updateTaskToComplete(woNumber, actionTaken, aircraftDiscrepancy, correctiveAction, partsReplacement = [], proofFiles = []) {
     const t = await db.sequelize.transaction();
     try {
       // 1. Update work order status to complete
@@ -272,15 +272,27 @@ class WorkOrderRepository extends BaseRepository {
         await db.WorkOrderPartsReplacement.bulkCreate(partsData, { transaction: t });
       }
 
+      // 4. Save Action Taken details
       await db.WorkOrderActionTaken.create({
         woat_work_order_id: woNumber,
         woat_description: actionTaken
       }, { transaction: t });
 
+      // 5. Save Maintenance Proof Files if any
+      if (proofFiles.length > 0) {
+        const proofData = proofFiles.map(proof => ({
+          workOrderNumber: woNumber,
+          filePath: proof.filePath,
+          fileName: proof.fileName,
+          caption: proof.caption,
+          uploadedAt: proof.uploadedAt || new Date()
+        }));
+        await db.WorkOrderProof.bulkCreate(proofData, { transaction: t });
+      }
 
       // Commit transaction
-
-      return await t.commit();
+      await t.commit();
+      return report;
     } catch (error) {
       // Rollback transaction on failure
       await t.rollback();
@@ -288,75 +300,78 @@ class WorkOrderRepository extends BaseRepository {
       throw error;
     }
   }
+
   async viewReport(woNumber) {
-    return await super.findOne({
-      where: {
-        wo_work_order_number: woNumber
+  return await super.findOne({
+    where: {
+      wo_work_order_number: woNumber
+    },
+    include: [
+      {
+        model: db.User,
+        as: 'instructor',
+        attributes: ['first_name', 'middle_name', 'last_name', 'student_id']
       },
-      include: [
-        {
-          model: db.User,
-          as: 'instructor',
-          attributes: ['first_name', 'middle_name', 'last_name', 'student_id']
-        },
-        {
-          model: db.User,
-          as: 'approver',
-          attributes: ['first_name', 'middle_name', 'last_name']
-        },
-        {
-          model: db.WorkOrderPersonnel,
-          as: 'personnel',
-          foreignKey: 'wop_work_order_id',
-          targetKey: 'wo_work_order_number',
-          include: [
-            {
-              model: db.User,
-              as: 'user',
-              attributes: ['first_name', 'middle_name', 'last_name']
-            }
-          ]
-        },
-        {
-          model: db.WorkOrderItem,
-          as: 'items',
-          foreignKey: 'woi_work_order_id',
-          targetKey: 'wo_work_order_number',
-          include: [
-            {
-              model: db.WorkOrderList,
-              as: 'workOrderListDetails',
-              attributes: ['wol_description']
-            }
-          ]
-        },
-        {
-          model: db.WorkOrderActionTaken,
-          as: 'actionTaken',
-          foreignKey: 'woat_work_order_id',
-          targetKey: 'wo_work_order_number',
-          attributes: ['woat_description'],
-
-        },
-        {
-          model: db.WorkOrderPartsReplacement,
-          as: 'partsReplacement',
-          foreignKey: 'wopr_work_order_id',
-          targetKey: 'wo_work_order_number',
-          attributes: ['wopr_quantity', 'wopr_nomenclature', 'wopr_part_number'],
-
-        },
-        {
-          model: db.WorkOrderReturnService,
-          as: 'returnSlip',
-          foreignKey: 'wors_work_order_id',
-          targetKey: 'wo_work_order_number',
-          attributes: ['wors_aircraft_discrepancy', 'wors_corrective_action'],
-
-        }
-      ]
-    });
-  }
+      {
+        model: db.User,
+        as: 'approver',
+        attributes: ['first_name', 'middle_name', 'last_name']
+      },
+      {
+        model: db.WorkOrderPersonnel,
+        as: 'personnel',
+        foreignKey: 'wop_work_order_id',
+        targetKey: 'wo_work_order_number',
+        include: [
+          {
+            model: db.User,
+            as: 'user',
+            attributes: ['first_name', 'middle_name', 'last_name']
+          }
+        ]
+      },
+      {
+        model: db.WorkOrderItem,
+        as: 'items',
+        foreignKey: 'woi_work_order_id',
+        targetKey: 'wo_work_order_number',
+        include: [
+          {
+            model: db.WorkOrderList,
+            as: 'workOrderListDetails',
+            attributes: ['wol_description']
+          }
+        ]
+      },
+      {
+        model: db.WorkOrderActionTaken,
+        as: 'actionTaken',
+        foreignKey: 'woat_work_order_id',
+        targetKey: 'wo_work_order_number',
+        attributes: ['woat_description']
+      },
+      {
+        model: db.WorkOrderPartsReplacement,
+        as: 'partsReplacement',
+        foreignKey: 'wopr_work_order_id',
+        targetKey: 'wo_work_order_number',
+        attributes: ['wopr_quantity', 'wopr_nomenclature', 'wopr_part_number']
+      },
+      {
+        model: db.WorkOrderReturnService,
+        as: 'returnSlip',
+        foreignKey: 'wors_work_order_id',
+        targetKey: 'wo_work_order_number',
+        attributes: ['wors_aircraft_discrepancy', 'wors_corrective_action']
+      },
+      {
+        model: db.WorkOrderProof,
+        as: 'proofs',
+        attributes: ['id', 'file_path', 'file_name', 'caption', 'uploaded_at']
+      }
+    ]
+  });
+}
 
 }
 

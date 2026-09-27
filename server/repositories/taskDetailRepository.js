@@ -14,6 +14,12 @@ class TaskDetailRepository extends BaseRepository {
         return await super.findAll();
     }
 
+    async findAllOrderBy(created_at) {
+        return await super.findAll({
+            order: [[`${created_at}`, 'ASC']]
+        });
+    }
+
     async findByName(name) {
         return await super.findOne({ where: { td_name: name } });
     }
@@ -26,7 +32,7 @@ class TaskDetailRepository extends BaseRepository {
             return { success: false, message: error.message || 'Error creating task detail' };
         }
     }
-    
+
     async update(id, data) {
         try {
             const record = await super.findById(id);

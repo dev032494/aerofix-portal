@@ -156,7 +156,7 @@ export default function WorkOrderListView({ activeUser }) {
   return (
     <div className="w-full h-full flex flex-col bg-slate-50 text-slate-900">
       <div className="w-full bg-white border border-slate-200 rounded-xl sm:rounded-2xl shadow-xs overflow-hidden flex flex-col flex-1 max-h-[calc(100vh-2rem)]">
-        
+
         {/* HEADER SECTION */}
         <div className="flex justify-between items-center bg-white p-5 border-b border-slate-200 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
@@ -201,12 +201,17 @@ export default function WorkOrderListView({ activeUser }) {
                       </td>
                     </tr>
                   ) : (
-                    workOrders.map((wo) => (
+
+                    workOrders.map((wo, index) => (
                       <tr key={wo.wol_id} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-3 px-6 text-slate-600 text-center font-mono font-bold">{wo.wol_id}</td>
+                        <td className="py-3 px-6 text-slate-600 text-center font-mono font-bold">
+                          {index + 1}
+                        </td>
                         <td className="py-3 px-6 text-slate-900 font-medium">{wo.wol_description}</td>
                         <td className="py-3 px-6 text-slate-600">{wo.wol_create_by}</td>
-                        <td className="py-3 px-6 text-slate-500 font-mono text-[11px]">{new Date(wo.wol_create_at).toLocaleString()}</td>
+                        <td className="py-3 px-6 text-slate-500 font-mono text-[11px]">
+                          {new Date(wo.wol_create_at).toLocaleString()}
+                        </td>
                         <td className="py-3 px-6 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
