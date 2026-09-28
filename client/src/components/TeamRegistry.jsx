@@ -110,7 +110,7 @@ export default function StudentApprovalRegistry() {
         <div className="p-3 sm:p-5 md:p-6 bg-slate-50 w-full flex flex-col flex-1 overflow-y-auto box-border custom-scrollbar space-y-6">
 
           {/* Master Database Roster View Panel */}
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden text-xs flex flex-col">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden text-xs flex flex-col flex-1">
             <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-3">
               <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider w-full md:w-auto">Master Database Roster</h2>
               
@@ -147,52 +147,33 @@ export default function StudentApprovalRegistry() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider bg-slate-100/70 text-[10px]">
-                    <th className="p-4">Student Details</th>
-                    <th className="p-4">Role</th>
-                    <th className="p-4 text-center">Status Toggle</th>
-                    <th className="p-4 text-right">Verification State</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 bg-white">
-                  {filteredStudents.length === 0 ? (
-                    <tr>
-                      <td colSpan="4" className="p-8 text-center text-slate-400 italic">
-                        No student records matched the active search and status filters.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredStudents.map(student => {
-                      const active = isStudentActive(student);
-                      const verified = isStudentVerified(student);
+            {filteredStudents.length === 0 ? (
+              <div className="p-12 text-center text-slate-400 italic">
+                No student records matched the active search and status filters.
+              </div>
+            ) : (
+              <div className="flex-1 min-h-0 flex flex-col">
+                
+                {/* MOBILE VIEW: SINGLE COLUMN CARD LIST (< sm screens) */}
+                <div className="block sm:hidden space-y-3 overflow-y-auto max-h-[65vh] p-4">
+                  {filteredStudents.map(student => {
+                    const active = isStudentActive(student);
+                    const verified = isStudentVerified(student);
 
-                      return (
-                        <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="p-4">
-                            <div className="font-bold text-slate-900 text-sm">{getStudentName(student)}</div>
-                            <div className="text-slate-500 font-mono mt-0.5 text-[11px]">{student.email}</div>
-                          </td>
-                          <td className="p-4 align-middle text-slate-700 font-medium capitalize">
+                    return (
+                      <div key={student.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 shadow-xs">
+                        <div className="flex justify-between items-start gap-2 border-b border-slate-200/60 pb-2">
+                          <div className="min-w-0">
+                            <h3 className="font-bold text-slate-900 text-sm truncate">{getStudentName(student)}</h3>
+                            <p className="text-slate-500 font-mono text-[11px] truncate mt-0.5">{student.email}</p>
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded capitalize shrink-0">
                             {student.role || 'student'}
-                          </td>
-                          <td className="p-4 text-center align-middle">
-                            <button
-                              onClick={() => handleToggleStatus(student.id, active)}
-                              disabled={updatingStatusId === student.id}
-                              className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs ${
-                                active 
-                                  ? 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100' 
-                                  : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
-                              }`}
-                            >
-                              <Power className="h-3 w-3" />
-                              {updatingStatusId === student.id ? 'Updating...' : active ? 'Deactivate' : 'Activate'}
-                            </button>
-                          </td>
-                          <td className="p-4 text-right align-middle">
+                          </span>
+                        </div>
+
+                        <div className="flex justify-between items-center pt-1">
+                          <div>
                             {active && verified ? (
                               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
                                 <CheckCircle className="h-3 w-3 text-emerald-600" /> Active Profile
@@ -206,14 +187,142 @@ export default function StudentApprovalRegistry() {
                                 <XCircle className="h-3 w-3 text-rose-600" /> Inactive
                               </span>
                             )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+                          </div>
+
+                          <button
+                            onClick={() => handleToggleStatus(student.id, active)}
+                            disabled={updatingStatusId === student.id}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs ${
+                              active 
+                                ? 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100' 
+                                : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                            }`}
+                          >
+                            <Power className="h-3 w-3" />
+                            {updatingStatusId === student.id ? 'Updating...' : active ? 'Deactivate' : 'Activate'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* TABLET VIEW: 2-COLUMN GRID (sm to lg screens) */}
+                <div className="hidden sm:grid lg:hidden grid-cols-2 gap-4 overflow-y-auto max-h-[65vh] p-4">
+                  {filteredStudents.map(student => {
+                    const active = isStudentActive(student);
+                    const verified = isStudentVerified(student);
+
+                    return (
+                      <div key={student.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between space-y-3 shadow-xs">
+                        <div className="space-y-1.5 min-w-0">
+                          <div className="flex justify-between items-start gap-2">
+                            <h3 className="font-bold text-slate-900 text-sm truncate">{getStudentName(student)}</h3>
+                            <span className="text-[10px] font-bold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded capitalize shrink-0">
+                              {student.role || 'student'}
+                            </span>
+                          </div>
+                          <p className="text-slate-500 font-mono text-[11px] truncate">{student.email}</p>
+                        </div>
+
+                        <div className="flex justify-between items-center pt-2 border-t border-slate-200/60">
+                          <div>
+                            {active && verified ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                                <CheckCircle className="h-3 w-3 text-emerald-600" /> Active Profile
+                              </span>
+                            ) : !active && !verified ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                                <Clock className="h-3 w-3 text-amber-600" /> Pending Review
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
+                                <XCircle className="h-3 w-3 text-rose-600" /> Inactive
+                              </span>
+                            )}
+                          </div>
+
+                          <button
+                            onClick={() => handleToggleStatus(student.id, active)}
+                            disabled={updatingStatusId === student.id}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs ${
+                              active 
+                                ? 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100' 
+                                : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                            }`}
+                          >
+                            <Power className="h-3 w-3" />
+                            {updatingStatusId === student.id ? 'Updating...' : active ? 'Deactivate' : 'Activate'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* DESKTOP VIEW: STANDARD TABLE (lg+ screens) */}
+                <div className="hidden lg:block overflow-x-auto flex-1">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider bg-slate-100/70 text-[10px] sticky top-0 z-10">
+                        <th className="p-4">Student Details</th>
+                        <th className="p-4">Role</th>
+                        <th className="p-4 text-center">Status Toggle</th>
+                        <th className="p-4 text-right">Verification State</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 bg-white">
+                      {filteredStudents.map(student => {
+                        const active = isStudentActive(student);
+                        const verified = isStudentVerified(student);
+
+                        return (
+                          <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="p-4">
+                              <div className="font-bold text-slate-900 text-sm">{getStudentName(student)}</div>
+                              <div className="text-slate-500 font-mono mt-0.5 text-[11px]">{student.email}</div>
+                            </td>
+                            <td className="p-4 align-middle text-slate-700 font-medium capitalize">
+                              {student.role || 'student'}
+                            </td>
+                            <td className="p-4 text-center align-middle">
+                              <button
+                                onClick={() => handleToggleStatus(student.id, active)}
+                                disabled={updatingStatusId === student.id}
+                                className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs ${
+                                  active 
+                                    ? 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100' 
+                                    : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                                }`}
+                              >
+                                <Power className="h-3 w-3" />
+                                {updatingStatusId === student.id ? 'Updating...' : active ? 'Deactivate' : 'Activate'}
+                              </button>
+                            </td>
+                            <td className="p-4 text-right align-middle">
+                              {active && verified ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                                  <CheckCircle className="h-3 w-3 text-emerald-600" /> Active Profile
+                                </span>
+                              ) : !active && !verified ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                                  <Clock className="h-3 w-3 text-amber-600" /> Pending Review
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
+                                  <XCircle className="h-3 w-3 text-rose-600" /> Inactive
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            )}
           </div>
 
         </div>

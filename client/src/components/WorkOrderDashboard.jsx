@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { workOrderService, instructorService, userService, workOrderListService } from '../services/api';
+import Swal from 'sweetalert2';
 import {
-  Plus, X, ClipboardList, Calendar, User, Activity, Search, ChevronDown, Eye, FileText, Image as ImageIcon, CheckCircle2, ShieldCheck, Camera, Wrench, ClipboardCheck
+  Plus, X, ClipboardList, Calendar, User, Activity, Search, ChevronDown, Eye, FileText, Image as ImageIcon, CheckCircle2, ShieldCheck, Camera, Wrench, ClipboardCheck, Loader2
 } from 'lucide-react';
 
 // --- CUSTOM SEARCHABLE DROPDOWN COMPONENT ---
@@ -309,14 +310,33 @@ const WorkOrderDashboard = () => {
 
     try {
       await workOrderService.createWorkOrder(payload);
-      setMessage('✅ Work Order successfully created!');
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Work Order Created!',
+        text: 'The new work order has been successfully dispatched.',
+        background: '#ffffff',
+        color: '#0f172a',
+        confirmButtonColor: '#0284c7',
+        timer: 3000,
+        timerProgressBar: true
+      });
+
       fetchWorkOrders();
       fetchInstructors();
       fetchStudents();
       fetchWorkOrderList();
-      setTimeout(() => closeModal(), 1500);
+      setTimeout(() => closeModal(), 1000);
     } catch (error) {
       setMessage(`❌ Error: ${error.message}`);
+      Swal.fire({
+        icon: 'error',
+        title: 'Creation Failed',
+        text: error.response?.data?.message || error.message || 'Could not create work order.',
+        background: '#ffffff',
+        color: '#0f172a',
+        confirmButtonColor: '#d97706'
+      });
     } finally {
       setLoading(false);
     }
@@ -368,76 +388,196 @@ const WorkOrderDashboard = () => {
         {/* Scrollable Content Area */}
         <div className="p-3 sm:p-5 md:p-6 bg-slate-50 w-full flex flex-col flex-1 overflow-y-auto box-border custom-scrollbar space-y-4">
 
-          {/* Table Section */}
-          <div className="bg-white border border-slate-200 rounded-2xl flex-1 overflow-hidden flex flex-col shadow-xs">
-            <div className="overflow-x-auto flex-1">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider sticky top-0 z-10">
-                    <th className="p-4 pl-6">Work Order No.</th>
-                    <th className="p-4">Date / Time</th>
-                    <th className="p-4">Created By</th>
-                    <th className="p-4">Status</th>
-                    <th className="p-4 text-right pr-6">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {isLoadingData ? (
-                    <tr><td colSpan="5" className="p-8 text-center text-slate-400 italic text-xs">Loading work orders...</td></tr>
-                  ) : (!Array.isArray(workOrders) || workOrders.length === 0) ? (
-                    <tr><td colSpan="5" className="p-8 text-center text-slate-400 italic text-xs">No work orders found.</td></tr>
-                  ) : (
-                    workOrders.map((wo) => {
-                      const isComplete = wo.wo_status?.toLowerCase() === 'completed' || wo.wo_status?.toLowerCase() === 'complete';
+          {isLoadingData ? (
+            <div className="p-12 text-center text-slate-400 italic text-xs">Loading work orders...</div>
+          ) : (!Array.isArray(workOrders) || workOrders.length === 0) ? (
+            <div className="p-12 text-center text-slate-400 italic text-xs">No work orders found.</div>
+          ) : (
+            <div>
+              {/* MOBILE VIEW: SINGLE COLUMN CARD LIST (< sm screens) */}
+              <div className="block sm:hidden space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+                {workOrders.map((wo) => {
+                  const isComplete = wo.wo_status?.toLowerCase() === 'completed' || wo.wo_status?.toLowerCase() === 'complete';
+                  const instructorName = wo.instructor
+                    ? `${wo.instructor.first_name} ${wo.instructor.middle_name || ''} ${wo.instructor.last_name}`.replace(/\s+/g, ' ')
+                    : `ID: ${wo.wo_instructor}`;
 
-                      return (
-                        <tr key={wo.wo_id} className="hover:bg-slate-50 transition-colors">
-                          <td className="p-4 pl-6 font-mono text-sky-600 font-bold text-xs">{wo.wo_work_order_number}</td>
-                          <td className="p-4 text-slate-700 text-xs flex items-center gap-2">
-                            <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                            {formatDate(wo.wo_date)}
-                          </td>
+                  return (
+                    <div
+                      key={wo.wo_id}
+                      className={`bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-3 ${isComplete ? 'opacity-75' : ''}`}
+                    >
+                      <div className="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+                        <div className="flex items-center gap-2">
+                          <Wrench className="h-4 w-4 text-sky-600 shrink-0" />
+                          <span className={`font-bold text-sm text-slate-900 ${isComplete ? 'line-through text-slate-500' : ''}`}>
+                            {wo.wo_work_order_number}
+                          </span>
+                        </div>
+                        <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block border ${
+                          isComplete ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                          wo.wo_status === 'ongoing' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                          'bg-sky-50 text-sky-700 border-sky-200'
+                        }`}>
+                          {wo.wo_status || 'Active'}
+                        </span>
+                      </div>
 
-                          <td className="p-4 text-slate-700 text-xs">
-                            <div className="flex items-center gap-2">
-                              <User className="h-3.5 w-3.5 text-slate-400" />
-                              {wo.instructor
-                                ? `${wo.instructor.first_name} ${wo.instructor.middle_name || ''} ${wo.instructor.last_name}`.replace(/\s+/g, ' ')
-                                : `ID: ${wo.wo_instructor}`
-                              }
-                            </div>
-                          </td>
+                      <div className="grid grid-cols-1 gap-1.5 text-xs text-slate-600">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                          <span>{formatDate(wo.wo_date)}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 truncate">
+                          <User className="h-3.5 w-3.5 text-sky-600 shrink-0" />
+                          <span className="truncate">{instructorName}</span>
+                        </div>
+                      </div>
 
-                          <td className="p-4">
-                            <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 w-max border
-                              ${isComplete ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                wo.wo_status === 'ongoing' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                  'bg-sky-50 text-sky-700 border-sky-200'}`}
-                            >
-                              {isComplete ? <CheckCircle2 className="h-3 w-3" /> : <Activity className="h-3 w-3" />}
-                              {wo.wo_status || 'Active'}
+                      <div className="pt-1 flex justify-end">
+                        <button
+                          onClick={() => handleViewDetails(wo)}
+                          className={`w-full py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer ${
+                            isComplete 
+                              ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700' 
+                              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                          }`}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          {isComplete ? 'View Report' : 'View Details'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* TABLET VIEW: 2-COLUMN GRID (sm to lg screens) */}
+              <div className="hidden sm:grid lg:hidden grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto pr-1">
+                {workOrders.map((wo) => {
+                  const isComplete = wo.wo_status?.toLowerCase() === 'completed' || wo.wo_status?.toLowerCase() === 'complete';
+                  const instructorName = wo.instructor
+                    ? `${wo.instructor.first_name} ${wo.instructor.middle_name || ''} ${wo.instructor.last_name}`.replace(/\s+/g, ' ')
+                    : `ID: ${wo.wo_instructor}`;
+
+                  return (
+                    <div
+                      key={wo.wo_id}
+                      className={`bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between space-y-3 ${isComplete ? 'opacity-75' : ''}`}
+                    >
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+                          <div className="flex items-center gap-2">
+                            <Wrench className="h-4 w-4 text-sky-600 shrink-0" />
+                            <span className={`font-bold text-sm text-slate-900 ${isComplete ? 'line-through text-slate-500' : ''}`}>
+                              {wo.wo_work_order_number}
                             </span>
-                          </td>
-                          <td className="p-4 text-right pr-6">
-                            <button
-                              onClick={() => handleViewDetails(wo)}
-                              className={`p-1.5 rounded-lg transition-all border shadow-xs cursor-pointer inline-flex items-center gap-1.5 text-xs font-bold ${isComplete
-                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
-                                : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
-                                }`}
-                              title="View Details"
-                            >
-                              <Eye className={`h-3.5 w-3.5 ${isComplete ? 'text-white' : 'text-sky-600'}`} /> View
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                          </div>
+                          <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block border ${
+                            isComplete ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                            wo.wo_status === 'ongoing' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                            'bg-sky-50 text-sky-700 border-sky-200'
+                          }`}>
+                            {wo.wo_status || 'Active'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-1.5 text-xs text-slate-600">
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                            <span>{formatDate(wo.wo_date)}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 truncate">
+                            <User className="h-3.5 w-3.5 text-sky-600 shrink-0" />
+                            <span className="truncate">{instructorName}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2">
+                        <button
+                          onClick={() => handleViewDetails(wo)}
+                          className={`w-full py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer ${
+                            isComplete 
+                              ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700' 
+                              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                          }`}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          {isComplete ? 'View Report' : 'View Details'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* DESKTOP VIEW: STANDARD TABLE (lg+ screens) */}
+              <div className="hidden lg:block bg-white border border-slate-200 rounded-2xl flex-1 overflow-hidden flex flex-col shadow-xs">
+                <div className="overflow-x-auto flex-1">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider sticky top-0 z-10">
+                        <th className="p-4 pl-6">Work Order No.</th>
+                        <th className="p-4">Date / Time</th>
+                        <th className="p-4">Created By</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4 text-right pr-6">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {workOrders.map((wo) => {
+                        const isComplete = wo.wo_status?.toLowerCase() === 'completed' || wo.wo_status?.toLowerCase() === 'complete';
+
+                        return (
+                          <tr key={wo.wo_id} className="hover:bg-slate-50 transition-colors">
+                            <td className="p-4 pl-6 font-mono text-sky-600 font-bold text-xs">{wo.wo_work_order_number}</td>
+                            <td className="p-4 text-slate-700 text-xs flex items-center gap-2">
+                              <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                              {formatDate(wo.wo_date)}
+                            </td>
+
+                            <td className="p-4 text-slate-700 text-xs">
+                              <div className="flex items-center gap-2">
+                                <User className="h-3.5 w-3.5 text-slate-400" />
+                                {wo.instructor
+                                  ? `${wo.instructor.first_name} ${wo.instructor.middle_name || ''} ${wo.instructor.last_name}`.replace(/\s+/g, ' ')
+                                  : `ID: ${wo.wo_instructor}`
+                                }
+                              </div>
+                            </td>
+
+                            <td className="p-4">
+                              <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 w-max border
+                                ${isComplete ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                  wo.wo_status === 'ongoing' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                    'bg-sky-50 text-sky-700 border-sky-200'}`}
+                              >
+                                {isComplete ? <CheckCircle2 className="h-3 w-3" /> : <Activity className="h-3 w-3" />}
+                                {wo.wo_status || 'Active'}
+                              </span>
+                            </td>
+                            <td className="p-4 text-right pr-6">
+                              <button
+                                onClick={() => handleViewDetails(wo)}
+                                className={`p-1.5 px-3 rounded-lg transition-all border shadow-xs cursor-pointer inline-flex items-center gap-1.5 text-xs font-bold ${isComplete
+                                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
+                                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
+                                  }`}
+                                title="View Details"
+                              >
+                                <Eye className={`h-3.5 w-3.5 ${isComplete ? 'text-white' : 'text-sky-600'}`} /> View
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
       </div>
@@ -472,10 +612,10 @@ const WorkOrderDashboard = () => {
             </div>
 
             {/* TAB NAVIGATION HEADER */}
-            <div className="flex border-b border-slate-200 bg-slate-100/80 px-6 gap-2 shrink-0">
+            <div className="flex border-b border-slate-200 bg-slate-100/80 px-6 gap-2 shrink-0 overflow-x-auto">
               <button
                 onClick={() => setActiveTab('tasks')}
-                className={`py-3 px-4 font-bold text-xs border-b-2 flex items-center gap-2 transition-all cursor-pointer ${activeTab === 'tasks'
+                className={`py-3 px-4 font-bold text-xs border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'tasks'
                   ? 'border-sky-600 text-sky-600 bg-white shadow-xs rounded-t-lg'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
@@ -485,7 +625,7 @@ const WorkOrderDashboard = () => {
 
               <button
                 onClick={() => setActiveTab('reports')}
-                className={`py-3 px-4 font-bold text-xs border-b-2 flex items-center gap-2 transition-all cursor-pointer ${activeTab === 'reports'
+                className={`py-3 px-4 font-bold text-xs border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'reports'
                   ? 'border-sky-600 text-sky-600 bg-white shadow-xs rounded-t-lg'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
@@ -495,7 +635,7 @@ const WorkOrderDashboard = () => {
 
               <button
                 onClick={() => setActiveTab('proofs')}
-                className={`py-3 px-4 font-bold text-xs border-b-2 flex items-center gap-2 transition-all cursor-pointer ${activeTab === 'proofs'
+                className={`py-3 px-4 font-bold text-xs border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'proofs'
                   ? 'border-sky-600 text-sky-600 bg-white shadow-xs rounded-t-lg'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
@@ -510,7 +650,7 @@ const WorkOrderDashboard = () => {
               {/* TAB 1: ASSIGNED TASKS & METADATA */}
               {activeTab === 'tasks' && (
                 <div className="space-y-5">
-                  <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
                       <p className="text-slate-400 font-bold uppercase text-[10px] mb-1">Created Date</p>
                       <p className="font-semibold text-slate-900">{formatDate(selectedWorkOrder.wo_date)}</p>
@@ -589,7 +729,6 @@ const WorkOrderDashboard = () => {
               {/* TAB 2: MAINTENANCE REPORTS */}
               {activeTab === 'reports' && (
                 <div className="space-y-5 animate-in fade-in duration-150">
-                  {/* Report Toolbar Header */}
                   <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
                       <h4 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
@@ -606,7 +745,6 @@ const WorkOrderDashboard = () => {
                     </div>
                   ) : (
                     <div className="space-y-5">
-                      {/* Section 1: Execution & Action Details */}
                       <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 space-y-4">
                         <h3 className="text-xs font-extrabold text-sky-700 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200 pb-2.5">
                           <Wrench className="h-4 w-4 text-sky-600" /> Execution Summary & Scope
@@ -631,10 +769,9 @@ const WorkOrderDashboard = () => {
                           </div>
                         </div>
 
-                        {/* Parts Replacement Table */}
                         <div>
                           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Parts Replaced / Installed Materials</p>
-                          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                          <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
                             <table className="w-full text-left text-xs min-w-[300px]">
                               <thead className="bg-slate-100/80 text-slate-600 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200">
                                 <tr>
@@ -663,7 +800,6 @@ const WorkOrderDashboard = () => {
                         </div>
                       </div>
 
-                      {/* Section 2: Return Slip & Discrepancies */}
                       <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 space-y-4">
                         <h3 className="text-xs font-extrabold text-amber-700 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200 pb-2.5">
                           <ClipboardCheck className="h-4 w-4 text-amber-600" /> Return to Service & Discrepancy Log
@@ -690,7 +826,6 @@ const WorkOrderDashboard = () => {
                         </div>
                       </div>
 
-                      {/* Certification Badge */}
                       <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-xl flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                           <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0" />
@@ -912,11 +1047,12 @@ const WorkOrderDashboard = () => {
                 </div>
 
                 <div className="pt-4 border-t border-slate-200 flex gap-3 justify-end">
-                  <button type="button" onClick={closeModal} className="px-4 py-2 rounded-xl text-slate-700 font-bold bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all cursor-pointer">
+                  <button type="button" onClick={closeModal} disabled={loading} className="px-4 py-2 rounded-xl text-slate-700 font-bold bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all cursor-pointer">
                     Cancel
                   </button>
-                  <button type="submit" disabled={loading} className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold disabled:opacity-50 transition-all shadow-xs cursor-pointer">
-                    {loading ? 'Processing...' : 'Submit Work Order'}
+                  <button type="submit" disabled={loading} className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold disabled:opacity-50 transition-all shadow-xs cursor-pointer flex items-center gap-2">
+                    {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                    <span>{loading ? 'Creating Work Order...' : 'Submit Work Order'}</span>
                   </button>
                 </div>
               </form>

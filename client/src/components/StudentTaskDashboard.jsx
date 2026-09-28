@@ -717,105 +717,299 @@ const StudentTaskDashboard = () => {
               <p className="text-slate-600 text-sm font-medium">No work orders found matching your criteria.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl sm:rounded-2xl border border-slate-200 bg-white shadow-xs">
-              <table className="w-full text-left text-sm whitespace-nowrap">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase tracking-wider text-[10px] sm:text-xs">
-                  <tr>
-                    <th className="p-3 sm:p-4 font-semibold">WO Number</th>
-                    <th className="p-3 sm:p-4 font-semibold">Date</th>
-                    <th className="p-3 sm:p-4 font-semibold">Instructor</th>
-                    <th className="p-3 sm:p-4 font-semibold">Status</th>
-                    <th className="p-3 sm:p-4 font-semibold w-1/3">Items</th>
-                    <th className="p-3 sm:p-4 font-semibold text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
-                  {filteredTasks.map((task) => {
-                    const instructorName = task.instructor
-                      ? `${task.instructor.first_name} ${task.instructor.middle_name || ''} ${task.instructor.last_name}`.replace(/\s+/g, ' ')
-                      : `ID: ${task.wo_instructor}`;
+           <div>
+  {/* MOBILE VIEW: SCROLLABLE CARD LIST (< sm screens) */}
+  <div className="block sm:hidden space-y-3 max-h-[65vh] overflow-y-auto pr-1">
+    {filteredTasks.map((task) => {
+      const instructorName = task.instructor
+        ? `${task.instructor.first_name} ${task.instructor.middle_name || ''} ${task.instructor.last_name}`.replace(/\s+/g, ' ')
+        : `ID: ${task.wo_instructor}`;
 
-                    let buttonText = 'Start';
-                    let ButtonIcon = Play;
-                    let buttonStyles = 'bg-slate-100 text-slate-700 border-slate-300 hover:text-sky-600 hover:border-sky-300';
+      let buttonText = 'Start';
+      let ButtonIcon = Play;
+      let buttonStyles = 'bg-slate-100 text-slate-700 border-slate-300 hover:text-sky-600 hover:border-sky-300';
 
-                    if (task.wo_status === 'ongoing') {
-                      buttonText = 'Report';
-                      ButtonIcon = FileText;
-                      buttonStyles = 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100';
-                    } else if (task.wo_status === 'complete') {
-                      buttonText = 'View Report';
-                      ButtonIcon = Eye;
-                      buttonStyles = 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
-                    }
+      if (task.wo_status === 'ongoing') {
+        buttonText = 'Report';
+        ButtonIcon = FileText;
+        buttonStyles = 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100';
+      } else if (task.wo_status === 'complete') {
+        buttonText = 'View Report';
+        ButtonIcon = Eye;
+        buttonStyles = 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
+      }
 
-                    return (
-                      <tr
-                        key={task.wo_id}
-                        className={`hover:bg-slate-50/80 transition-colors ${task.wo_status === 'complete' ? 'opacity-75' : ''}`}
-                      >
-                        <td className="p-3 sm:p-4">
-                          <div className={`font-bold flex items-center gap-1.5 text-slate-900 ${task.wo_status === 'complete' ? 'line-through text-slate-500' : ''}`} title={task.wo_work_order_number}>
-                            <Wrench className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                            <span className="truncate max-w-[120px] sm:max-w-xs">{task.wo_work_order_number}</span>
-                          </div>
-                        </td>
-                        <td className="p-3 sm:p-4 text-slate-600">
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                            {formatDate(task.wo_date)}
-                          </div>
-                        </td>
-                        <td className="p-3 sm:p-4 text-slate-700">
-                          <div className="flex items-center gap-1.5">
-                            <User className="h-3.5 w-3.5 text-sky-600 shrink-0" />
-                            <span className="truncate max-w-[120px] sm:max-w-[200px]">{instructorName}</span>
-                          </div>
-                        </td>
-                        <td className="p-3 sm:p-4">
-                          <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block ${task.wo_status === 'active' ? 'bg-slate-100 text-slate-700 border border-slate-200' :
-                            task.wo_status === 'ongoing' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                              task.wo_status === 'complete' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                                'bg-slate-100 text-slate-700'
-                            }`}>
-                            {task.wo_status || 'Active'}
-                          </span>
-                        </td>
-                        <td className="p-3 sm:p-4">
-                          <div className="max-h-16 overflow-y-auto custom-scrollbar pr-2 min-w-[180px] sm:min-w-[250px]">
-                            <ul className="list-disc pl-4 space-y-0.5 text-[11px] sm:text-xs">
-                              {task.items && task.items.length > 0 ? (
-                                task.items.map((item, idx) => (
-                                  <li key={idx} className="text-slate-600 whitespace-normal break-words">
-                                    {item.workOrderListDetails ? item.workOrderListDetails.wol_description : `ID: ${item.woi_work_order_list_id}`}
-                                  </li>
-                                ))
-                              ) : (
-                                <li className="italic text-slate-400">No items attached.</li>
-                              )}
-                            </ul>
-                          </div>
-                        </td>
-                        <td className="p-3 sm:p-4 text-right">
-                          <button
-                            onClick={() => handleActionClick(task)}
-                            disabled={isLoadingReportDetails}
-                            className={`inline-flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border text-[10px] sm:text-xs font-bold items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs ${buttonStyles}`}
-                          >
-                            {isLoadingReportDetails && task.wo_status === 'complete' ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : (
-                              <ButtonIcon className="h-3.5 w-3.5" />
-                            )}
-                            {buttonText}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+      return (
+        <div
+          key={task.wo_id}
+          className={`bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-3 ${task.wo_status === 'complete' ? 'opacity-75' : ''}`}
+        >
+          {/* Header Row: Work Order & Status Badge */}
+          <div className="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+            <div className="flex items-center gap-2">
+              <Wrench className="h-4 w-4 text-sky-600 shrink-0" />
+              <span className={`font-bold text-sm text-slate-900 ${task.wo_status === 'complete' ? 'line-through text-slate-500' : ''}`}>
+                {task.wo_work_order_number}
+              </span>
             </div>
+            <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block ${
+              task.wo_status === 'active' ? 'bg-slate-100 text-slate-700 border border-slate-200' :
+              task.wo_status === 'ongoing' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+              task.wo_status === 'complete' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+              'bg-slate-100 text-slate-700'
+            }`}>
+              {task.wo_status || 'Active'}
+            </span>
+          </div>
+
+          {/* Details Row: Date & Instructor */}
+          <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <span>{formatDate(task.wo_date)}</span>
+            </div>
+            <div className="flex items-center gap-1.5 truncate">
+              <User className="h-3.5 w-3.5 text-sky-600 shrink-0" />
+              <span className="truncate">{instructorName}</span>
+            </div>
+          </div>
+
+          {/* Scrollable Items Container */}
+          <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-xs">
+            <p className="font-bold text-slate-500 uppercase text-[9px] mb-1">Assigned Items:</p>
+            <div className="max-h-20 overflow-y-auto custom-scrollbar text-slate-700 space-y-0.5">
+              {task.items && task.items.length > 0 ? (
+                <ul className="list-disc pl-4 space-y-0.5">
+                  {task.items.map((item, idx) => (
+                    <li key={idx} className="break-words">
+                      {item.workOrderListDetails ? item.workOrderListDetails.wol_description : `ID: ${item.woi_work_order_list_id}`}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span className="italic text-slate-400">No items attached.</span>
+              )}
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={() => handleActionClick(task)}
+              disabled={isLoadingReportDetails}
+              className={`w-full py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer ${buttonStyles}`}
+            >
+              {isLoadingReportDetails && task.wo_status === 'complete' ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ButtonIcon className="h-3.5 w-3.5" />
+              )}
+              {buttonText}
+            </button>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+
+  {/* TABLET VIEW: 2-COLUMN GRID (visible on sm to lg screens, hidden on mobile & desktop) */}
+  <div className="hidden sm:grid md:grid grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto pr-1">
+    {filteredTasks.map((task) => {
+      const instructorName = task.instructor
+        ? `${task.instructor.first_name} ${task.instructor.middle_name || ''} ${task.instructor.last_name}`.replace(/\s+/g, ' ')
+        : `ID: ${task.wo_instructor}`;
+
+      let buttonText = 'Start';
+      let ButtonIcon = Play;
+      let buttonStyles = 'bg-slate-100 text-slate-700 border-slate-300 hover:text-sky-600 hover:border-sky-300';
+
+      if (task.wo_status === 'ongoing') {
+        buttonText = 'Report';
+        ButtonIcon = FileText;
+        buttonStyles = 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100';
+      } else if (task.wo_status === 'complete') {
+        buttonText = 'View Report';
+        ButtonIcon = Eye;
+        buttonStyles = 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
+      }
+
+      return (
+        <div
+          key={task.wo_id}
+          className={`bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between space-y-3 ${task.wo_status === 'complete' ? 'opacity-75' : ''}`}
+        >
+          <div className="space-y-3">
+            {/* Header Row */}
+            <div className="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-2">
+                <Wrench className="h-4 w-4 text-sky-600 shrink-0" />
+                <span className={`font-bold text-sm text-slate-900 ${task.wo_status === 'complete' ? 'line-through text-slate-500' : ''}`}>
+                  {task.wo_work_order_number}
+                </span>
+              </div>
+              <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block ${
+                task.wo_status === 'active' ? 'bg-slate-100 text-slate-700 border border-slate-200' :
+                task.wo_status === 'ongoing' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                task.wo_status === 'complete' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                'bg-slate-100 text-slate-700'
+              }`}>
+                {task.wo_status || 'Active'}
+              </span>
+            </div>
+
+            {/* Details Row */}
+            <div className="grid grid-cols-1 gap-1.5 text-xs text-slate-600">
+              <div className="flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                <span>{formatDate(task.wo_date)}</span>
+              </div>
+              <div className="flex items-center gap-1.5 truncate">
+                <User className="h-3.5 w-3.5 text-sky-600 shrink-0" />
+                <span className="truncate">{instructorName}</span>
+              </div>
+            </div>
+
+            {/* Items Container */}
+            <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-xs">
+              <p className="font-bold text-slate-500 uppercase text-[9px] mb-1">Assigned Items:</p>
+              <div className="max-h-20 overflow-y-auto custom-scrollbar text-slate-700 space-y-0.5">
+                {task.items && task.items.length > 0 ? (
+                  <ul className="list-disc pl-4 space-y-0.5">
+                    {task.items.map((item, idx) => (
+                      <li key={idx} className="break-words">
+                        {item.workOrderListDetails ? item.workOrderListDetails.wol_description : `ID: ${item.woi_work_order_list_id}`}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span className="italic text-slate-400">No items attached.</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <div className="pt-2">
+            <button
+              onClick={() => handleActionClick(task)}
+              disabled={isLoadingReportDetails}
+              className={`w-full py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer ${buttonStyles}`}
+            >
+              {isLoadingReportDetails && task.wo_status === 'complete' ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ButtonIcon className="h-3.5 w-3.5" />
+              )}
+              {buttonText}
+            </button>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+
+  {/* DESKTOP VIEW: STANDARD TABLE (hidden on mobile & tablet, visible on lg+ screens) */}
+  <div className="hidden lg:block overflow-x-auto rounded-xl sm:rounded-2xl border border-slate-200 bg-white shadow-xs">
+    <table className="w-full text-left text-sm whitespace-nowrap">
+      <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase tracking-wider text-[10px] sm:text-xs">
+        <tr>
+          <th className="p-3 sm:p-4 font-semibold">WO Number</th>
+          <th className="p-3 sm:p-4 font-semibold">Date</th>
+          <th className="p-3 sm:p-4 font-semibold">Instructor</th>
+          <th className="p-3 sm:p-4 font-semibold">Status</th>
+          <th className="p-3 sm:p-4 font-semibold w-1/3">Items</th>
+          <th className="p-3 sm:p-4 font-semibold text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
+        {filteredTasks.map((task) => {
+          const instructorName = task.instructor
+            ? `${task.instructor.first_name} ${task.instructor.middle_name || ''} ${task.instructor.last_name}`.replace(/\s+/g, ' ')
+            : `ID: ${task.wo_instructor}`;
+
+          let buttonText = 'Start';
+          let ButtonIcon = Play;
+          let buttonStyles = 'bg-slate-100 text-slate-700 border-slate-300 hover:text-sky-600 hover:border-sky-300';
+
+          if (task.wo_status === 'ongoing') {
+            buttonText = 'Report';
+            ButtonIcon = FileText;
+            buttonStyles = 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100';
+          } else if (task.wo_status === 'complete') {
+            buttonText = 'View Report';
+            ButtonIcon = Eye;
+            buttonStyles = 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
+          }
+
+          return (
+            <tr
+              key={task.wo_id}
+              className={`hover:bg-slate-50/80 transition-colors ${task.wo_status === 'complete' ? 'opacity-75' : ''}`}
+            >
+              <td className="p-3 sm:p-4">
+                <div className={`font-bold flex items-center gap-1.5 text-slate-900 ${task.wo_status === 'complete' ? 'line-through text-slate-500' : ''}`} title={task.wo_work_order_number}>
+                  <Wrench className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                  <span className="truncate max-w-[120px] sm:max-w-xs">{task.wo_work_order_number}</span>
+                </div>
+              </td>
+              <td className="p-3 sm:p-4 text-slate-600">
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                  {formatDate(task.wo_date)}
+                </div>
+              </td>
+              <td className="p-3 sm:p-4 text-slate-700">
+                <div className="flex items-center gap-1.5">
+                  <User className="h-3.5 w-3.5 text-sky-600 shrink-0" />
+                  <span className="truncate max-w-[120px] sm:max-w-[200px]">{instructorName}</span>
+                </div>
+              </td>
+              <td className="p-3 sm:p-4">
+                <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block ${
+                  task.wo_status === 'active' ? 'bg-slate-100 text-slate-700 border border-slate-200' :
+                  task.wo_status === 'ongoing' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                  task.wo_status === 'complete' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                  'bg-slate-100 text-slate-700'
+                }`}>
+                  {task.wo_status || 'Active'}
+                </span>
+              </td>
+              <td className="p-3 sm:p-4">
+                <div className="max-h-16 overflow-y-auto custom-scrollbar pr-2 min-w-[180px] sm:min-w-[250px]">
+                  <ul className="list-disc pl-4 space-y-0.5 text-[11px] sm:text-xs">
+                    {task.items && task.items.length > 0 ? (
+                      task.items.map((item, idx) => (
+                        <li key={idx} className="text-slate-600 whitespace-normal break-words">
+                          {item.workOrderListDetails ? item.workOrderListDetails.wol_description : `ID: ${item.woi_work_order_list_id}`}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="italic text-slate-400">No items attached.</li>
+                    )}
+                  </ul>
+                </div>
+              </td>
+              <td className="p-3 sm:p-4 text-right">
+                <button
+                  onClick={() => handleActionClick(task)}
+                  disabled={isLoadingReportDetails}
+                  className={`inline-flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border text-[10px] sm:text-xs font-bold items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs ${buttonStyles}`}
+                >
+                  {isLoadingReportDetails && task.wo_status === 'complete' ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <ButtonIcon className="h-3.5 w-3.5" />
+                  )}
+                  {buttonText}
+                </button>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+</div>
           )}
         </div>
 

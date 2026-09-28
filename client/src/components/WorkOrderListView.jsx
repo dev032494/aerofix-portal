@@ -10,7 +10,6 @@ import {
 import { workOrderListService } from '../services/api';
 
 export default function WorkOrderListView({ activeUser }) {
-  // Renamed setter to setWorkOrders for standard convention
   const [workOrders, setWorkOrders] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -29,7 +28,6 @@ export default function WorkOrderListView({ activeUser }) {
     try {
       const response = await workOrderListService.getAll();
 
-      // Safely extract the array whether it's returned directly or wrapped in an object like { data: [...] }
       const dataArray = Array.isArray(response)
         ? response
         : (response?.data || response?.workOrders || []);
@@ -37,7 +35,7 @@ export default function WorkOrderListView({ activeUser }) {
       setWorkOrders(dataArray);
     } catch (err) {
       console.error(err);
-      setWorkOrders([]); // Fallback to an empty array on error to prevent .map crashes
+      setWorkOrders([]);
 
       Swal.fire({
         title: 'Error',
@@ -104,8 +102,8 @@ export default function WorkOrderListView({ activeUser }) {
       text: 'Do you want to delete this work order?',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#ef4444', // rose-500
-      cancelButtonColor: '#64748b',  // slate-500
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
       confirmButtonText: 'Yes, delete it!',
       background: '#ffffff',
       color: '#0f172a'
@@ -138,7 +136,6 @@ export default function WorkOrderListView({ activeUser }) {
     }
   };
 
-  // Open modal handler
   const openModal = (workOrder = null) => {
     if (workOrder) {
       setEditId(workOrder.wol_id);
@@ -180,63 +177,141 @@ export default function WorkOrderListView({ activeUser }) {
         {/* Scrollable Content Area */}
         <div className="p-3 sm:p-5 md:p-6 bg-slate-50 w-full flex flex-col flex-1 overflow-y-auto box-border custom-scrollbar space-y-4">
 
-          {/* TABLE SECTION */}
-          <div className="bg-white border border-slate-200 rounded-2xl flex-1 overflow-hidden flex flex-col shadow-xs">
-            <div className="overflow-x-auto flex-1">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-100/70 border-b border-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider sticky top-0 z-10">
-                  <tr>
-                    <th className="py-4 px-6 border-b border-slate-200 w-24 text-center">ID</th>
-                    <th className="py-4 px-6 border-b border-slate-200">Description</th>
-                    <th className="py-4 px-6 border-b border-slate-200 w-48">Created By</th>
-                    <th className="py-4 px-6 border-b border-slate-200 w-48">Created At</th>
-                    <th className="py-4 px-6 border-b border-slate-200 w-32 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-xs">
-                  {workOrders.length === 0 ? (
-                    <tr>
-                      <td colSpan="5" className="py-12 text-center text-slate-400 italic">
-                        No work orders found. Click "Add Work Order" to create one.
-                      </td>
-                    </tr>
-                  ) : (
-
-                    workOrders.map((wo, index) => (
-                      <tr key={wo.wol_id} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-3 px-6 text-slate-600 text-center font-mono font-bold">
-                          {index + 1}
-                        </td>
-                        <td className="py-3 px-6 text-slate-900 font-medium">{wo.wol_description}</td>
-                        <td className="py-3 px-6 text-slate-600">{wo.wol_create_by}</td>
-                        <td className="py-3 px-6 text-slate-500 font-mono text-[11px]">
-                          {new Date(wo.wol_create_at).toLocaleString()}
-                        </td>
-                        <td className="py-3 px-6 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => openModal(wo)}
-                              className="p-1.5 text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-all cursor-pointer shadow-xs"
-                              title="Edit"
-                            >
-                              <Edit2 className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(wo.wol_id)}
-                              className="p-1.5 text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-all cursor-pointer shadow-xs"
-                              title="Delete"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+          {workOrders.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center bg-white border border-slate-200 rounded-2xl min-h-[250px] shadow-xs">
+              <ClipboardList className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-400 italic text-xs">No work orders found. Click "Add Work Order" to create one.</p>
             </div>
-          </div>
+          ) : (
+            <div className="flex-1 min-h-0 flex flex-col">
+              
+              {/* MOBILE VIEW: SINGLE COLUMN CARD LIST (< sm screens) */}
+              <div className="block sm:hidden space-y-3 overflow-y-auto max-h-[70vh] pr-1">
+                {workOrders.map((wo, index) => (
+                  <div key={wo.wol_id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-3">
+                    <div className="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                          #{index + 1}
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-500">
+                          {new Date(wo.wol_create_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 text-xs">
+                      <p className="text-slate-900 font-medium leading-relaxed">{wo.wol_description}</p>
+                      <p className="text-[11px] text-slate-500 pt-1 font-semibold">Created By: {wo.wol_create_by}</p>
+                    </div>
+
+                    <div className="pt-2 flex gap-2 justify-end border-t border-slate-100">
+                      <button
+                        onClick={() => openModal(wo)}
+                        className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg border border-amber-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(wo.wol_id)}
+                        className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg border border-rose-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* TABLET VIEW: 2-COLUMN GRID (sm to lg screens) */}
+              <div className="hidden sm:grid lg:hidden grid-cols-2 gap-4 overflow-y-auto max-h-[70vh] pr-1">
+                {workOrders.map((wo, index) => (
+                  <div key={wo.wol_id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between space-y-3">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+                        <span className="font-mono text-xs font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                          #{index + 1}
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-500">
+                          {new Date(wo.wol_create_at).toLocaleDateString()}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1 text-xs">
+                        <p className="text-slate-900 font-medium leading-relaxed line-clamp-3">{wo.wol_description}</p>
+                        <p className="text-[11px] text-slate-500 pt-1 font-semibold">Created By: {wo.wol_create_by}</p>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex gap-2 justify-end border-t border-slate-100">
+                      <button
+                        onClick={() => openModal(wo)}
+                        className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg border border-amber-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(wo.wol_id)}
+                        className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg border border-rose-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* DESKTOP VIEW: STANDARD TABLE (lg+ screens) */}
+              <div className="hidden lg:flex flex-1 bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden flex-col">
+                <div className="overflow-x-auto flex-1">
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-slate-100/70 border-b border-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider sticky top-0 z-10">
+                      <tr>
+                        <th className="py-4 px-6 border-b border-slate-200 w-24 text-center">ID</th>
+                        <th className="py-4 px-6 border-b border-slate-200">Description</th>
+                        <th className="py-4 px-6 border-b border-slate-200 w-48">Created By</th>
+                        <th className="py-4 px-6 border-b border-slate-200 w-48">Created At</th>
+                        <th className="py-4 px-6 border-b border-slate-200 w-32 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-xs">
+                      {workOrders.map((wo, index) => (
+                        <tr key={wo.wol_id} className="hover:bg-slate-50 transition-colors">
+                          <td className="py-3 px-6 text-slate-600 text-center font-mono font-bold">
+                            {index + 1}
+                          </td>
+                          <td className="py-3 px-6 text-slate-900 font-medium">{wo.wol_description}</td>
+                          <td className="py-3 px-6 text-slate-600">{wo.wol_create_by}</td>
+                          <td className="py-3 px-6 text-slate-500 font-mono text-[11px]">
+                            {new Date(wo.wol_create_at).toLocaleString()}
+                          </td>
+                          <td className="py-3 px-6 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => openModal(wo)}
+                                className="p-1.5 text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-all cursor-pointer shadow-xs"
+                                title="Edit"
+                              >
+                                <Edit2 className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(wo.wol_id)}
+                                className="p-1.5 text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-all cursor-pointer shadow-xs"
+                                title="Delete"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          )}
 
         </div>
       </div>

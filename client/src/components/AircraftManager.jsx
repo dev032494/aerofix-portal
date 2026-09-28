@@ -190,10 +190,9 @@ export default function AircraftManager() {
   }
 
   return (
-    // Outer container fixed to screen height
     <div className="h-screen w-full flex flex-col bg-slate-50 p-4 sm:p-6 overflow-hidden box-border relative">
 
-      {/* Header Section (Fixed height, won't shrink) */}
+      {/* Header Section */}
       <div className="shrink-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Fleet Register</h1>
@@ -213,86 +212,174 @@ export default function AircraftManager() {
         </div>
       )}
 
-      {/* Data Table Section (Flex-1 allows it to fill remaining screen space) */}
+      {/* Responsive Fleet Register Display Area */}
       {aircraftList.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center bg-white border border-slate-200 rounded-2xl min-h-0 shadow-sm">
           <Plane className="h-12 w-12 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-500 font-medium">No aircraft registered in the system yet.</p>
         </div>
       ) : (
-        <div className="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col min-h-0 overflow-hidden">
-          {/* Scrollable area within the table container */}
-          <div className="flex-1 overflow-auto w-full">
-            <table className="w-full text-left border-collapse min-w-[700px]">
-              {/* Sticky header stays visible when scrolling rows */}
-              <thead className="sticky top-0 z-10 bg-slate-100 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
-                <tr>
-                  <th className="p-4 font-bold border-b border-slate-200">Registration</th>
-                  <th className="p-4 font-bold border-b border-slate-200">Aircraft Type</th>
-                  <th className="p-4 font-bold border-b border-slate-200">Created By</th>
-                  <th className="p-4 font-bold border-b border-slate-200">Date Logged</th>
-                  <th className="p-4 font-bold text-center border-b border-slate-200">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {aircraftList.map((ac) => (
-                  <tr key={ac.a_id} className="hover:bg-slate-50/80 transition-colors group">
-                    <td className="p-4">
-                      <span className="text-slate-900 font-bold group-hover:text-sky-600 transition-colors">
-                        {ac.a_registration_number}
-                      </span>
-                    </td>
-                    <td className="p-4 text-slate-600 font-medium">{ac.a_aircraft_type}</td>
-                    <td className="p-4 text-slate-500">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-slate-400" />
-                        {ac.a_create_by}
-                      </div>
-                    </td>
-                    <td className="p-4 text-slate-500 text-sm font-mono">
-                      {ac.a_create_at ? new Date(ac.a_create_at).toLocaleDateString() : 'N/A'}
-                    </td>
-                    <td className="p-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => setViewRecord(ac)}
-                          className="p-2 bg-slate-100 hover:bg-slate-200 text-sky-600 rounded-lg transition-colors border border-slate-200 shadow-xs cursor-pointer"
-                          title="View Details"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleOpenEdit(ac)}
-                          className="p-2 bg-slate-100 hover:bg-slate-200 text-amber-600 rounded-lg transition-colors border border-slate-200 shadow-xs cursor-pointer"
-                          title="Edit Record"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(ac.a_id, ac.a_registration_number)}
-                          className="p-2 bg-slate-100 hover:bg-rose-50 text-rose-600 hover:border-rose-200 rounded-lg transition-colors border border-slate-200 shadow-xs cursor-pointer"
-                          title="Delete Record"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="flex-1 min-h-0 flex flex-col">
+          
+          {/* MOBILE VIEW: SINGLE COLUMN CARD LIST (< sm screens) */}
+          <div className="block sm:hidden space-y-3 overflow-y-auto max-h-[72vh] pr-1">
+            {aircraftList.map((ac) => (
+              <div key={ac.a_id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-3">
+                <div className="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Plane className="h-4 w-4 text-sky-600 shrink-0" />
+                    <span className="font-bold text-sm text-slate-900">{ac.a_registration_number}</span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+                    {ac.a_create_at ? new Date(ac.a_create_at).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+
+                <div className="space-y-1 text-xs text-slate-600">
+                  <p><span className="font-bold text-slate-400 uppercase text-[9px] block">Type:</span> <span className="text-slate-800 font-semibold">{ac.a_aircraft_type}</span></p>
+                  <p className="flex items-center gap-1.5"><User className="h-3.5 w-3.5 text-slate-400" /> <span className="truncate">{ac.a_create_by}</span></p>
+                </div>
+
+                <div className="pt-2 flex gap-2 justify-end border-t border-slate-100">
+                  <button
+                    onClick={() => setViewRecord(ac)}
+                    className="p-2 bg-slate-50 hover:bg-slate-100 text-sky-600 rounded-lg border border-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Eye className="h-3.5 w-3.5" /> View
+                  </button>
+                  <button
+                    onClick={() => handleOpenEdit(ac)}
+                    className="p-2 bg-slate-50 hover:bg-slate-100 text-amber-600 rounded-lg border border-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Edit className="h-3.5 w-3.5" /> Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(ac.a_id, ac.a_registration_number)}
+                    className="p-2 bg-slate-50 hover:bg-rose-50 text-rose-600 rounded-lg border border-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Delete
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
+
+          {/* TABLET VIEW: 2-COLUMN GRID (sm to lg screens) */}
+          <div className="hidden sm:grid lg:hidden grid-cols-2 gap-4 overflow-y-auto max-h-[72vh] pr-1">
+            {aircraftList.map((ac) => (
+              <div key={ac.a_id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between space-y-3">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+                    <div className="flex items-center gap-2">
+                      <Plane className="h-4 w-4 text-sky-600 shrink-0" />
+                      <span className="font-bold text-sm text-slate-900">{ac.a_registration_number}</span>
+                    </div>
+                    <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+                      {ac.a_create_at ? new Date(ac.a_create_at).toLocaleDateString() : 'N/A'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1 text-xs text-slate-600">
+                    <p><span className="font-bold text-slate-400 uppercase text-[9px] block">Type:</span> <span className="text-slate-800 font-semibold">{ac.a_aircraft_type}</span></p>
+                    <p className="flex items-center gap-1.5"><User className="h-3.5 w-3.5 text-slate-400" /> <span className="truncate">{ac.a_create_by}</span></p>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex gap-2 justify-end border-t border-slate-100">
+                  <button
+                    onClick={() => setViewRecord(ac)}
+                    className="p-2 bg-slate-50 hover:bg-slate-100 text-sky-600 rounded-lg border border-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Eye className="h-3.5 w-3.5" /> View
+                  </button>
+                  <button
+                    onClick={() => handleOpenEdit(ac)}
+                    className="p-2 bg-slate-50 hover:bg-slate-100 text-amber-600 rounded-lg border border-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Edit className="h-3.5 w-3.5" /> Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(ac.a_id, ac.a_registration_number)}
+                    className="p-2 bg-slate-50 hover:bg-rose-50 text-rose-600 rounded-lg border border-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* DESKTOP VIEW: STANDARD TABLE (lg+ screens) */}
+          <div className="hidden lg:flex flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm flex-col min-h-0 overflow-hidden">
+            <div className="flex-1 overflow-auto w-full">
+              <table className="w-full text-left border-collapse min-w-[700px]">
+                <thead className="sticky top-0 z-10 bg-slate-100 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
+                  <tr>
+                    <th className="p-4 font-bold border-b border-slate-200">Registration</th>
+                    <th className="p-4 font-bold border-b border-slate-200">Aircraft Type</th>
+                    <th className="p-4 font-bold border-b border-slate-200">Created By</th>
+                    <th className="p-4 font-bold border-b border-slate-200">Date Logged</th>
+                    <th className="p-4 font-bold text-center border-b border-slate-200">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {aircraftList.map((ac) => (
+                    <tr key={ac.a_id} className="hover:bg-slate-50/80 transition-colors group">
+                      <td className="p-4">
+                        <span className="text-slate-900 font-bold group-hover:text-sky-600 transition-colors">
+                          {ac.a_registration_number}
+                        </span>
+                      </td>
+                      <td className="p-4 text-slate-600 font-medium">{ac.a_aircraft_type}</td>
+                      <td className="p-4 text-slate-500">
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-slate-400" />
+                          {ac.a_create_by}
+                        </div>
+                      </td>
+                      <td className="p-4 text-slate-500 text-sm font-mono">
+                        {ac.a_create_at ? new Date(ac.a_create_at).toLocaleDateString() : 'N/A'}
+                      </td>
+                      <td className="p-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => setViewRecord(ac)}
+                            className="p-2 bg-slate-100 hover:bg-slate-200 text-sky-600 rounded-lg transition-colors border border-slate-200 shadow-xs cursor-pointer"
+                            title="View Details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleOpenEdit(ac)}
+                            className="p-2 bg-slate-100 hover:bg-slate-200 text-amber-600 rounded-lg transition-colors border border-slate-200 shadow-xs cursor-pointer"
+                            title="Edit Record"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(ac.a_id, ac.a_registration_number)}
+                            className="p-2 bg-slate-100 hover:bg-rose-50 text-rose-600 hover:border-rose-200 rounded-lg transition-colors border border-slate-200 shadow-xs cursor-pointer"
+                            title="Delete Record"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       )}
 
-      {/* ----------------- MODALS & TOAST CONTAINER (z-index adjusted) ----------------- */}
-
-      {/* Floating Toast Notification (Placed with z-[100] so it sits above any active modal backdrop) */}
+      {/* Floating Toast Notification */}
       {toast.show && (
-        <div className={`fixed top-5 right-5 z-[100] flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl transition-all animate-fadeIn ${toast.type === 'error'
-          ? 'bg-rose-50 border-rose-200 text-rose-800'
-          : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-          }`}>
+        <div className={`fixed top-5 right-5 z-[100] flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl transition-all animate-fadeIn ${
+          toast.type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+        }`}>
           {toast.type === 'error' ? <AlertCircle className="h-5 w-5 text-rose-600 shrink-0" /> : <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />}
           <span className="text-xs sm:text-sm font-semibold">{toast.message}</span>
         </div>
@@ -302,7 +389,6 @@ export default function AircraftManager() {
       {isFormModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
           <div className="bg-white border border-slate-200 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-fadeIn">
-
             <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h3 className="font-bold text-slate-900 text-lg">
                 {editId ? 'Edit Airframe Record' : 'New Airframe Record'}
