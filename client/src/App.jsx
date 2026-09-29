@@ -36,7 +36,7 @@ import StudentTaskDashboard from "./components/StudentTaskDashboard";
 import MaintenanceSchedulePlanning from "./components/MaintenanceSchedulePlanning";
 import Logbook from "./components/Logbook";
 
-import {workOrderService, logbookService} from "./services/api";
+import { workOrderService, logbookService } from "./services/api";
 
 // --- PROTECTED ROUTE INTERCEPTOR ---
 function ProtectedRoute({ children, currentUser }) {
@@ -121,10 +121,10 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
           <nav className="p-4 space-y-1.5 mt-4 lg:mt-2 overflow-y-auto max-h-[calc(100vh-14rem)]">
             {!isStudent && (
               <>
-               <NavLink to="aircraft" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
+                <NavLink to="aircraft" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
                   <Plane className="h-5 w-5 shrink-0" /> Aircraft Fleet
                 </NavLink>
-                
+
                 <NavLink to="work-orders" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
                   <Wrench className="h-5 w-5 shrink-0" /> Work Orders
                 </NavLink>
@@ -164,7 +164,7 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
                 <CheckCircle2 className="h-5 w-5 shrink-0" /> My Tasks
               </NavLink>
             )}
-            
+
             <NavLink to="library" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
               <BookOpen className="h-5 w-5 shrink-0" /> Tech Library
             </NavLink>
@@ -172,18 +172,6 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
             <NavLink to="profile" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
               <User className="h-5 w-5 shrink-0" /> My Profile Account
             </NavLink>
-
-            {isDeveloper && (
-              <>
-                <NavLink to="activation-logs" onClick={() => setIsMobileMenuOpen(false)} className={(props) => developerNavLinkClass(props, 'amber')}>
-                  <ShieldAlert className="h-5 w-5 shrink-0" /> Activation Logs
-                </NavLink>
-
-                <NavLink to="activity-logs" onClick={() => setIsMobileMenuOpen(false)} className={(props) => developerNavLinkClass(props, 'sky')}>
-                  <Activity className="h-5 w-5 shrink-0" /> System Activity Logs
-                </NavLink>
-              </>
-            )}
           </nav>
         </div>
 

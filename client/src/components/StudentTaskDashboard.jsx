@@ -1437,7 +1437,7 @@ const StudentTaskDashboard = () => {
               </div>
 
               <div className="p-4 sm:p-6 border-t border-slate-200 bg-white rounded-b-xl sm:rounded-b-2xl sticky bottom-0 z-20 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
-                <button
+                {/* <button
                   type="button"
                   onClick={() => {
                     setIsViewReportModalOpen(false);
@@ -1447,7 +1447,7 @@ const StudentTaskDashboard = () => {
                   className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 shadow-xs"
                 >
                   <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> PDF Preview
-                </button>
+                </button> */}
 
                 <button
                   type="button"

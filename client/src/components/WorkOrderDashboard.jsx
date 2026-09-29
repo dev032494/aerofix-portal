@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { workOrderService, instructorService, userService, workOrderListService } from '../services/api';
 import Swal from 'sweetalert2';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas-pro';
 import {
-  Plus, X, ClipboardList, Calendar, User, Activity, Search, ChevronDown, Eye, FileText, Image as ImageIcon, CheckCircle2, ShieldCheck, Camera, Wrench, ClipboardCheck, Loader2
+  Plus, X, ClipboardList, Calendar, User, Activity, Search, ChevronDown, Eye, FileText, Image as ImageIcon,
+  CheckCircle2, ShieldCheck, Camera, Wrench, ClipboardCheck, Loader2, FileDown, Printer, Maximize2, Minimize2, Download
 } from 'lucide-react';
 
 // --- CUSTOM SEARCHABLE DROPDOWN COMPONENT ---
@@ -92,6 +95,231 @@ const SearchableDropdown = ({ options, value, onChange, placeholder, isLoading, 
   );
 };
 
+// --- PRINTABLE DOCUMENT COMPONENT ---
+const PrintableDocumentContent = ({ task, slip, pdfRef }) => {
+  if (!task) return null;
+
+  const partsList = task.partsReplacement || task.parts || [];
+  const formattedDate = task.wo_date ? new Date(task.wo_date).toLocaleDateString() : new Date().toLocaleDateString();
+  const actionTakenText = task.actionTaken?.woat_description || task.action_taken || "";
+
+  const workOrderItemsText = task.items && task.items.length > 0
+    ? task.items.map(item => item.workOrderListDetails?.wol_description || `Item ID: ${item.woi_work_order_list_id}`).join(', ')
+    : "";
+
+  const studentName = task.personnel && task.personnel.length > 0
+    ? task.personnel.map(p => p.user ? `${p.user.first_name} ${p.user.last_name}` : `ID: ${p.wop_user_id}`).join(', ')
+    : "";
+
+  const discrepancyText = slip?.wors_aircraft_discrepancy || task.returnSlip?.wors_aircraft_discrepancy || task.returnService?.wors_aircraft_discrepancy || task.discrepancy || "";
+  const correctiveActionText = slip?.wors_corrective_action || task.returnSlip?.wors_corrective_action || task.returnService?.wors_corrective_action || task.corrective_action || "";
+
+  const instructorName = task.instructor
+    ? `${task.instructor.first_name} ${task.instructor.last_name}`
+    : "";
+  const instructorLicenseNo = task.instructor?.student_id || task.instructor?.id || "";
+
+  const tableRows = Array.from({ length: 4 }, (_, index) => partsList[index] || null);
+
+  return (
+    <div className="printable-document text-black font-sans bg-white text-[10px]" ref={pdfRef}>
+      <div className="a4-page border-[3px] border-black p-4 relative flex flex-col justify-between box-border bg-white text-black h-[297mm] w-[210mm] max-w-full lg:max-w-none">
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.05] pointer-events-none z-0">
+          <img src="/aeronexus-watermark.png" alt="Aeronexus Watermark" className="w-1/2 object-contain" />
+        </div>
+
+        <div className="relative z-10 flex flex-col justify-between h-full gap-2">
+
+          {/* SECTION 1: WORK ORDER */}
+          <div className="space-y-1.5 print:hidden">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
+              <div className="flex flex-col">
+                <h1 className="text-2xl font-black tracking-tighter text-blue-900 leading-none">
+                  NAAP
+                </h1>
+                <p className="text-[7px] font-bold uppercase text-blue-900 tracking-wider">
+                  The National Professional Institution for Aviation
+                </p>
+              </div>
+
+              <div className="w-full sm:w-48">
+                <table className="w-full border-collapse border-2 border-black text-[10px] font-bold">
+                  <tbody>
+                    <tr>
+                      <td className="border border-black p-0.5 w-1/3 bg-slate-100">DATE</td>
+                      <td className="border border-black p-0.5 text-center">{formattedDate}</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-black p-0.5 bg-slate-100">WO NO.</td>
+                      <td className="border border-black p-0.5 text-center font-mono">{task.wo_work_order_number || ''}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border-2 border-black text-[9px] font-bold uppercase min-w-[500px]">
+                <tbody>
+                  <tr>
+                    <td className="border border-black p-0.5 w-[18%] bg-slate-100">Registration</td>
+                    <td className="border border-black p-0.5 w-[15%]">RP-C8874</td>
+                    <td className="border border-black p-0.5 w-[15%] bg-slate-100">Classification</td>
+                    <td className="border border-black p-0.5 w-[10%]">Routine</td>
+                    <td className="border border-black p-0.5 w-[15%] text-center bg-slate-100" rowSpan={2}>Approved By</td>
+                    <td className="border border-black p-0.5 w-[17%]" rowSpan={2}></td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-0.5 bg-slate-100">Aircraft</td>
+                    <td className="border border-black p-0.5">CESSNA 150</td>
+                    <td className="border border-black p-0.5"></td>
+                    <td className="border border-black p-0.5">Nonroutine</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="border-2 border-black h-32 sm:h-48 p-1 overflow-hidden flex flex-col">
+              <span className="font-bold uppercase block text-[9px] mb-0.5 shrink-0">Work Order:</span>
+              <div className="flex-1 overflow-y-auto">
+                <p className="font-medium normal-case text-[9px] leading-tight">{workOrderItemsText}</p>
+              </div>
+            </div>
+
+            <div className="border-2 border-black h-32 sm:h-48 p-1 overflow-hidden flex flex-col">
+              <span className="font-bold uppercase block text-[9px] mb-0.5 shrink-0">Action Taken:</span>
+              <div className="flex-1 overflow-y-auto">
+                <p className="font-medium normal-case text-[9px] leading-tight">{actionTakenText}</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="w-full sm:w-[55%] overflow-x-auto">
+                <table className="w-full border-collapse border-2 border-black text-center text-[9px] font-bold uppercase min-w-[300px]">
+                  <thead>
+                    <tr>
+                      <th colSpan={3} className="bg-slate-700 text-white p-0.5 border border-black text-[9px]">
+                        Parts for Replacement
+                      </th>
+                    </tr>
+                    <tr className="bg-slate-100">
+                      <th className="border border-black p-0.5 w-[15%]">Qty</th>
+                      <th className="border border-black p-0.5 w-[55%]">Nomenclature</th>
+                      <th className="border border-black p-0.5 w-[30%]">Part No.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tableRows.map((p, i) => (
+                      <tr key={i}>
+                        <td className="border border-black h-4 font-normal">{p?.wopr_quantity || p?.quantity || ''}</td>
+                        <td className="border border-black h-4 font-normal text-left px-1 truncate max-w-[100px] sm:max-w-none">{p?.wopr_nomenclature || p?.nomenclature || ''}</td>
+                        <td className="border border-black h-4 font-mono font-normal truncate max-w-[80px] sm:max-w-none">{p?.wopr_part_number || p?.partNumber || ''}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="w-full sm:w-[45%] flex flex-col justify-between text-[9px] font-bold uppercase mt-2 sm:mt-0">
+                <div>
+                  <span className="block mb-0.5">STUDENT / TECHNICIAN</span>
+                  <div className="ml-1 space-y-0 font-normal text-[8px]">
+                    <div className="truncate">1. {studentName || '__________________'}</div>
+                    <div>2. __________________</div>
+                  </div>
+                </div>
+                <div className="text-[7px] leading-tight mt-2 sm:mt-0">I HEREBY CERTIFY THAT THE WORK PERFORMED
+                  LISTED ABOVE HAS CONSENT UNDER IPC/AMM
+                  SECTION:</div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-end mt-2 sm:mt-0">
+                  <span className="mr-1 text-[8px] mb-1 sm:mb-0">INSTRUCTOR</span>
+                  <div className="w-full sm:flex-grow border-b border-black text-center sm:text-left text-[8px] truncate">{instructorName} - License No: {instructorLicenseNo}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr className="border-t border-dashed border-slate-300 my-0.25" />
+
+          {/* SECTION 2: RETURN TO SERVICE SLIP */}
+          <div className="print:hidden">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-0.5 gap-2 sm:gap-0">
+              <div className="flex flex-col">
+                <h1 className="text-2xl font-black tracking-tighter text-blue-900 leading-none">
+                  NAAP
+                </h1>
+                <p className="text-[7px] font-bold uppercase text-blue-900 tracking-wider">
+                  The National Professional Institution for Aviation
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-0.5 gap-2 sm:gap-0 mt-2 sm:mt-0">
+
+              <div className="border border-black w-full sm:w-1/2 py-0.5 text-center font-bold text-[10px] bg-slate-50">
+                RETURN TO SERVICE SLIP
+              </div>
+
+              <div className="font-bold text-[10px] w-full sm:w-auto text-left sm:text-right">
+                AIRCRAFT REGISTRY: RP-C8874
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border-2 border-black text-[9px] min-w-[500px]">
+                <thead>
+                  <tr>
+                    <th className="border border-black p-1 w-1/2 text-center font-bold uppercase bg-slate-50">AIRCRAFT DISCREPANCY</th>
+                    <th className="border border-black p-1 w-1/2 text-center font-bold uppercase bg-slate-50">CORRECTIVE ACTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border border-black p-1.5 align-top">
+                      <div className="h-48 sm:h-64 overflow-y-auto font-medium">
+                        {discrepancyText}
+                      </div>
+                    </td>
+                    <td className="border border-black p-1.5 align-top">
+                      <div className="h-48 sm:h-64 overflow-y-auto font-medium">
+                        {correctiveActionText}
+                      </div>
+                    </td>
+                  </tr>
+                  <tr className="flex flex-col sm:table-row">
+                    <td className="border border-black p-1 font-bold text-[8px] uppercase w-full sm:w-1/2 block sm:table-cell">
+                      STUDENT'S NAME: <span className="font-normal block sm:inline mt-0.5 sm:mt-0 truncate">{studentName}</span>
+                    </td>
+                    <td className="border border-black p-1 font-bold text-[8px] uppercase w-full sm:w-1/2 block sm:table-cell mt-1 sm:mt-0">
+                      INSTRUCTOR'S NAME: <span className="font-normal block sm:inline mt-0.5 sm:mt-0 truncate">{instructorName} LICENSE NO: {instructorLicenseNo}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="border-2 border-black mt-2 sm:mt-0">
+              <div className="bg-black text-white text-center font-bold py-0.5 text-[10px] sm:text-[12px] uppercase tracking-wider">
+                AIRWORTHINESS RELEASE
+              </div>
+              <div className="p-1.5 text-center text-[7px] sm:text-[8px] font-bold leading-tight uppercase border-b border-black">
+                "THE AIRCRAFT IDENTIFIED WAS REPAIRED AND INSPECTED IN ACCORDANCE WITH THE CURRENT MAINTENANCE RULES OF THE
+                CIVIL AVIATION AUTHORITY OF THE PHILIPPINES (CAAP) WAS DETERMINED TO BE AIRWORTHY AND IS APPROVED FOR RETURN TO
+                SERVICE"
+              </div>
+              <div className="flex flex-col sm:flex-row text-[8px] sm:text-[9px] font-bold uppercase divide-y sm:divide-y-0 sm:divide-x divide-black">
+                <div className="w-full sm:w-1/3 p-1 flex items-center justify-between sm:justify-start"><span>INSTRUCTOR:</span> <span className="font-normal truncate ml-1">{instructorName}</span></div>
+                <div className="w-full sm:w-1/3 p-1 flex items-center justify-between sm:justify-start"><span>LICENSE NO:</span> <span className="font-normal truncate ml-1">{instructorLicenseNo}</span></div>
+                <div className="w-full sm:w-1/3 p-1">SIGNATURE:</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- MAIN DASHBOARD COMPONENT ---
 const WorkOrderDashboard = () => {
   const [workOrders, setWorkOrders] = useState([]);
@@ -103,6 +331,7 @@ const WorkOrderDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedWorkOrder, setSelectedWorkOrder] = useState(null);
+  const [selectedCompletedTask, setSelectedCompletedTask] = useState(null);
 
   // View Modal Active Tab State ('tasks', 'reports', 'proofs')
   const [activeTab, setActiveTab] = useState('tasks');
@@ -112,6 +341,12 @@ const WorkOrderDashboard = () => {
 
   // Lightbox Preview State
   const [activePreviewImage, setActivePreviewImage] = useState(null);
+
+  // --- PRINT PREVIEW & PDF MODAL STATE ---
+  const [isPrintPreviewOpen, setIsPrintPreviewOpen] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(0.45);
+  const pdfRef = useRef(null);
 
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isLoadingInstructors, setIsLoadingInstructors] = useState(false);
@@ -259,6 +494,7 @@ const WorkOrderDashboard = () => {
       const reportRes = response.data || (typeof response.json === 'function' ? await response.json() : response);
       const parsedData = reportRes?.data || reportRes;
       setReportData(parsedData);
+      setSelectedCompletedTask(parsedData);
       return parsedData;
     } catch (error) {
       console.warn("Notice: Report summary data unavailable or pending generation for this work order.", error);
@@ -294,6 +530,86 @@ const WorkOrderDashboard = () => {
     }
   };
 
+  // --- OPEN PRINT PREVIEW MODAL HANDLER ---
+  const handleOpenPrintPreview = async (wo, e) => {
+    if (e) e.stopPropagation();
+    setIsLoadingDetails(true);
+    try {
+      let targetWo = wo;
+      if (typeof wo === 'string') {
+        const res = await workOrderService.viewWorkOrderDetails(wo);
+        targetWo = res?.data?.data || res?.data || res;
+      }
+      setSelectedWorkOrder(targetWo);
+      await fetchReportDetails(targetWo.wo_work_order_number || wo);
+      setZoomLevel(0.45);
+      setIsPrintPreviewOpen(true);
+    } catch (err) {
+      console.error("Error preparing document for preview:", err);
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
+
+  // --- PDF EXPORT DOWNLOAD HANDLER ---
+  const handleDownloadPdf = async () => {
+    const element = pdfRef.current;
+    if (!element) return;
+
+    setIsGeneratingPdf(true);
+    try {
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '0';
+      container.style.width = '210mm';
+      container.style.backgroundColor = '#ffffff';
+      document.body.appendChild(container);
+
+      const clone = element.cloneNode(true);
+      clone.style.transform = 'none';
+      container.appendChild(clone);
+
+      const canvas = await html2canvas(clone, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      document.body.removeChild(container);
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      const canvasWidth = canvas.width || 595;
+      const canvasHeight = canvas.height || 842;
+      const calculatedHeight = (canvasHeight * pdfWidth) / canvasWidth;
+
+      const finalHeight = calculatedHeight > pdfHeight ? pdfHeight : calculatedHeight;
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, finalHeight);
+
+      const woNumber = selectedWorkOrder?.wo_work_order_number || 'WorkOrder';
+      pdf.save(`WorkOrder_${woNumber}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'PDF Export Failed',
+        text: 'Could not generate PDF document.',
+        background: '#ffffff',
+        color: '#0f172a',
+        confirmButtonColor: '#0284c7'
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -310,7 +626,7 @@ const WorkOrderDashboard = () => {
 
     try {
       await workOrderService.createWorkOrder(payload);
-      
+
       Swal.fire({
         icon: 'success',
         title: 'Work Order Created!',
@@ -405,7 +721,7 @@ const WorkOrderDashboard = () => {
                   return (
                     <div
                       key={wo.wo_id}
-                      className={`bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-3 ${isComplete ? 'opacity-75' : ''}`}
+                      className={`bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-3 ${isComplete ? 'opacity-90' : ''}`}
                     >
                       <div className="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
                         <div className="flex items-center gap-2">
@@ -414,11 +730,10 @@ const WorkOrderDashboard = () => {
                             {wo.wo_work_order_number}
                           </span>
                         </div>
-                        <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block border ${
-                          isComplete ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                        <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block border ${isComplete ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                           wo.wo_status === 'ongoing' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                          'bg-sky-50 text-sky-700 border-sky-200'
-                        }`}>
+                            'bg-sky-50 text-sky-700 border-sky-200'
+                          }`}>
                           {wo.wo_status || 'Active'}
                         </span>
                       </div>
@@ -434,18 +749,28 @@ const WorkOrderDashboard = () => {
                         </div>
                       </div>
 
-                      <div className="pt-1 flex justify-end">
+                      <div className="pt-1 flex gap-2">
                         <button
                           onClick={() => handleViewDetails(wo)}
-                          className={`w-full py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer ${
-                            isComplete 
-                              ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700' 
-                              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                          }`}
+                          className={`flex-1 py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer ${isComplete
+                            ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                            }`}
                         >
                           <Eye className="h-3.5 w-3.5" />
                           {isComplete ? 'View Report' : 'View Details'}
                         </button>
+
+                        {isComplete && (
+                          <button
+                            onClick={(e) => handleOpenPrintPreview(wo, e)}
+                            className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white border border-slate-800 rounded-lg text-xs font-bold flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                            title="Preview PDF Document"
+                          >
+                            <FileDown className="h-3.5 w-3.5 text-sky-400" />
+                            <span>PDF</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
@@ -463,7 +788,7 @@ const WorkOrderDashboard = () => {
                   return (
                     <div
                       key={wo.wo_id}
-                      className={`bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between space-y-3 ${isComplete ? 'opacity-75' : ''}`}
+                      className={`bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between space-y-3 ${isComplete ? 'opacity-90' : ''}`}
                     >
                       <div className="space-y-3">
                         <div className="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
@@ -473,11 +798,10 @@ const WorkOrderDashboard = () => {
                               {wo.wo_work_order_number}
                             </span>
                           </div>
-                          <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block border ${
-                            isComplete ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                          <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block border ${isComplete ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                             wo.wo_status === 'ongoing' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                            'bg-sky-50 text-sky-700 border-sky-200'
-                          }`}>
+                              'bg-sky-50 text-sky-700 border-sky-200'
+                            }`}>
                             {wo.wo_status || 'Active'}
                           </span>
                         </div>
@@ -494,18 +818,28 @@ const WorkOrderDashboard = () => {
                         </div>
                       </div>
 
-                      <div className="pt-2">
+                      <div className="pt-2 flex gap-2">
                         <button
                           onClick={() => handleViewDetails(wo)}
-                          className={`w-full py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer ${
-                            isComplete 
-                              ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700' 
-                              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                          }`}
+                          className={`flex-1 py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer ${isComplete
+                            ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                            }`}
                         >
                           <Eye className="h-3.5 w-3.5" />
                           {isComplete ? 'View Report' : 'View Details'}
                         </button>
+
+                        {isComplete && (
+                          <button
+                            onClick={(e) => handleOpenPrintPreview(wo, e)}
+                            className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white border border-slate-800 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                            title="Preview PDF Document"
+                          >
+                            <FileDown className="h-3.5 w-3.5 text-sky-400" />
+                            <span>PDF</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
@@ -522,7 +856,7 @@ const WorkOrderDashboard = () => {
                         <th className="p-4">Date / Time</th>
                         <th className="p-4">Created By</th>
                         <th className="p-4">Status</th>
-                        <th className="p-4 text-right pr-6">Action</th>
+                        <th className="p-4 text-right pr-6">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -558,16 +892,29 @@ const WorkOrderDashboard = () => {
                               </span>
                             </td>
                             <td className="p-4 text-right pr-6">
-                              <button
-                                onClick={() => handleViewDetails(wo)}
-                                className={`p-1.5 px-3 rounded-lg transition-all border shadow-xs cursor-pointer inline-flex items-center gap-1.5 text-xs font-bold ${isComplete
-                                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
-                                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
-                                  }`}
-                                title="View Details"
-                              >
-                                <Eye className={`h-3.5 w-3.5 ${isComplete ? 'text-white' : 'text-sky-600'}`} /> View
-                              </button>
+                              <div className="inline-flex items-center gap-2">
+                                <button
+                                  onClick={() => handleViewDetails(wo)}
+                                  className={`p-1.5 px-3 rounded-lg transition-all border shadow-xs cursor-pointer inline-flex items-center gap-1.5 text-xs font-bold ${isComplete
+                                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
+                                    : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
+                                    }`}
+                                  title="View Details"
+                                >
+                                  <Eye className={`h-3.5 w-3.5 ${isComplete ? 'text-white' : 'text-sky-600'}`} /> View
+                                </button>
+
+                                {isComplete && (
+                                  <button
+                                    onClick={(e) => handleOpenPrintPreview(wo, e)}
+                                    className="p-1.5 px-3 bg-slate-800 hover:bg-slate-900 text-white border border-slate-800 rounded-lg transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5 text-xs font-bold"
+                                    title="Preview PDF Document"
+                                  >
+                                    <FileDown className="h-3.5 w-3.5 text-sky-400" />
+                                    <span>PDF</span>
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         );
@@ -906,11 +1253,100 @@ const WorkOrderDashboard = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-end shrink-0">
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center shrink-0">
+              <div>
+                {(selectedWorkOrder.wo_status?.toLowerCase() === 'completed' || selectedWorkOrder.wo_status?.toLowerCase() === 'complete') && (
+                  <button
+                    onClick={() => {
+                      setIsViewModalOpen(false);
+                      setZoomLevel(0.45);
+                      setIsPrintPreviewOpen(true);
+                    }}
+                    className="px-4 py-2 rounded-xl text-white font-bold bg-slate-800 hover:bg-slate-900 transition-all cursor-pointer shadow-xs flex items-center gap-2"
+                  >
+                    <Eye className="h-4 w-4 text-sky-400" />
+                    <span>PDF Preview</span>
+                  </button>
+                )}
+              </div>
               <button onClick={closeViewModal} className="px-4 py-2 rounded-xl text-slate-700 font-bold bg-white hover:bg-slate-100 border border-slate-300 transition-all cursor-pointer shadow-xs">
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- PRINT & PDF PREVIEW MODAL --- */}
+      {isPrintPreviewOpen && selectedWorkOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-hidden w-full h-full">
+          <div className="bg-white border border-slate-200 shadow-xl rounded-xl sm:rounded-2xl w-full max-w-5xl h-[98vh] sm:h-[90vh] flex flex-col">
+
+            <div className="flex justify-between items-center p-3 sm:p-5 border-b border-slate-200 bg-white rounded-t-xl sm:rounded-t-2xl z-10 shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 pr-2">
+                <Printer className="h-5 w-5 sm:h-6 sm:w-6 text-sky-600 shrink-0" />
+                <div className="truncate">
+                  <h2 className="text-base sm:text-lg font-bold text-slate-950 truncate">PDF Document Preview</h2>
+                  <p className="text-[9px] sm:text-xs text-slate-500 hidden sm:block truncate">Use zoom controls to inspect document layout prior to exporting</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-0.5 sm:p-1 gap-1">
+                  <button
+                    onClick={() => setZoomLevel(prev => Math.max(0.3, prev - 0.15))}
+                    className="p-1 hover:bg-slate-200 text-slate-700 rounded transition-colors"
+                    title="Zoom Out"
+                  >
+                    <Minimize2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  </button>
+                  <span className="text-[10px] font-mono text-sky-600 px-1">{Math.round(zoomLevel * 100)}%</span>
+                  <button
+                    onClick={() => setZoomLevel(prev => Math.min(1.5, prev + 0.15))}
+                    className="p-1 hover:bg-slate-200 text-slate-700 rounded transition-colors"
+                    title="Zoom In"
+                  >
+                    <Maximize2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  </button>
+                </div>
+
+                <button
+                  onClick={handleDownloadPdf}
+                  disabled={isGeneratingPdf}
+                  className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-[10px] sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                >
+                  {isGeneratingPdf ? <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" /> : <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+                  <span className="hidden xs:inline">{isGeneratingPdf ? 'Exporting...' : 'Download PDF'}</span>
+                </button>
+
+                <button
+                  onClick={() => setIsPrintPreviewOpen(false)}
+                  className="text-slate-400 hover:text-slate-700 p-1.5 sm:p-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer bg-slate-100 sm:bg-transparent"
+                >
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-auto bg-slate-100 flex flex-col items-center justify-start p-4 sm:p-8 custom-scrollbar relative">
+              <div
+                className="origin-top shadow-xl rounded-sm bg-white shrink-0 transition-transform duration-150 my-auto border border-slate-200"
+                style={{ transform: `scale(${zoomLevel})` }}
+              >
+                <PrintableDocumentContent task={selectedCompletedTask} slip={activeReturnSlip} pdfRef={pdfRef} />
+              </div>
+            </div>
+
+            <div className="p-3 sm:p-4 border-t border-slate-200 bg-white flex justify-between items-center rounded-b-xl sm:rounded-b-2xl shrink-0">
+              <span className="text-[9px] sm:text-xs text-slate-500 font-medium truncate pr-2">Official Airworthiness & Maintenance Work Order Log</span>
+              <button
+                onClick={() => setIsPrintPreviewOpen(false)}
+                className="px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-sm font-semibold transition-colors cursor-pointer border border-slate-300 sm:border-transparent shrink-0"
+              >
+                Close
+              </button>
+            </div>
+
           </div>
         </div>
       )}

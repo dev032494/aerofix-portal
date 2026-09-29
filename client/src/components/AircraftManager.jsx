@@ -356,13 +356,13 @@ export default function AircraftManager() {
                           >
                             <Edit className="h-4 w-4" />
                           </button>
-                          <button
+                          {/* <button
                             onClick={() => handleDelete(ac.a_id, ac.a_registration_number)}
                             className="p-2 bg-slate-100 hover:bg-rose-50 text-rose-600 hover:border-rose-200 rounded-lg transition-colors border border-slate-200 shadow-xs cursor-pointer"
                             title="Delete Record"
                           >
                             <Trash2 className="h-4 w-4" />
-                          </button>
+                          </button> */}
                         </div>
                       </td>
                     </tr>
