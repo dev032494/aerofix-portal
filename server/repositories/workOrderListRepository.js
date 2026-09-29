@@ -12,6 +12,13 @@ class WorkOrderRepository extends BaseRepository {
         return await super.findAll({ order: [['wol_description', 'ASC']] });
     }
 
+    async findAllActive() {
+    return await super.findAll({
+        where: { wol_status: 'active' },
+        order: [['wol_description', 'ASC']]
+    });
+}
+
     async findById(id) {
         return await super.findById(id);
     }
@@ -48,6 +55,24 @@ class WorkOrderRepository extends BaseRepository {
 
             await record.destroy();
             return { success: true };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    }
+
+    async updateStatus(id, wol_status) {
+        try {
+            if (!wol_status) {
+                return { success: false, message: 'Status is required' };
+            }
+
+            const record = await super.findById(id);
+            if (!record) {
+                return { success: false, message: 'Work order not found' };
+            }
+
+            await record.update({ wol_status });
+            return { success: true, data: record };
         } catch (error) {
             return { success: false, message: error.message };
         }

@@ -130,7 +130,9 @@ export const workOrderListService = {
   getAll: () => api.get('/work-order-list'),
   create: (data) => api.post('/work-order-list', data),
   update: (id, data) => api.put(`/work-order-list/${id}`, data),
-  delete: (id) => api.delete(`/work-order-list/${id}`),
+  delete: (id) => api.put(`/work-order-list/delete/${id}`),
+  restore: (id) => api.put(`/work-order-list/restore/${id}`),
+  active: () => api.get('/work-order-list/active'),
 
 };
 

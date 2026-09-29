@@ -148,6 +148,14 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
                 <NavLink to="instructor" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
                   <GraduationCap className="h-5 w-5 shrink-0" /> Instructors
                 </NavLink>
+
+                <NavLink to="activation-logs" onClick={() => setIsMobileMenuOpen(false)} className={(props) => developerNavLinkClass(props, 'amber')}>
+                  <ShieldAlert className="h-5 w-5 shrink-0" /> Activation Logs
+                </NavLink>
+
+                <NavLink to="activity-logs" onClick={() => setIsMobileMenuOpen(false)} className={(props) => developerNavLinkClass(props, 'sky')}>
+                  <Activity className="h-5 w-5 shrink-0" /> System Activity Logs
+                </NavLink>
               </>
             )}
 
@@ -156,6 +164,7 @@ function MainWorkspace({ currentUser, setCurrentUser }) {
                 <CheckCircle2 className="h-5 w-5 shrink-0" /> My Tasks
               </NavLink>
             )}
+            
             <NavLink to="library" onClick={() => setIsMobileMenuOpen(false)} className={navLinkClass}>
               <BookOpen className="h-5 w-5 shrink-0" /> Tech Library
             </NavLink>
@@ -283,8 +292,8 @@ export default function App() {
           <Route path="library" element={<LibraryView />} />
           <Route path="profile" element={<ProfileView />} />
 
-          <Route path="activation-logs" element={isDeveloper ? <UserActivationDashboard /> : <Navigate to="library" />} />
-          <Route path="activity-logs" element={isDeveloper ? <ActivityLogDashboard /> : <Navigate to="library" />} />
+          <Route path="activation-logs" element={!isStudent ? <UserActivationDashboard /> : <Navigate to="library" />} />
+          <Route path="activity-logs" element={!isStudent ? <ActivityLogDashboard /> : <Navigate to="library" />} />
         </Route>
 
         <Route

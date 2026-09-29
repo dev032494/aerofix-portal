@@ -5,7 +5,8 @@ import {
   Plus,
   Edit2,
   Trash2,
-  X
+  X,
+  RotateCcw
 } from 'lucide-react';
 import { workOrderListService } from '../services/api';
 
@@ -136,6 +137,46 @@ export default function WorkOrderListView({ activeUser }) {
     }
   };
 
+  const handleRestore = async (id) => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'Do you want to restore this work order?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, restore it!',
+      background: '#ffffff',
+      color: '#0f172a'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await workOrderListService.restore(id);
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Work order restored successfully.',
+          timer: 2000,
+          showConfirmButton: false,
+          background: '#ffffff',
+          color: '#0f172a',
+          confirmButtonColor: '#0284c7'
+        });
+        fetchWorkOrders();
+      } catch (err) {
+        Swal.fire({
+          title: 'Error',
+          text: 'Failed to restore record',
+          icon: 'error',
+          background: '#ffffff',
+          color: '#0f172a',
+          confirmButtonColor: '#0284c7'
+        });
+      }
+    }
+  };
+
   const openModal = (workOrder = null) => {
     if (workOrder) {
       setEditId(workOrder.wol_id);
@@ -148,6 +189,30 @@ export default function WorkOrderListView({ activeUser }) {
       setFormData({ wol_description: '', wol_create_by: userFullName });
     }
     setIsModalOpen(true);
+  };
+
+  // Helper function for row/card background styling based on status
+  const getStatusBgClass = (status) => {
+    if (status === 'active') {
+      return 'bg-emerald-50/60 border-emerald-200 hover:bg-emerald-100/60';
+    }
+    return 'bg-rose-50/60 border-rose-200 hover:bg-rose-100/60';
+  };
+
+  // Helper function to render status badges
+  const renderStatusBadge = (status) => {
+    if (status === 'active') {
+      return (
+        <span className="px-2.5 py-1 text-[11px] font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 capitalize inline-block">
+          Active
+        </span>
+      );
+    }
+    return (
+      <span className="px-2.5 py-1 text-[11px] font-bold rounded-full bg-rose-100 text-rose-800 border border-rose-300 capitalize inline-block">
+        {status}
+      </span>
+    );
   };
 
   return (
@@ -184,40 +249,55 @@ export default function WorkOrderListView({ activeUser }) {
             </div>
           ) : (
             <div className="flex-1 min-h-0 flex flex-col">
-              
+
               {/* MOBILE VIEW: SINGLE COLUMN CARD LIST (< sm screens) */}
               <div className="block sm:hidden space-y-3 overflow-y-auto max-h-[70vh] pr-1">
                 {workOrders.map((wo, index) => (
-                  <div key={wo.wol_id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-3">
-                    <div className="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+                  <div
+                    key={wo.wol_id}
+                    className={`border rounded-xl p-4 shadow-xs space-y-3 transition-colors ${getStatusBgClass(wo.wol_status)}`}
+                  >
+                    <div className="flex justify-between items-center gap-2 border-b border-slate-200/60 pb-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                        <span className="font-mono text-xs font-bold text-sky-600 bg-white px-2 py-0.5 rounded border border-sky-200">
                           #{index + 1}
                         </span>
                         <span className="text-[10px] font-mono text-slate-500">
                           {new Date(wo.wol_create_at).toLocaleDateString()}
                         </span>
                       </div>
+                      {renderStatusBadge(wo.wol_status)}
                     </div>
 
                     <div className="space-y-1 text-xs">
                       <p className="text-slate-900 font-medium leading-relaxed">{wo.wol_description}</p>
-                      <p className="text-[11px] text-slate-500 pt-1 font-semibold">Created By: {wo.wol_create_by}</p>
+                      <p className="text-[11px] text-slate-600 pt-1 font-semibold">Created By: {wo.wol_create_by}</p>
                     </div>
 
-                    <div className="pt-2 flex gap-2 justify-end border-t border-slate-100">
-                      <button
-                        onClick={() => openModal(wo)}
-                        className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg border border-amber-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
-                      >
-                        <Edit2 className="h-3.5 w-3.5" /> Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(wo.wol_id)}
-                        className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg border border-rose-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" /> Delete
-                      </button>
+                    <div className="pt-2 flex gap-2 justify-end border-t border-slate-200/60">
+                      {wo.wol_status === 'active' ? (
+                        <>
+                          <button
+                            onClick={() => openModal(wo)}
+                            className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg border border-amber-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <Edit2 className="h-3.5 w-3.5" /> Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(wo.wol_id)}
+                            className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg border border-rose-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" /> Delete
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => handleRestore(wo.wol_id)}
+                          className="p-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg border border-emerald-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" /> Restore
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -226,36 +306,51 @@ export default function WorkOrderListView({ activeUser }) {
               {/* TABLET VIEW: 2-COLUMN GRID (sm to lg screens) */}
               <div className="hidden sm:grid lg:hidden grid-cols-2 gap-4 overflow-y-auto max-h-[70vh] pr-1">
                 {workOrders.map((wo, index) => (
-                  <div key={wo.wol_id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between space-y-3">
+                  <div
+                    key={wo.wol_id}
+                    className={`border rounded-xl p-4 shadow-xs flex flex-col justify-between space-y-3 transition-colors ${getStatusBgClass(wo.wol_status)}`}
+                  >
                     <div className="space-y-2">
-                      <div className="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
-                        <span className="font-mono text-xs font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                      <div className="flex justify-between items-center gap-2 border-b border-slate-200/60 pb-2">
+                        <span className="font-mono text-xs font-bold text-sky-600 bg-white px-2 py-0.5 rounded border border-sky-200">
                           #{index + 1}
                         </span>
-                        <span className="text-[10px] font-mono text-slate-500">
-                          {new Date(wo.wol_create_at).toLocaleDateString()}
-                        </span>
+                        {renderStatusBadge(wo.wol_status)}
                       </div>
 
                       <div className="space-y-1 text-xs">
                         <p className="text-slate-900 font-medium leading-relaxed line-clamp-3">{wo.wol_description}</p>
-                        <p className="text-[11px] text-slate-500 pt-1 font-semibold">Created By: {wo.wol_create_by}</p>
+                        <p className="text-[11px] text-slate-600 pt-1 font-semibold">Created By: {wo.wol_create_by}</p>
+                        <p className="text-[10px] font-mono text-slate-500">
+                          {new Date(wo.wol_create_at).toLocaleDateString()}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="pt-2 flex gap-2 justify-end border-t border-slate-100">
-                      <button
-                        onClick={() => openModal(wo)}
-                        className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg border border-amber-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
-                      >
-                        <Edit2 className="h-3.5 w-3.5" /> Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(wo.wol_id)}
-                        className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg border border-rose-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" /> Delete
-                      </button>
+                    <div className="pt-2 flex gap-2 justify-end border-t border-slate-200/60">
+                      {wo.wol_status === 'active' ? (
+                        <>
+                          <button
+                            onClick={() => openModal(wo)}
+                            className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg border border-amber-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <Edit2 className="h-3.5 w-3.5" /> Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(wo.wol_id)}
+                            className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg border border-rose-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" /> Delete
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => handleRestore(wo.wol_id)}
+                          className="p-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg border border-emerald-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" /> Restore
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -269,38 +364,56 @@ export default function WorkOrderListView({ activeUser }) {
                       <tr>
                         <th className="py-4 px-6 border-b border-slate-200 w-24 text-center">ID</th>
                         <th className="py-4 px-6 border-b border-slate-200">Description</th>
+                        <th className="py-4 px-6 border-b border-slate-200 w-36">Status</th>
                         <th className="py-4 px-6 border-b border-slate-200 w-48">Created By</th>
                         <th className="py-4 px-6 border-b border-slate-200 w-48">Created At</th>
                         <th className="py-4 px-6 border-b border-slate-200 w-32 text-center">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 text-xs">
+                    <tbody className="divide-y divide-slate-200 text-xs">
                       {workOrders.map((wo, index) => (
-                        <tr key={wo.wol_id} className="hover:bg-slate-50 transition-colors">
-                          <td className="py-3 px-6 text-slate-600 text-center font-mono font-bold">
+                        <tr
+                          key={wo.wol_id}
+                          className={`transition-colors ${getStatusBgClass(wo.wol_status)}`}
+                        >
+                          <td className="py-3 px-6 text-slate-700 text-center font-mono font-bold">
                             {index + 1}
                           </td>
                           <td className="py-3 px-6 text-slate-900 font-medium">{wo.wol_description}</td>
-                          <td className="py-3 px-6 text-slate-600">{wo.wol_create_by}</td>
-                          <td className="py-3 px-6 text-slate-500 font-mono text-[11px]">
+                          <td className="py-3 px-6">{renderStatusBadge(wo.wol_status)}</td>
+                          <td className="py-3 px-6 text-slate-700 font-medium">{wo.wol_create_by}</td>
+                          <td className="py-3 px-6 text-slate-600 font-mono text-[11px]">
                             {new Date(wo.wol_create_at).toLocaleString()}
                           </td>
                           <td className="py-3 px-6 text-center">
                             <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => openModal(wo)}
-                                className="p-1.5 text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-all cursor-pointer shadow-xs"
-                                title="Edit"
-                              >
-                                <Edit2 className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(wo.wol_id)}
-                                className="p-1.5 text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-all cursor-pointer shadow-xs"
-                                title="Delete"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
+                              {wo.wol_status === 'active' ? (
+                                <>
+                                  <button
+                                    onClick={() => openModal(wo)}
+                                    className="p-1.5 text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-all cursor-pointer shadow-xs"
+                                    title="Edit"
+                                  >
+                                    <Edit2 className="h-3.5 w-3.5" />
+                                  </button>
+
+                                  <button
+                                    onClick={() => handleDelete(wo.wol_id)}
+                                    className="p-1.5 text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-all cursor-pointer shadow-xs"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  onClick={() => handleRestore(wo.wol_id)}
+                                  className="p-1.5 text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-lg transition-all cursor-pointer shadow-xs"
+                                  title="Restore"
+                                >
+                                  <RotateCcw className="h-3.5 w-3.5" />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>

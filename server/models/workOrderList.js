@@ -15,6 +15,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT('long'),
       allowNull: false
     },
+    wol_status: {
+      type: DataTypes.ENUM('active', 'inactive', 'deleted'),
+      allowNull: false,
+      defaultValue: 'active'
+    },
     wol_create_by: {
       type: DataTypes.STRING(300),
       allowNull: false

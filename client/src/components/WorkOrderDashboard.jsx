@@ -191,7 +191,7 @@ const WorkOrderDashboard = () => {
   const fetchWorkOrderList = async () => {
     setIsLoadingWorkOrderList(true);
     try {
-      const res = await workOrderListService.getAll();
+      const res = await workOrderListService.active();
       const dataArray = res?.data || res?.data?.workorderlist || res?.workorderlist || [];
       setWorkOrderList(dataArray);
     } catch (error) {

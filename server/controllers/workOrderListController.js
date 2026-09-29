@@ -33,6 +33,30 @@ exports.update = async (req, res) => {
   }
 };
 
+exports.updateStatus = async (req, res) => {
+  try {
+    const result = await WorkOrderListRepository.updateStatus(req.params.id, 'deleted');
+    if (!result.success) {
+      return res.status(404).json({ error: result.message });
+    }
+    res.status(200).json(result.data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.updateRestore = async (req, res) => {
+  try {
+    const result = await WorkOrderListRepository.updateStatus(req.params.id, 'active');
+    if (!result.success) {
+      return res.status(404).json({ error: result.message });
+    }
+    res.status(200).json(result.data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.delete = async (req, res) => {
   try {
     const result = await WorkOrderListRepository.delete(req.params.id);
@@ -40,6 +64,18 @@ exports.delete = async (req, res) => {
       return res.status(404).json({ error: result.message });
     }
     res.status(200).json({ message: 'Deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getActive = async (req, res) => {
+  try {
+    const data = await WorkOrderListRepository.findAllActive();
+
+    console.log('This is the data', data);
+
+    res.status(200).json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
